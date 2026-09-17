@@ -1,10 +1,10 @@
-"""Seed dev database. Run: uv run python -m app.db.seed"""
+"""Seed dev database. Run after `alembic upgrade head`: uv run python -m app.db.seed"""
 
 from sqlalchemy import select
 
 import app.models  # noqa: F401
 from app.core.security import hash_password
-from app.db.session import Base, SessionLocal, engine
+from app.db.session import SessionLocal
 from app.models import MenuItem, Restaurant, User, UserRole
 
 RESTAURANTS = [
@@ -54,7 +54,6 @@ RESTAURANTS = [
 
 
 def seed() -> None:
-    Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
         if db.scalar(select(Restaurant).limit(1)):
             print("Already seeded")
@@ -66,6 +65,15 @@ def seed() -> None:
                 name="Admin",
                 hashed_password=hash_password("admin123"),
                 role=UserRole.admin,
+            )
+        )
+        db.add(
+            User(
+                email="courier@food.dev",
+                name="Courier Bek",
+                phone="+77007654321",
+                hashed_password=hash_password("courier123"),
+                role=UserRole.courier,
             )
         )
         db.add(
@@ -86,7 +94,7 @@ def seed() -> None:
             db.add(restaurant)
 
         db.commit()
-        print("Seeded: 2 users, 3 restaurants, 9 menu items")
+        print("Seeded: 3 users, 3 restaurants, 9 menu items")
 
 
 if __name__ == "__main__":

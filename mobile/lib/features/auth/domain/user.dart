@@ -14,6 +14,7 @@ class User {
   final String? phone;
 
   bool get isAdmin => role == 'admin';
+  bool get isCourier => role == 'courier';
 
   factory User.fromJson(Map<String, dynamic> json) => User(
         id: json['id'] as int,

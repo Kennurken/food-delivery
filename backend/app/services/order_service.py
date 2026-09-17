@@ -54,6 +54,35 @@ def create_order(db: Session, user: User, data: OrderCreate) -> Order:
     return order
 
 
+# Statuses a courier can pick up from
+COURIER_PICKABLE = {OrderStatus.confirmed, OrderStatus.preparing}
+
+
+def accept_order(db: Session, courier: User, order: Order) -> Order:
+    if order.courier_id is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Order already taken")
+    if order.status not in COURIER_PICKABLE:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Order not ready for pickup")
+    order.courier_id = courier.id
+    db.commit()
+    db.refresh(order)
+    return order
+
+
+def advance_order(db: Session, courier: User, order: Order) -> Order:
+    """Courier moves own order one step: preparing -> on_the_way -> delivered."""
+    if order.courier_id != courier.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Not your order")
+    next_status = {
+        OrderStatus.confirmed: OrderStatus.preparing,
+        OrderStatus.preparing: OrderStatus.on_the_way,
+        OrderStatus.on_the_way: OrderStatus.delivered,
+    }.get(order.status)
+    if next_status is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"Cannot advance from {order.status.value}")
+    return update_status(db, order, next_status)
+
+
 def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
     if new_status not in _TRANSITIONS[order.status]:
         raise HTTPException(

@@ -15,7 +15,7 @@ class OrderDetailScreen extends ConsumerWidget {
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
     try {
       await ref.read(orderRepositoryProvider).cancel(id);
-      ref.invalidate(orderProvider(id));
+      ref.invalidate(orderPollingProvider(id));
       ref.invalidate(ordersProvider);
     } catch (e) {
       if (context.mounted) {
@@ -26,14 +26,14 @@ class OrderDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final order = ref.watch(orderProvider(id));
+    final order = ref.watch(orderPollingProvider(id));
     return Scaffold(
       appBar: AppBar(title: Text('Order #$id')),
       body: order.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(errorMessage(e))),
         data: (o) => RefreshIndicator(
-          onRefresh: () => ref.refresh(orderProvider(id).future),
+          onRefresh: () async => ref.invalidate(orderPollingProvider(id)),
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -46,6 +46,15 @@ class OrderDetailScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               _StatusTimeline(o.status),
+              if (o.courier != null) ...[
+                const SizedBox(height: 12),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const CircleAvatar(child: Icon(Icons.delivery_dining)),
+                  title: Text(o.courier!.name),
+                  subtitle: Text(o.courier!.phone ?? 'Courier'),
+                ),
+              ],
               const Divider(height: 32),
               ListTile(
                 contentPadding: EdgeInsets.zero,

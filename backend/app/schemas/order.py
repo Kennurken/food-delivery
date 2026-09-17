@@ -27,11 +27,20 @@ class OrderItemOut(BaseModel):
     quantity: int
 
 
+class CourierOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    phone: str | None
+
+
 class OrderOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     restaurant_id: int
+    courier: CourierOut | None = None
     status: OrderStatus
     address: str
     comment: str | None

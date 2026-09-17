@@ -22,6 +22,7 @@ class Order(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     restaurant_id: Mapped[int] = mapped_column(ForeignKey("restaurants.id"))
+    courier_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), index=True)
     status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), default=OrderStatus.pending)
     address: Mapped[str] = mapped_column(String(300))
     comment: Mapped[str | None] = mapped_column(String(500))
@@ -30,7 +31,8 @@ class Order(Base):
     total: Mapped[float] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
-    user: Mapped["User"] = relationship(back_populates="orders")  # noqa: F821
+    user: Mapped["User"] = relationship(back_populates="orders", foreign_keys=[user_id])  # noqa: F821
+    courier: Mapped["User | None"] = relationship(foreign_keys=[courier_id])  # noqa: F821
     restaurant: Mapped["Restaurant"] = relationship()  # noqa: F821
     items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete-orphan", lazy="selectin"

@@ -12,6 +12,20 @@ class OrderItem {
       );
 }
 
+class Courier {
+  const Courier({required this.id, required this.name, this.phone});
+
+  final int id;
+  final String name;
+  final String? phone;
+
+  factory Courier.fromJson(Map<String, dynamic> json) => Courier(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        phone: json['phone'] as String?,
+      );
+}
+
 enum OrderStatus {
   pending,
   confirmed,
@@ -37,6 +51,15 @@ enum OrderStatus {
       };
 
   bool get canCancel => this == pending || this == confirmed;
+  bool get isFinal => this == delivered || this == cancelled;
+
+  /// Next step a courier can push this order to, or null.
+  OrderStatus? get courierNext => switch (this) {
+        confirmed => preparing,
+        preparing => onTheWay,
+        onTheWay => delivered,
+        _ => null,
+      };
 }
 
 class Order {
@@ -51,10 +74,12 @@ class Order {
     required this.createdAt,
     required this.items,
     this.comment,
+    this.courier,
   });
 
   final int id;
   final int restaurantId;
+  final Courier? courier;
   final OrderStatus status;
   final String address;
   final String? comment;
@@ -67,6 +92,7 @@ class Order {
   factory Order.fromJson(Map<String, dynamic> json) => Order(
         id: json['id'] as int,
         restaurantId: json['restaurant_id'] as int,
+        courier: json['courier'] == null ? null : Courier.fromJson(json['courier']),
         status: OrderStatus.parse(json['status'] as String),
         address: json['address'] as String,
         comment: json['comment'] as String?,

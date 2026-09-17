@@ -6,6 +6,7 @@ import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/cart/presentation/cart_screen.dart';
+import '../../features/courier/presentation/courier_screen.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/restaurants/presentation/home_screen.dart';
@@ -29,11 +30,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       final auth = ref.read(authControllerProvider);
       if (auth.isLoading) return '/splash';
 
-      final signedIn = auth.value != null;
-      final onAuthPage = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+      final user = auth.value;
+      final loc = state.matchedLocation;
+      final onAuthPage = loc == '/login' || loc == '/register';
 
-      if (!signedIn && !onAuthPage) return '/login';
-      if (signedIn && (onAuthPage || state.matchedLocation == '/splash')) return '/';
+      if (user == null) return onAuthPage ? null : '/login';
+
+      final home = user.isCourier ? '/courier' : '/';
+      if (onAuthPage || loc == '/splash') return home;
+      // Keep roles on their own surfaces.
+      if (user.isCourier && !loc.startsWith('/courier')) return '/courier';
+      if (!user.isCourier && loc.startsWith('/courier')) return '/';
       return null;
     },
     routes: [
@@ -44,6 +51,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
       GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
+      GoRoute(path: '/courier', builder: (_, _) => const CourierScreen()),
       GoRoute(
         path: '/restaurants/:id',
         builder: (_, s) => RestaurantScreen(id: int.parse(s.pathParameters['id']!)),

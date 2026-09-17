@@ -1,21 +1,10 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
-from app.db.session import Base, engine
 
-
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    import app.models  # noqa: F401 — register tables
-
-    Base.metadata.create_all(bind=engine)
-    yield
-
-
-app = FastAPI(title="Food Delivery API", version="0.1.0", lifespan=lifespan)
+# Schema is managed by Alembic: `uv run alembic upgrade head`
+app = FastAPI(title="Food Delivery API", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,

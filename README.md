@@ -24,9 +24,11 @@ food-delivery/
 
 Backend:
 ```bash
-cd backend && uv sync && uv run python -m app.db.seed && uv run uvicorn app.main:app --reload
+cd backend && uv sync && uv run alembic upgrade head && uv run python -m app.db.seed && uv run uvicorn app.main:app --reload
 ```
-Swagger: http://127.0.0.1:8000/docs — dev users `user@food.dev / user123`, `admin@food.dev / admin123`.
+Or with Postgres: `docker compose up --build` (then seed inside: `docker compose exec api uv run python -m app.db.seed`).
+
+Swagger: http://127.0.0.1:8000/docs — dev users `user@food.dev / user123`, `courier@food.dev / courier123`, `admin@food.dev / admin123`.
 
 Mobile:
 ```bash
@@ -46,10 +48,16 @@ Android emulator hits `10.0.2.2:8000`, iOS sim hits `127.0.0.1:8000`. Override: 
 | POST | /api/v1/orders | user |
 | GET | /api/v1/orders | user |
 | GET | /api/v1/orders/{id} | user |
-| POST | /api/v1/orders/{id}/cancel | user |
+| POST | /api/v1/orders/{id}/cancel | customer |
+| GET | /api/v1/orders/available | courier |
+| POST | /api/v1/orders/{id}/accept | courier |
+| POST | /api/v1/orders/{id}/advance | courier (assigned) |
 | PATCH | /api/v1/orders/{id}/status | admin |
 
 Order status machine: `pending → confirmed → preparing → on_the_way → delivered`; cancel allowed from `pending`/`confirmed`.
+Admin confirms; courier picks up from `confirmed`/`preparing` and advances step by step. Client polls order every 4s until final.
+
+Schema migrations: `cd backend && uv run alembic revision --autogenerate -m "..." && uv run alembic upgrade head`.
 
 ## Tests
 
@@ -60,9 +68,9 @@ cd mobile && flutter test
 
 ## Roadmap
 
-- [ ] Courier role + order assignment
-- [ ] Push notifications on status change (FCM)
+- [x] Courier role + order assignment
+- [x] Alembic migrations, Postgres via docker compose
+- [ ] Push notifications on status change (FCM) — replaces polling
+- [ ] Restaurant/admin panel (confirm orders, edit menu)
 - [ ] Map/geocoding for address
 - [ ] Payments (Kaspi / Stripe)
-- [ ] Alembic migrations, Postgres in prod
-- [ ] Docker compose

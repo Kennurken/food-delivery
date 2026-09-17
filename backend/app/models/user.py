@@ -24,4 +24,4 @@ class User(Base):
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.customer)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
-    orders: Mapped[list["Order"]] = relationship(back_populates="user")  # noqa: F821
+    orders: Mapped[list["Order"]] = relationship(back_populates="user", foreign_keys="Order.user_id")  # noqa: F821

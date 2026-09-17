@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -40,14 +42,50 @@ class OrderRepository {
     final r = await _dio.post('/api/v1/orders/$id/cancel');
     return Order.fromJson(r.data);
   }
+
+  // --- courier
+  Future<List<Order>> available() async {
+    final r = await _dio.get('/api/v1/orders/available');
+    return (r.data as List).map((e) => Order.fromJson(e)).toList();
+  }
+
+  Future<Order> accept(int id) async {
+    final r = await _dio.post('/api/v1/orders/$id/accept');
+    return Order.fromJson(r.data);
+  }
+
+  Future<Order> advance(int id) async {
+    final r = await _dio.post('/api/v1/orders/$id/advance');
+    return Order.fromJson(r.data);
+  }
 }
 
 final orderRepositoryProvider = Provider((ref) => OrderRepository(ref.watch(dioProvider)));
 
-final ordersProvider = FutureProvider<List<Order>>(
-  (ref) => ref.watch(orderRepositoryProvider).list(),
-);
+final ordersProvider = FutureProvider<List<Order>>((ref) {
+  // Auto-refresh while the list is on screen; disposed when nobody watches it.
+  final timer = Timer(const Duration(seconds: 10), () => ref.invalidateSelf());
+  ref.onDispose(timer.cancel);
+  return ref.watch(orderRepositoryProvider).list();
+});
 
 final orderProvider = FutureProvider.family<Order, int>(
   (ref, id) => ref.watch(orderRepositoryProvider).get(id),
+);
+
+/// Re-fetches order every [interval] while status is not final.
+/// Cheap stand-in for push notifications until FCM lands.
+final orderPollingProvider = StreamProvider.family<Order, int>((ref, id) async* {
+  final repo = ref.watch(orderRepositoryProvider);
+  const interval = Duration(seconds: 4);
+  while (true) {
+    final order = await repo.get(id);
+    yield order;
+    if (order.status.isFinal) return;
+    await Future<void>.delayed(interval);
+  }
+});
+
+final availableOrdersProvider = FutureProvider<List<Order>>(
+  (ref) => ref.watch(orderRepositoryProvider).available(),
 );

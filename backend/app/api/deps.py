@@ -31,3 +31,12 @@ def require_admin(user: CurrentUser) -> User:
 
 
 AdminUser = Annotated[User, Depends(require_admin)]
+
+
+def require_courier(user: CurrentUser) -> User:
+    if user.role not in (UserRole.courier, UserRole.admin):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Courier only")
+    return user
+
+
+CourierUser = Annotated[User, Depends(require_courier)]

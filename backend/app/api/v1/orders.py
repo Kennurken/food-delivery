@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
-from app.api.deps import DB, AdminUser, CurrentUser
+from app.api.deps import DB, AdminUser, CourierUser, CurrentUser
 from app.models import Order, OrderStatus, UserRole
 from app.schemas.order import OrderCreate, OrderOut, OrderStatusUpdate
 from app.services import order_service
@@ -16,16 +16,50 @@ def create_order(data: OrderCreate, db: DB, user: CurrentUser) -> Order:
 
 @router.get("", response_model=list[OrderOut])
 def my_orders(db: DB, user: CurrentUser) -> list[Order]:
+    """Customer: own orders. Courier: assigned orders. Admin: everything."""
     stmt = select(Order).order_by(Order.created_at.desc())
-    if user.role != UserRole.admin:
+    if user.role == UserRole.customer:
         stmt = stmt.where(Order.user_id == user.id)
+    elif user.role == UserRole.courier:
+        stmt = stmt.where(Order.courier_id == user.id)
     return list(db.scalars(stmt))
+
+
+@router.get("/available", response_model=list[OrderOut])
+def available_orders(db: DB, _: CourierUser) -> list[Order]:
+    """Unassigned orders a courier can pick up."""
+    stmt = (
+        select(Order)
+        .where(Order.courier_id.is_(None), Order.status.in_(order_service.COURIER_PICKABLE))
+        .order_by(Order.created_at)
+    )
+    return list(db.scalars(stmt))
+
+
+def _get_or_404(db, order_id: int) -> Order:
+    order = db.get(Order, order_id)
+    if not order:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")
+    return order
+
+
+@router.post("/{order_id}/accept", response_model=OrderOut)
+def accept_order(order_id: int, db: DB, courier: CourierUser) -> Order:
+    return order_service.accept_order(db, courier, _get_or_404(db, order_id))
+
+
+@router.post("/{order_id}/advance", response_model=OrderOut)
+def advance_order(order_id: int, db: DB, courier: CourierUser) -> Order:
+    return order_service.advance_order(db, courier, _get_or_404(db, order_id))
 
 
 @router.get("/{order_id}", response_model=OrderOut)
 def get_order(order_id: int, db: DB, user: CurrentUser) -> Order:
     order = db.get(Order, order_id)
-    if not order or (order.user_id != user.id and user.role != UserRole.admin):
+    visible = order and (
+        user.role == UserRole.admin or order.user_id == user.id or order.courier_id == user.id
+    )
+    if not visible:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")
     return order
 
@@ -33,12 +67,11 @@ def get_order(order_id: int, db: DB, user: CurrentUser) -> Order:
 @router.post("/{order_id}/cancel", response_model=OrderOut)
 def cancel_order(order_id: int, db: DB, user: CurrentUser) -> Order:
     order = get_order(order_id, db, user)
+    if order.user_id != user.id and user.role != UserRole.admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the customer can cancel")
     return order_service.update_status(db, order, OrderStatus.cancelled)
 
 
 @router.patch("/{order_id}/status", response_model=OrderOut)
 def set_status(order_id: int, data: OrderStatusUpdate, db: DB, _: AdminUser) -> Order:
-    order = db.get(Order, order_id)
-    if not order:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")
-    return order_service.update_status(db, order, data.status)
+    return order_service.update_status(db, _get_or_404(db, order_id), data.status)

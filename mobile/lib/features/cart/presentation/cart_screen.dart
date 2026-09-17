@@ -42,7 +42,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           );
       ref.read(cartProvider.notifier).clear();
       ref.invalidate(ordersProvider);
-      if (mounted) context.go('/orders/${order.id}');
+      if (mounted) {
+        // Reset stack to home -> orders -> detail so back navigation makes sense.
+        context.go('/orders');
+        context.push('/orders/${order.id}');
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage(e))));

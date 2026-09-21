@@ -101,11 +101,13 @@ class Order {
     required this.restaurantName,
     this.comment,
     this.courier,
+    this.rating,
   });
 
   final int id;
   final int restaurantId;
   final String restaurantName;
+  final int? rating;
   final UserBrief customer;
   final UserBrief? courier;
   final OrderStatus status;
@@ -133,5 +135,6 @@ class Order {
     total: (json['total'] as num).toDouble(),
     createdAt: DateTime.parse(json['created_at'] as String),
     items: (json['items'] as List).map((e) => OrderItem.fromJson(e)).toList(),
+    rating: json['rating'] as int?,
   );
 }

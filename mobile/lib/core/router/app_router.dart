@@ -11,6 +11,7 @@ import '../../features/cart/presentation/cart_screen.dart';
 import '../../features/courier/presentation/courier_screen.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/restaurants/presentation/home_screen.dart';
 import '../../features/restaurants/presentation/restaurant_screen.dart';
 
@@ -49,8 +50,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       final onAdmin = loc.startsWith('/admin');
       if (user.isAdmin && !onAdmin) return home;
       if (user.isCourier && !onCourier) return home;
-      if (!user.isAdmin && !user.isCourier && (onAdmin || onCourier))
-        return home;
+      final isCustomer = !user.isAdmin && !user.isCourier;
+      if (isCustomer && (onAdmin || onCourier)) return home;
       return null;
     },
     routes: [
@@ -75,6 +76,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             RestaurantScreen(id: int.parse(s.pathParameters['id']!)),
       ),
       GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
+      GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
       GoRoute(path: '/orders', builder: (_, _) => const OrdersScreen()),
       GoRoute(
         path: '/orders/:id',

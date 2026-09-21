@@ -7,6 +7,7 @@ class Restaurant {
     required this.description,
     required this.cuisine,
     required this.rating,
+    required this.ratingCount,
     required this.deliveryFee,
     required this.deliveryTimeMin,
     required this.isOpen,
@@ -20,6 +21,7 @@ class Restaurant {
   final String cuisine;
   final String? imageUrl;
   final double rating;
+  final int ratingCount;
   final double deliveryFee;
   final int deliveryTimeMin;
   final bool isOpen;
@@ -32,6 +34,7 @@ class Restaurant {
     cuisine: json['cuisine'] as String,
     imageUrl: json['image_url'] as String?,
     rating: (json['rating'] as num).toDouble(),
+    ratingCount: json['rating_count'] as int? ?? 0,
     deliveryFee: (json['delivery_fee'] as num).toDouble(),
     deliveryTimeMin: json['delivery_time_min'] as int,
     isOpen: json['is_open'] as bool,

@@ -28,8 +28,9 @@ class CartController extends Notifier<CartState> {
 
   /// Returns false if item belongs to another restaurant (cart must be cleared first).
   bool add(MenuItem item) {
-    if (state.restaurantId != null && state.restaurantId != item.restaurantId)
-      return false;
+    final other =
+        state.restaurantId != null && state.restaurantId != item.restaurantId;
+    if (other) return false;
     final existing = state.items[item.id];
     final next = Map<int, CartItem>.from(state.items)
       ..[item.id] =

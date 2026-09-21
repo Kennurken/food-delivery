@@ -22,6 +22,12 @@ def list_restaurants(
     return list(db.scalars(stmt.order_by(Restaurant.rating.desc())))
 
 
+@router.get("/cuisines", response_model=list[str])
+def list_cuisines(db: DB) -> list[str]:
+    stmt = select(Restaurant.cuisine).where(Restaurant.is_open.is_(True)).distinct().order_by(Restaurant.cuisine)
+    return list(db.scalars(stmt))
+
+
 @router.get("/{restaurant_id}", response_model=RestaurantDetail)
 def get_restaurant(restaurant_id: int, db: DB) -> Restaurant:
     r = db.get(Restaurant, restaurant_id)

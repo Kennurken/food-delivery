@@ -23,6 +23,7 @@ class RestaurantOut(BaseModel):
     cuisine: str
     image_url: str | None
     rating: float
+    rating_count: int
     delivery_fee: float
     delivery_time_min: int
     is_open: bool

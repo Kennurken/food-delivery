@@ -29,6 +29,7 @@ class Order(Base):
     subtotal: Mapped[float] = mapped_column(Float)
     delivery_fee: Mapped[float] = mapped_column(Float)
     total: Mapped[float] = mapped_column(Float)
+    rating: Mapped[int | None] = mapped_column(Integer)  # 1..5, set by customer after delivery
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="orders", foreign_keys=[user_id])  # noqa: F821

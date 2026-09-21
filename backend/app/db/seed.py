@@ -87,7 +87,7 @@ def seed() -> None:
 
         for r in RESTAURANTS:
             menu = r.pop("menu")
-            restaurant = Restaurant(**r)
+            restaurant = Restaurant(**r, rating_count=10)
             restaurant.menu_items = [
                 MenuItem(name=n, description=d, price=p, category=c) for n, d, p, c in menu
             ]

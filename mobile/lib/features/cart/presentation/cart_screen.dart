@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/utils/money.dart';
 import '../../orders/data/order_repository.dart';
+import '../../profile/data/profile_repository.dart';
 import '../../restaurants/data/restaurant_repository.dart';
 import 'cart_controller.dart';
 
@@ -64,6 +65,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
+    final saved = ref.watch(addressesProvider).value ?? const [];
+    // Prefill with the default saved address once.
+    ref.listen(addressesProvider, (_, next) {
+      final def = next.value?.where((a) => a.isDefault).firstOrNull;
+      if (def != null && _address.text.isEmpty) _address.text = def.line;
+    });
     final restaurant = cart.restaurantId == null
         ? null
         : ref.watch(restaurantProvider(cart.restaurantId!)).value;
@@ -104,6 +111,23 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               ),
             ),
           const Divider(),
+          if (saved.isNotEmpty) ...[
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final a in saved)
+                  ActionChip(
+                    avatar: Icon(
+                      a.isDefault ? Icons.home : Icons.place_outlined,
+                      size: 18,
+                    ),
+                    label: Text(a.label),
+                    onPressed: () => setState(() => _address.text = a.line),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
           TextField(
             controller: _address,
             decoration: const InputDecoration(

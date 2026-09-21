@@ -53,6 +53,10 @@ Android emulator hits `10.0.2.2:8000`, iOS sim hits `127.0.0.1:8000`. Override: 
 | POST | /api/v1/orders/{id}/accept | courier |
 | POST | /api/v1/orders/{id}/advance | courier (assigned) |
 | PATCH | /api/v1/orders/{id}/status | admin |
+| PATCH | /api/v1/me | user |
+| GET/POST/DELETE | /api/v1/me/addresses[/{id}] | user |
+| POST | /api/v1/orders/{id}/rate | customer (delivered) |
+| GET | /api/v1/restaurants/cuisines | – |
 | GET/PATCH | /api/v1/admin/restaurants[/{id}] | admin |
 | POST | /api/v1/admin/restaurants/{id}/menu | admin |
 | PATCH/DELETE | /api/v1/admin/menu/{id} | admin |
@@ -61,6 +65,8 @@ Order status machine: `pending → confirmed → preparing → on_the_way → de
 Admin confirms; courier picks up from `confirmed`/`preparing` and advances step by step.
 
 Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","order":{...}}` to the customer, assigned courier, and all staff on every change. In-process hub — single instance; swap for Redis pub/sub to scale out.
+
+Prod: set `ENV=prod` and a real `SECRET_KEY` — the app refuses to start with the default key.
 
 Schema migrations: `cd backend && uv run alembic revision --autogenerate -m "..." && uv run alembic upgrade head`.
 
@@ -77,6 +83,9 @@ cd mobile && flutter test
 - [x] Alembic migrations, Postgres via docker compose
 - [x] Live order updates over WebSocket
 - [x] GitHub Actions CI (ruff, pytest, alembic check, dart format, analyze, flutter test)
+- [x] Customer profile, saved addresses, address picker at checkout
+- [x] Order rating → restaurant running average
+- [x] Cuisine filter
 - [ ] Push notifications when app is in background (FCM)
 - [x] Admin panel in-app (confirm/advance orders, toggle restaurant, edit menu)
 - [ ] Map/geocoding for address

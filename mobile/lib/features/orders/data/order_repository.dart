@@ -48,6 +48,14 @@ class OrderRepository {
     return Order.fromJson(r.data);
   }
 
+  Future<Order> rate(int id, int rating) async {
+    final r = await _dio.post(
+      '/api/v1/orders/$id/rate',
+      data: {'rating': rating},
+    );
+    return Order.fromJson(r.data);
+  }
+
   // --- admin
   Future<Order> setStatus(int id, OrderStatus status) async {
     final r = await _dio.patch(
@@ -97,8 +105,9 @@ final orderLiveProvider = StreamProvider.family<Order, int>((ref, id) {
       .then(controller.add, onError: controller.addError);
   ref.listen(orderEventsProvider, (_, next) {
     final evt = next.value;
-    if (evt != null && evt.id == id && !controller.isClosed)
+    if (evt != null && evt.id == id && !controller.isClosed) {
       controller.add(Order.fromJson(evt.order));
+    }
   });
   ref.onDispose(controller.close);
   return controller.stream;

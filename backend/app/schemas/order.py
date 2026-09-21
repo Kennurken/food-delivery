@@ -49,9 +49,14 @@ class OrderOut(BaseModel):
     subtotal: float
     delivery_fee: float
     total: float
+    rating: int | None
     created_at: datetime
     items: list[OrderItemOut]
 
 
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
+
+
+class OrderRate(BaseModel):
+    rating: int = Field(ge=1, le=5)

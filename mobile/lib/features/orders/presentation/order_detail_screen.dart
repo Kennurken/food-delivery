@@ -25,6 +25,19 @@ class OrderDetailScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _rate(BuildContext context, WidgetRef ref, int stars) async {
+    try {
+      await ref.read(orderRepositoryProvider).rate(id, stars);
+      ref.invalidate(orderLiveProvider(id));
+      ref.invalidate(ordersProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final order = ref.watch(orderLiveProvider(id));
@@ -85,10 +98,47 @@ class OrderDetailScreen extends ConsumerWidget {
                   onPressed: () => _cancel(context, ref),
                   child: const Text('Cancel order'),
                 ),
+              if (o.status == OrderStatus.delivered)
+                _RatingRow(
+                  rating: o.rating,
+                  onRate: (stars) => _rate(context, ref, stars),
+                ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _RatingRow extends StatelessWidget {
+  const _RatingRow({required this.rating, required this.onRate});
+
+  final int? rating;
+  final ValueChanged<int> onRate;
+
+  @override
+  Widget build(BuildContext context) {
+    final done = rating != null;
+    return Column(
+      children: [
+        Text(done ? 'Thanks for rating!' : 'Rate your order'),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (var i = 1; i <= 5; i++)
+              IconButton(
+                onPressed: done ? null : () => onRate(i),
+                icon: Icon(
+                  i <= (rating ?? 0) ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 32,
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

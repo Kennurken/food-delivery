@@ -29,6 +29,11 @@ class AuthController extends AsyncNotifier<User?> {
     );
   }
 
+  /// Re-read /me after a profile change.
+  Future<void> refresh() async {
+    state = AsyncData(await ref.read(authRepositoryProvider).me());
+  }
+
   Future<void> logout() async {
     await ref.read(authRepositoryProvider).logout();
     state = const AsyncData(null);

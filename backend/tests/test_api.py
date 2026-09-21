@@ -146,3 +146,55 @@ def test_ws_rejects_bad_token(client):
 
     with pytest.raises(WebSocketDisconnect), client.websocket_connect("/api/v1/ws?token=nope"):
         pass
+
+
+def test_profile_and_addresses(client, auth):
+    r = client.patch("/api/v1/me", json={"phone": "+77009998877"}, headers=auth)
+    assert r.json()["phone"] == "+77009998877"
+
+    a1 = client.post("/api/v1/me/addresses", json={"label": "Home", "line": "Abay 10"}, headers=auth).json()
+    assert a1["is_default"] is True  # first address becomes default
+    a2 = client.post(
+        "/api/v1/me/addresses", json={"label": "Work", "line": "Dostyk 1", "is_default": True}, headers=auth
+    ).json()
+    lst = client.get("/api/v1/me/addresses", headers=auth).json()
+    assert [a["is_default"] for a in lst] == [False, True]
+
+    assert client.delete(f"/api/v1/me/addresses/{a2['id']}", headers=auth).status_code == 204
+    lst = client.get("/api/v1/me/addresses", headers=auth).json()
+    assert lst[0]["id"] == a1["id"] and lst[0]["is_default"] is True
+
+
+def test_rate_order_updates_restaurant(client, auth, admin, courier):
+    before = client.get("/api/v1/restaurants/2").json()
+    oid = _place(client, auth)
+    # not delivered yet
+    assert client.post(f"/api/v1/orders/{oid}/rate", json={"rating": 5}, headers=auth).status_code == 409
+
+    client.patch(f"/api/v1/orders/{oid}/status", json={"status": "confirmed"}, headers=admin)
+    client.post(f"/api/v1/orders/{oid}/accept", headers=courier)
+    for _ in range(3):
+        client.post(f"/api/v1/orders/{oid}/advance", headers=courier)
+
+    r = client.post(f"/api/v1/orders/{oid}/rate", json={"rating": 5}, headers=auth)
+    assert r.status_code == 200 and r.json()["rating"] == 5
+    assert client.post(f"/api/v1/orders/{oid}/rate", json={"rating": 1}, headers=auth).status_code == 409
+
+    after = client.get("/api/v1/restaurants/2").json()
+    assert after["rating_count"] == before["rating_count"] + 1
+    expected = round((before["rating"] * before["rating_count"] + 5) / after["rating_count"], 2)
+    assert after["rating"] == expected
+
+
+def test_cuisines(client):
+    assert client.get("/api/v1/restaurants/cuisines").json() == ["American", "Asian", "Italian"]
+
+
+def test_prod_guard_rejects_default_secret():
+    import pytest
+
+    from app.core.config import Settings
+
+    with pytest.raises(RuntimeError):
+        Settings(env="prod", secret_key="change-me").validate_for_prod()
+    Settings(env="prod", secret_key="x" * 48).validate_for_prod()

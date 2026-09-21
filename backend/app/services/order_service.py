@@ -106,3 +106,20 @@ def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
     db.refresh(order)
     notify(db, order)
     return order
+
+
+def rate_order(db: Session, user: User, order: Order, rating: int) -> Order:
+    if order.user_id != user.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Not your order")
+    if order.status != OrderStatus.delivered:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Only delivered orders can be rated")
+    if order.rating is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Already rated")
+    order.rating = rating
+    # Running average keeps it O(1); no need to scan all orders.
+    r = order.restaurant
+    r.rating = round((r.rating * r.rating_count + rating) / (r.rating_count + 1), 2)
+    r.rating_count += 1
+    db.commit()
+    db.refresh(order)
+    return order

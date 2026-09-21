@@ -3,7 +3,7 @@ from sqlalchemy import select
 
 from app.api.deps import DB, AdminUser, CourierUser, CurrentUser
 from app.models import Order, OrderStatus, UserRole
-from app.schemas.order import OrderCreate, OrderOut, OrderStatusUpdate
+from app.schemas.order import OrderCreate, OrderOut, OrderRate, OrderStatusUpdate
 from app.services import order_service
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -70,6 +70,11 @@ def cancel_order(order_id: int, db: DB, user: CurrentUser) -> Order:
     if order.user_id != user.id and user.role != UserRole.admin:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the customer can cancel")
     return order_service.update_status(db, order, OrderStatus.cancelled)
+
+
+@router.post("/{order_id}/rate", response_model=OrderOut)
+def rate_order(order_id: int, data: OrderRate, db: DB, user: CurrentUser) -> Order:
+    return order_service.rate_order(db, user, get_order(order_id, db, user), data.rating)
 
 
 @router.patch("/{order_id}/status", response_model=OrderOut)

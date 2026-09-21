@@ -13,6 +13,7 @@ class Restaurant(Base):
     cuisine: Mapped[str] = mapped_column(String(50), index=True)
     image_url: Mapped[str | None] = mapped_column(String(500))
     rating: Mapped[float] = mapped_column(Float, default=0.0)
+    rating_count: Mapped[int] = mapped_column(Integer, default=0)
     delivery_fee: Mapped[float] = mapped_column(Float, default=0.0)
     delivery_time_min: Mapped[int] = mapped_column(Integer, default=30)
     is_open: Mapped[bool] = mapped_column(Boolean, default=True)

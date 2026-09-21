@@ -29,6 +29,11 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () => context.push('/orders'),
           ),
           IconButton(
+            icon: const Icon(Icons.person_outline),
+            tooltip: 'Profile',
+            onPressed: () => context.push('/profile'),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
             onPressed: () => ref.read(authControllerProvider.notifier).logout(),
@@ -55,6 +60,7 @@ class HomeScreen extends ConsumerWidget {
                   ref.read(restaurantSearchProvider.notifier).set(v),
             ),
           ),
+          const _CuisineChips(),
           Expanded(
             child: restaurants.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -76,6 +82,32 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CuisineChips extends ConsumerWidget {
+  const _CuisineChips();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cuisines = ref.watch(cuisinesProvider).value ?? const [];
+    final selected = ref.watch(cuisineFilterProvider);
+    if (cuisines.isEmpty) return const SizedBox.shrink();
+    return SizedBox(
+      height: 48,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: cuisines.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (_, i) => FilterChip(
+          label: Text(cuisines[i]),
+          selected: cuisines[i] == selected,
+          onSelected: (_) =>
+              ref.read(cuisineFilterProvider.notifier).toggle(cuisines[i]),
+        ),
       ),
     );
   }
@@ -120,7 +152,7 @@ class _RestaurantCard extends StatelessWidget {
                       Expanded(child: Text(r.name, style: text.titleMedium)),
                       const Icon(Icons.star, size: 16, color: Colors.amber),
                       const SizedBox(width: 2),
-                      Text(r.rating.toStringAsFixed(1)),
+                      Text('${r.rating.toStringAsFixed(1)} (${r.ratingCount})'),
                     ],
                   ),
                   const SizedBox(height: 4),

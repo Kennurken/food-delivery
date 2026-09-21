@@ -51,6 +51,7 @@ class CuisineFilter extends Notifier<String?> {
   String? build() => null;
 
   void toggle(String cuisine) => state = state == cuisine ? null : cuisine;
+  void clear() => state = null;
 }
 
 final cuisineFilterProvider = NotifierProvider<CuisineFilter, String?>(

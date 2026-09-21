@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../../core/widgets/stagger.dart';
 import '../data/profile_repository.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -68,7 +69,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final addresses = ref.watch(addressesProvider);
     final user = ref.watch(authControllerProvider).value;
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Log out',
+            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -112,29 +122,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   )
                 : Column(
                     children: [
-                      for (final a in list)
-                        Card(
-                          child: ListTile(
-                            leading: Icon(
-                              a.isDefault ? Icons.home : Icons.place_outlined,
-                            ),
-                            title: Text(a.label),
-                            subtitle: Text(a.line),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete_outline),
-                              onPressed: () async {
-                                try {
-                                  await ref
-                                      .read(profileRepositoryProvider)
-                                      .deleteAddress(a.id);
-                                  ref.invalidate(addressesProvider);
-                                } catch (e) {
-                                  if (context.mounted) _toast(errorMessage(e));
-                                }
-                              },
+                      for (final (i, a) in list.indexed)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Card(
+                            child: ListTile(
+                              leading: Icon(
+                                a.isDefault ? Icons.home : Icons.place_outlined,
+                              ),
+                              title: Text(a.label),
+                              subtitle: Text(a.line),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () async {
+                                  try {
+                                    await ref
+                                        .read(profileRepositoryProvider)
+                                        .deleteAddress(a.id);
+                                    ref.invalidate(addressesProvider);
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      _toast(errorMessage(e));
+                                    }
+                                  }
+                                },
+                              ),
                             ),
                           ),
-                        ),
+                        ).stagger(i),
                     ],
                   ),
           ),

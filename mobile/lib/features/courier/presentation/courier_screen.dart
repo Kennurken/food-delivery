@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/pressable.dart';
+import '../../../core/widgets/stagger.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
+import '../../../core/widgets/pill_tab_bar.dart';
 import '../../orders/presentation/orders_screen.dart';
 
 /// Courier home: pick up available orders, advance own orders.
@@ -27,12 +30,7 @@ class CourierScreen extends ConsumerWidget {
                   ref.read(authControllerProvider.notifier).logout(),
             ),
           ],
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Available'),
-              Tab(text: 'My deliveries'),
-            ],
-          ),
+          bottom: const PillTabBar(tabs: ['Available', 'My deliveries']),
         ),
         body: const TabBarView(children: [_AvailableTab(), _MineTab()]),
       ),
@@ -65,9 +63,12 @@ class _AvailableTab extends ConsumerWidget {
       orders: orders,
       empty: 'No orders waiting',
       onRefresh: () => ref.refresh(availableOrdersProvider.future),
-      action: (o) => FilledButton.tonal(
-        onPressed: () => _accept(context, ref, o.id),
-        child: const Text('Accept'),
+      action: (o) => Pressable(
+        onTap: () => _accept(context, ref, o.id),
+        child: FilledButton.tonal(
+          onPressed: () => _accept(context, ref, o.id),
+          child: const Text('Accept'),
+        ),
       ),
     );
   }
@@ -101,9 +102,12 @@ class _MineTab extends ConsumerWidget {
       action: (o) {
         final next = o.status.courierNext;
         if (next == null) return const SizedBox.shrink();
-        return FilledButton(
-          onPressed: () => _advance(context, ref, o.id),
-          child: Text(next.actionLabel),
+        return Pressable(
+          onTap: () => _advance(context, ref, o.id),
+          child: FilledButton(
+            onPressed: () => _advance(context, ref, o.id),
+            child: Text(next.actionLabel),
+          ),
         );
       },
     );
@@ -141,42 +145,45 @@ class _OrderList extends StatelessWidget {
                 itemCount: list.length,
                 itemBuilder: (_, i) {
                   final o = list[i];
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Order #${o.id} · ${formatMoney(o.total)}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium,
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Order #${o.id} · ${formatMoney(o.total)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium,
+                                  ),
                                 ),
-                              ),
-                              StatusChip(o.status),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(o.address),
-                          Text(
-                            o.items
-                                .map((i) => '${i.quantity}× ${i.name}')
-                                .join(', '),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: action(o),
-                          ),
-                        ],
+                                StatusChip(o.status),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(o.address),
+                            Text(
+                              o.items
+                                  .map((i) => '${i.quantity}× ${i.name}')
+                                  .join(', '),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: action(o),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  );
+                  ).stagger(i);
                 },
               ),
       ),

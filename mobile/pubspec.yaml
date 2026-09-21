@@ -40,6 +40,8 @@ dependencies:
   flutter_secure_storage: ^11.2.0
   cached_network_image: ^4.0.0
   web_socket_channel: ^3.0.3
+  flutter_animate: ^4.5.2
+  google_fonts: ^8.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

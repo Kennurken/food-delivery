@@ -70,6 +70,28 @@ Prod: set `ENV=prod` and a real `SECRET_KEY` — the app refuses to start with t
 
 Schema migrations: `cd backend && uv run alembic revision --autogenerate -m "..." && uv run alembic upgrade head`.
 
+## Motion system
+
+`mobile/lib/core/theme/motion.dart` holds the tokens; `core/widgets/` the primitives. Values lifted from
+[animate-ui](https://animate-ui.com) and [jitter](https://jitter.video/templates/ui-elements/) presets:
+
+| Primitive | Source | Notes |
+|---|---|---|
+| `Pressable` | animate-ui Button `tapScale 0.95` | wraps cards, buttons, stars |
+| `SlidingNumber` | jitter Counter | digits roll on change — cart totals, qty |
+| `.stagger(i)` | jitter Animated App List | fade + slide-up, 55 ms interval |
+| `Shimmer` / `Bone` | — | skeleton while lists load |
+| `SuccessCheck` | jitter Loading → Success | drawn with `CustomPainter` after checkout |
+| `StretchSwitch` | animate-ui Switch `pressedWidth` | thumb stretches while pressed |
+| `PillTabBar` | animate-ui Tabs (spring 300/32) | sliding pill indicator |
+| `LiveToast` | jitter Simple Notification | WS events → top banner, per role |
+| `AnimatedGradient` | animate-ui Gradient background | login backdrop |
+| `QuantityStepper` | jitter View Cart: Split | `+` morphs into `− n +` |
+| Item bottom sheet | animate-ui Sheet (spring 150/22) | emphasized curve |
+| `Hero` restaurant image | — | list → detail |
+
+Theme: Manrope via `google_fonts`, light + dark from one seed, 20px radii, flat cards.
+
 ## Tests
 
 ```bash

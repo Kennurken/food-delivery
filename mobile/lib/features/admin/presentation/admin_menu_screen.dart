@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/stagger.dart';
+import '../../../core/widgets/stretch_switch.dart';
 import '../../restaurants/domain/menu_item.dart';
 import '../data/admin_repository.dart';
 
@@ -68,39 +70,41 @@ class AdminMenuScreen extends ConsumerWidget {
           itemCount: r.menu.length,
           itemBuilder: (_, i) {
             final m = r.menu[i];
-            return Card(
-              child: ListTile(
-                title: Text(m.name),
-                subtitle: Text('${m.category} · ${formatMoney(m.price)}'),
-                onTap: () => _edit(context, ref, item: m),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Switch(
-                      value: m.isAvailable,
-                      onChanged: (v) => _run(
-                        context,
-                        ref,
-                        () => ref.read(adminRepositoryProvider).updateMenuItem(
-                          m.id,
-                          {'is_available': v},
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Card(
+                child: ListTile(
+                  title: Text(m.name),
+                  subtitle: Text('${m.category} · ${formatMoney(m.price)}'),
+                  onTap: () => _edit(context, ref, item: m),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      StretchSwitch(
+                        value: m.isAvailable,
+                        onChanged: (v) => _run(
+                          context,
+                          ref,
+                          () => ref
+                              .read(adminRepositoryProvider)
+                              .updateMenuItem(m.id, {'is_available': v}),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => _run(
-                        context,
-                        ref,
-                        () => ref
-                            .read(adminRepositoryProvider)
-                            .deleteMenuItem(m.id),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => _run(
+                          context,
+                          ref,
+                          () => ref
+                              .read(adminRepositoryProvider)
+                              .deleteMenuItem(m.id),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            );
+            ).stagger(i);
           },
         ),
       ),

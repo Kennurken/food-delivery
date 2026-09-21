@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/pill_tab_bar.dart';
+import '../../../core/widgets/stagger.dart';
+import '../../../core/widgets/stretch_switch.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
@@ -27,12 +30,7 @@ class AdminScreen extends ConsumerWidget {
                   ref.read(authControllerProvider.notifier).logout(),
             ),
           ],
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Orders'),
-              Tab(text: 'Restaurants'),
-            ],
-          ),
+          bottom: const PillTabBar(tabs: ['Orders', 'Restaurants']),
         ),
         body: const TabBarView(children: [_OrdersTab(), _RestaurantsTab()]),
       ),
@@ -88,60 +86,63 @@ class _OrdersTab extends ConsumerWidget {
                 itemBuilder: (_, i) {
                   final o = list[i];
                   final text = Theme.of(context).textTheme;
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '#${o.id} · ${o.restaurantName} · ${formatMoney(o.total)}',
-                                  style: text.titleMedium,
-                                ),
-                              ),
-                              StatusChip(o.status),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text('${o.customer.name} · ${o.address}'),
-                          Text(
-                            o.items
-                                .map((i) => '${i.quantity}× ${i.name}')
-                                .join(', '),
-                            style: text.bodySmall,
-                          ),
-                          if (o.courier != null)
-                            Text(
-                              'Courier: ${o.courier!.name}',
-                              style: text.bodySmall,
-                            ),
-                          if (o.status.adminNext.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               children: [
-                                for (final s in o.status.adminNext)
-                                  s == OrderStatus.cancelled
-                                      ? OutlinedButton(
-                                          onPressed: () =>
-                                              _set(context, ref, o, s),
-                                          child: Text(s.actionLabel),
-                                        )
-                                      : FilledButton.tonal(
-                                          onPressed: () =>
-                                              _set(context, ref, o, s),
-                                          child: Text(s.actionLabel),
-                                        ),
+                                Expanded(
+                                  child: Text(
+                                    '#${o.id} · ${o.restaurantName} · ${formatMoney(o.total)}',
+                                    style: text.titleMedium,
+                                  ),
+                                ),
+                                StatusChip(o.status),
                               ],
                             ),
+                            const SizedBox(height: 4),
+                            Text('${o.customer.name} · ${o.address}'),
+                            Text(
+                              o.items
+                                  .map((i) => '${i.quantity}× ${i.name}')
+                                  .join(', '),
+                              style: text.bodySmall,
+                            ),
+                            if (o.courier != null)
+                              Text(
+                                'Courier: ${o.courier!.name}',
+                                style: text.bodySmall,
+                              ),
+                            if (o.status.adminNext.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                children: [
+                                  for (final s in o.status.adminNext)
+                                    s == OrderStatus.cancelled
+                                        ? OutlinedButton(
+                                            onPressed: () =>
+                                                _set(context, ref, o, s),
+                                            child: Text(s.actionLabel),
+                                          )
+                                        : FilledButton.tonal(
+                                            onPressed: () =>
+                                                _set(context, ref, o, s),
+                                            child: Text(s.actionLabel),
+                                          ),
+                                ],
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
-                  );
+                  ).stagger(i);
                 },
               ),
       ),
@@ -164,34 +165,37 @@ class _RestaurantsTab extends ConsumerWidget {
         itemBuilder: (_, i) {
           final r = list[i];
           // Row tap opens the menu; only the switch toggles is_open.
-          return Card(
-            child: ListTile(
-              leading: const Icon(Icons.restaurant_menu),
-              title: Text(r.name),
-              subtitle: Text(
-                '${r.cuisine} · delivery ${formatMoney(r.deliveryFee)} · ${r.isOpen ? 'open' : 'closed'}',
-              ),
-              onTap: () => context.push('/admin/restaurants/${r.id}'),
-              trailing: Switch(
-                value: r.isOpen,
-                onChanged: (v) async {
-                  try {
-                    await ref.read(adminRepositoryProvider).updateRestaurant(
-                      r.id,
-                      {'is_open': v},
-                    );
-                    ref.invalidate(adminRestaurantsProvider);
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(errorMessage(e))));
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Card(
+              child: ListTile(
+                leading: const Icon(Icons.restaurant_menu),
+                title: Text(r.name),
+                subtitle: Text(
+                  '${r.cuisine} · delivery ${formatMoney(r.deliveryFee)} · ${r.isOpen ? 'open' : 'closed'}',
+                ),
+                onTap: () => context.push('/admin/restaurants/${r.id}'),
+                trailing: StretchSwitch(
+                  value: r.isOpen,
+                  onChanged: (v) async {
+                    try {
+                      await ref.read(adminRepositoryProvider).updateRestaurant(
+                        r.id,
+                        {'is_open': v},
+                      );
+                      ref.invalidate(adminRestaurantsProvider);
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(errorMessage(e))),
+                        );
+                      }
                     }
-                  }
-                },
+                  },
+                ),
               ),
             ),
-          );
+          ).stagger(i);
         },
       ),
     );

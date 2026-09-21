@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/theme/motion.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/pressable.dart';
+import '../../../core/widgets/stagger.dart';
 import '../data/order_repository.dart';
 import '../domain/order.dart';
 
@@ -27,16 +30,26 @@ class OrdersScreen extends ConsumerWidget {
                   itemCount: list.length,
                   itemBuilder: (_, i) {
                     final o = list[i];
-                    return Card(
-                      child: ListTile(
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Pressable(
                         onTap: () => context.push('/orders/${o.id}'),
-                        title: Text('Order #${o.id} · ${formatMoney(o.total)}'),
-                        subtitle: Text(
-                          '${o.items.length} items · ${o.address}',
+                        child: Card(
+                          child: ListTile(
+                            title: Text(
+                              '${o.restaurantName} · ${formatMoney(o.total)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '#${o.id} · ${o.items.length} items · ${o.address}',
+                            ),
+                            trailing: StatusChip(o.status),
+                          ),
                         ),
-                        trailing: StatusChip(o.status),
                       ),
-                    );
+                    ).stagger(i);
                   },
                 ),
               ),
@@ -58,11 +71,33 @@ class StatusChip extends StatelessWidget {
       OrderStatus.onTheWay => Colors.blue,
       _ => Colors.orange,
     };
-    return Chip(
-      label: Text(status.label, style: TextStyle(color: color, fontSize: 12)),
-      side: BorderSide(color: color),
-      backgroundColor: color.withValues(alpha: 0.08),
-      visualDensity: VisualDensity.compact,
+    return AnimatedContainer(
+      duration: Motion.normal,
+      curve: Motion.enter,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            status.label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

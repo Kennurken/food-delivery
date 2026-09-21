@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/theme/motion.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/pressable.dart';
+import '../../../core/widgets/stagger.dart';
 import '../data/order_repository.dart';
 import '../domain/order.dart';
 import 'orders_screen.dart';
@@ -41,108 +45,240 @@ class OrderDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final order = ref.watch(orderLiveProvider(id));
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: Text('Order #$id')),
       body: order.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(errorMessage(e))),
-        data: (o) => RefreshIndicator(
-          onRefresh: () async => ref.invalidate(orderLiveProvider(id)),
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Status',
-                    style: Theme.of(context).textTheme.titleMedium,
+        data: (o) {
+          var idx = 0;
+          return RefreshIndicator(
+            onRefresh: () async => ref.invalidate(orderLiveProvider(id)),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              o.restaurantName,
+                              style: text.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            AnimatedSwitcher(
+                              duration: Motion.normal,
+                              transitionBuilder: (c, a) => ScaleTransition(
+                                scale: CurvedAnimation(
+                                  parent: a,
+                                  curve: Motion.pop,
+                                ),
+                                child: FadeTransition(opacity: a, child: c),
+                              ),
+                              child: StatusChip(
+                                o.status,
+                                key: ValueKey(o.status),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        _StatusTimeline(o.status),
+                        const SizedBox(height: 6),
+                        Text(
+                          _hint(o.status),
+                          style: text.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  StatusChip(o.status),
+                ).stagger(idx++),
+                if (o.courier != null) ...[
+                  const SizedBox(height: 12),
+                  Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: scheme.primaryContainer,
+                        child: Icon(
+                          Icons.delivery_dining,
+                          color: scheme.onPrimaryContainer,
+                        ),
+                      ),
+                      title: Text(
+                        o.courier!.name,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(o.courier!.phone ?? 'Courier'),
+                      trailing: o.courier!.phone == null
+                          ? null
+                          : Icon(Icons.phone_outlined, color: scheme.primary),
+                    ),
+                  ).stagger(idx++),
                 ],
-              ),
-              const SizedBox(height: 8),
-              _StatusTimeline(o.status),
-              if (o.courier != null) ...[
                 const SizedBox(height: 12),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const CircleAvatar(
-                    child: Icon(Icons.delivery_dining),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.place_outlined),
+                        title: Text(o.address),
+                        subtitle: o.comment == null ? null : Text(o.comment!),
+                      ),
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      for (final i in o.items)
+                        ListTile(
+                          dense: true,
+                          leading: Container(
+                            width: 28,
+                            height: 28,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: scheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${i.quantity}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: scheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
+                          title: Text(i.name),
+                          trailing: Text(formatMoney(i.price * i.quantity)),
+                        ),
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                        child: Column(
+                          children: [
+                            _Row('Subtotal', formatMoney(o.subtotal)),
+                            _Row('Delivery', formatMoney(o.deliveryFee)),
+                            _Row('Total', formatMoney(o.total), bold: true),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  title: Text(o.courier!.name),
-                  subtitle: Text(o.courier!.phone ?? 'Courier'),
-                ),
+                ).stagger(idx++),
+                const SizedBox(height: 20),
+                if (o.status.canCancel)
+                  OutlinedButton(
+                    onPressed: () => _cancel(context, ref),
+                    child: const Text('Cancel order'),
+                  ).stagger(idx++),
+                if (o.status == OrderStatus.delivered)
+                  _RatingRow(
+                    rating: o.rating,
+                    onRate: (stars) => _rate(context, ref, stars),
+                  ).stagger(idx++),
               ],
-              const Divider(height: 32),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.place_outlined),
-                title: Text(o.address),
-                subtitle: o.comment == null ? null : Text(o.comment!),
-              ),
-              const Divider(height: 32),
-              for (final i in o.items)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text('${i.quantity} × ${i.name}'),
-                  trailing: Text(formatMoney(i.price * i.quantity)),
-                ),
-              const Divider(),
-              _Row('Subtotal', formatMoney(o.subtotal)),
-              _Row('Delivery', formatMoney(o.deliveryFee)),
-              _Row('Total', formatMoney(o.total), bold: true),
-              const SizedBox(height: 24),
-              if (o.status.canCancel)
-                OutlinedButton(
-                  onPressed: () => _cancel(context, ref),
-                  child: const Text('Cancel order'),
-                ),
-              if (o.status == OrderStatus.delivered)
-                _RatingRow(
-                  rating: o.rating,
-                  onRate: (stars) => _rate(context, ref, stars),
-                ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
+
+  String _hint(OrderStatus s) => switch (s) {
+    OrderStatus.pending => 'Waiting for the restaurant to confirm',
+    OrderStatus.confirmed => 'Confirmed — looking for a courier',
+    OrderStatus.preparing => 'Kitchen is cooking your order',
+    OrderStatus.onTheWay => 'Courier is on the way',
+    OrderStatus.delivered => 'Delivered. Enjoy!',
+    OrderStatus.cancelled => 'This order was cancelled',
+  };
 }
 
-class _RatingRow extends StatelessWidget {
+class _RatingRow extends StatefulWidget {
   const _RatingRow({required this.rating, required this.onRate});
 
   final int? rating;
   final ValueChanged<int> onRate;
 
   @override
+  State<_RatingRow> createState() => _RatingRowState();
+}
+
+class _RatingRowState extends State<_RatingRow> {
+  int _hover = 0;
+
+  @override
   Widget build(BuildContext context) {
-    final done = rating != null;
-    return Column(
-      children: [
-        Text(done ? 'Thanks for rating!' : 'Rate your order'),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+    final done = widget.rating != null;
+    final shown = widget.rating ?? _hover;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           children: [
-            for (var i = 1; i <= 5; i++)
-              IconButton(
-                onPressed: done ? null : () => onRate(i),
-                icon: Icon(
-                  i <= (rating ?? 0) ? Icons.star : Icons.star_border,
-                  color: Colors.amber,
-                  size: 32,
-                ),
-              ),
+            Text(
+              done ? 'Thanks for rating!' : 'How was it?',
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (var i = 1; i <= 5; i++)
+                  Pressable(
+                    scale: 0.8,
+                    onTap: done
+                        ? null
+                        : () {
+                            setState(() => _hover = i);
+                            widget.onRate(i);
+                          },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child:
+                          Icon(
+                                i <= shown
+                                    ? Icons.star_rounded
+                                    : Icons.star_outline_rounded,
+                                color: const Color(0xFFF5A623),
+                                size: 40,
+                              )
+                              .animate(
+                                key: ValueKey('$i-${i <= shown}'),
+                                target: i <= shown ? 1 : 0,
+                              )
+                              .scale(
+                                begin: const Offset(1, 1),
+                                end: const Offset(1.25, 1.25),
+                                duration: 180.ms,
+                                curve: Curves.easeOut,
+                              )
+                              .then()
+                              .scale(
+                                begin: const Offset(1, 1),
+                                end: const Offset(0.8, 0.8),
+                                duration: 180.ms,
+                                curve: Motion.pop,
+                              ),
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
-      ],
+      ),
     );
   }
 }
 
+/// Segments fill left→right; the active one pulses (jitter "Animated Progress Bar").
 class _StatusTimeline extends StatelessWidget {
   const _StatusTimeline(this.status);
 
@@ -158,20 +294,54 @@ class _StatusTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (status == OrderStatus.cancelled) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
+    if (status == OrderStatus.cancelled) {
+      return Container(
+        height: 6,
+        decoration: BoxDecoration(
+          color: scheme.error.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(3),
+        ),
+      );
+    }
     final idx = _steps.indexOf(status);
-    final primary = Theme.of(context).colorScheme.primary;
+    final done = status == OrderStatus.delivered;
     return Row(
       children: [
         for (var i = 0; i < _steps.length; i++) ...[
           Expanded(
-            child: Container(
-              height: 6,
-              decoration: BoxDecoration(
-                color: i <= idx ? primary : Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
+            child:
+                TweenAnimationBuilder<double>(
+                      tween: Tween(end: i <= idx ? 1 : 0),
+                      duration: Motion.slow,
+                      curve: Motion.emphasized,
+                      builder: (_, t, _) => Stack(
+                        children: [
+                          Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: scheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                          FractionallySizedBox(
+                            widthFactor: t,
+                            child: Container(
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: done ? Colors.green : scheme.primary,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    .animate(
+                      target: i == idx && !done ? 1 : 0,
+                      onPlay: (c) => c.repeat(reverse: true),
+                    )
+                    .fade(begin: 1, end: 0.45, duration: 900.ms),
           ),
           if (i < _steps.length - 1) const SizedBox(width: 4),
         ],
@@ -189,7 +359,10 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = bold ? Theme.of(context).textTheme.titleMedium : null;
+    final style = bold
+        ? Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800)
+        : null;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(

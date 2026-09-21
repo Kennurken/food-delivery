@@ -80,4 +80,14 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(store.value?.count, 1);
   });
+
+  test('replaceAll overwrites a cart from another restaurant', () {
+    final cart = container.read(cartProvider.notifier);
+    cart.add(item(1, 10, 100));
+    cart.replaceAll([CartItem(item: item(2, 20, 50), quantity: 3)]);
+    final state = container.read(cartProvider);
+    expect(state.restaurantId, 20);
+    expect(state.count, 3);
+    expect(state.subtotal, 150);
+  });
 }

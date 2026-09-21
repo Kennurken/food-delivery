@@ -423,6 +423,24 @@ abstract class L10n {
   /// **'Browse restaurants'**
   String get browseRestaurants;
 
+  /// No description provided for @orderAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Order again'**
+  String get orderAgain;
+
+  /// No description provided for @nothingToReorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing from this order is available'**
+  String get nothingToReorder;
+
+  /// No description provided for @someItemsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Some dishes are no longer available'**
+  String get someItemsUnavailable;
+
   /// No description provided for @couldNotLoad.
   ///
   /// In en, this message translates to:

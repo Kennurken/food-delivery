@@ -1,15 +1,18 @@
 class OrderItem {
   const OrderItem({
+    required this.menuItemId,
     required this.name,
     required this.price,
     required this.quantity,
   });
 
+  final int menuItemId;
   final String name;
   final double price;
   final int quantity;
 
   factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
+    menuItemId: json['menu_item_id'] as int? ?? 0,
     name: json['name'] as String,
     price: (json['price'] as num).toDouble(),
     quantity: json['quantity'] as int,
@@ -57,6 +60,8 @@ enum OrderStatus {
     _ => [],
   };
   bool get isFinal => this == delivered || this == cancelled;
+
+  bool get canReorder => isFinal;
 
   /// Next step a courier can push this order to, or null.
   OrderStatus? get courierNext => switch (this) {

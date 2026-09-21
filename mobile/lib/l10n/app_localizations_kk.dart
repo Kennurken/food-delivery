@@ -180,6 +180,15 @@ class L10nKk extends L10n {
   String get browseRestaurants => 'Мейрамханаларға';
 
   @override
+  String get orderAgain => 'Тағы бір рет';
+
+  @override
+  String get nothingToReorder => 'Бұл тапсырыстағы тағамдар мәзірде жоқ';
+
+  @override
+  String get someItemsUnavailable => 'Кейбір тағамдар енді жоқ';
+
+  @override
   String get couldNotLoad => 'Жүктеу мүмкін болмады';
 
   @override

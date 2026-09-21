@@ -180,6 +180,15 @@ class L10nEn extends L10n {
   String get browseRestaurants => 'Browse restaurants';
 
   @override
+  String get orderAgain => 'Order again';
+
+  @override
+  String get nothingToReorder => 'Nothing from this order is available';
+
+  @override
+  String get someItemsUnavailable => 'Some dishes are no longer available';
+
+  @override
   String get couldNotLoad => 'Couldn\'t load';
 
   @override

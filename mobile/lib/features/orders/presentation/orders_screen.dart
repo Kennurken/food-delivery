@@ -13,6 +13,7 @@ import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/stagger.dart';
 import '../data/order_repository.dart';
 import '../domain/order.dart';
+import 'reorder_action.dart';
 
 class OrdersScreen extends ConsumerWidget {
   const OrdersScreen({super.key});
@@ -108,70 +109,84 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _OrderCard extends StatelessWidget {
+class _OrderCard extends ConsumerWidget {
   const _OrderCard(this.o);
 
   final Order o;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Pressable(
-        onTap: () => context.push('/orders/${o.id}'),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        o.restaurantName,
-                        style: text.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        o.items
-                            .map((i) => '${i.quantity}× ${i.name}')
-                            .join(', '),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: text.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Pressable(
+              onTap: () => context.push('/orders/${o.id}'),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            formatMoney(o.total),
-                            style: text.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
+                            o.restaurantName,
+                            style: text.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
+                          const SizedBox(height: 2),
                           Text(
-                            '  ·  #${o.id}',
-                            style: text.labelSmall?.copyWith(
-                              color: scheme.outline,
+                            o.items
+                                .map((i) => '${i.quantity}× ${i.name}')
+                                .join(', '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
                             ),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Text(
+                                formatMoney(o.total),
+                                style: text.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Text(
+                                '  ·  #${o.id}',
+                                style: text.labelSmall?.copyWith(
+                                  color: scheme.outline,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 8),
+                    StatusChip(o.status),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                StatusChip(o.status),
-              ],
+              ),
             ),
-          ),
+            if (o.status.canReorder)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: FilledButton.tonal(
+                  onPressed: () => reorderOrder(context, ref, o),
+                  child: Text(context.l10n.orderAgain),
+                ),
+              ),
+          ],
         ),
       ),
     );

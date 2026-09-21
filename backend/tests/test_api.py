@@ -158,6 +158,7 @@ def test_order_carries_customer_and_restaurant(client, auth):
     o = client.get(f"/api/v1/orders/{oid}", headers=auth).json()
     assert o["customer"]["name"] == "Test User"
     assert o["restaurant_name"] == "Pizza Roma"
+    assert o["items"][0]["menu_item_id"]
 
 
 def test_ws_receives_order_events(client, auth, admin):

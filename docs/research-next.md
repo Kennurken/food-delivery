@@ -62,7 +62,7 @@ Clones almost never implement: Uber One / Glovo Prime / Wolt+; scheduled slots; 
 | Empty CTAs / greeting / reduced motion | Cart EmptyState; no 👋; `Motion.reduced` | Yes | Done |
 | Sort | Cuisine chip only; no rating / ETA / fee sort | Yes | Open |
 | Home modules | Flat restaurant list | Yes | Open |
-| Reorder | History exists; no “order again” | Yes | Open |
+| Reorder | History exists; no “order again” | Yes | Done |
 | Favorites | No model | Medium | Open |
 | Item modifiers | `OrderItem` is name+price+qty snapshot | Medium | Open |
 | KZ address | `Address.line` only | Medium | Open |
@@ -77,7 +77,7 @@ UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.c
 1. ~~Web shell, empty CTAs, drop 👋.~~
 2. ~~Dish photos + dish search.~~
 3. ~~Persist cart.~~ (COD radio still optional, no PSP.)
-4. Reorder from history (Enatega screen name, Chocofood/Glovo behaviour).
+4. ~~Reorder from history.~~
 5. Home modules + sort from [SwiggyUI](https://github.com/vinothvino42/SwiggyUI) (spotlight row, rating/ETA/fee). Filter sheet pattern: Grub.
 6. Structured address; admin “add restaurant” dialog (API exists).
 7. Item options when we are willing to migrate. Medusa workflow steps stay our status machine — keep WebSocket.

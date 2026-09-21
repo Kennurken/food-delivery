@@ -143,6 +143,20 @@ class CartController extends Notifier<CartState> {
   }
 
   int quantityOf(int menuItemId) => state.items[menuItemId]?.quantity ?? 0;
+
+  /// Replace the cart with these lines (one restaurant). Empty list clears.
+  void replaceAll(List<CartItem> items) {
+    if (items.isEmpty) {
+      clear();
+      return;
+    }
+    state = CartState(
+      restaurantId: items.first.item.restaurantId,
+      items: {for (final i in items) i.item.id: i},
+    );
+    Haptics.add();
+    _save();
+  }
 }
 
 final cartProvider = NotifierProvider<CartController, CartState>(

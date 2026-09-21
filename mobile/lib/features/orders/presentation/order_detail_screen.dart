@@ -13,6 +13,7 @@ import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/stagger.dart';
 import '../data/order_repository.dart';
 import '../domain/order.dart';
+import 'reorder_action.dart';
 import 'orders_screen.dart';
 
 class OrderDetailScreen extends ConsumerWidget {
@@ -208,6 +209,13 @@ class OrderDetailScreen extends ConsumerWidget {
                     onPressed: () => _cancel(context, ref),
                     child: Text(t.cancelOrder),
                   ).stagger(idx++),
+                if (o.status.canReorder) ...[
+                  FilledButton.tonal(
+                    onPressed: () => reorderOrder(context, ref, o),
+                    child: Text(t.orderAgain),
+                  ).stagger(idx++),
+                  const SizedBox(height: 8),
+                ],
                 if (o.status == OrderStatus.delivered)
                   _RatingRow(
                     rating: o.rating,

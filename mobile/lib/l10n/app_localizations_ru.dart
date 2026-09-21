@@ -180,6 +180,15 @@ class L10nRu extends L10n {
   String get browseRestaurants => 'К ресторанам';
 
   @override
+  String get orderAgain => 'Повторить';
+
+  @override
+  String get nothingToReorder => 'Из этого заказа ничего нет в меню';
+
+  @override
+  String get someItemsUnavailable => 'Некоторые блюда больше недоступны';
+
+  @override
   String get couldNotLoad => 'Не удалось загрузить';
 
   @override

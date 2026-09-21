@@ -1,6 +1,6 @@
 import os
 
-os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")  # CI/PG can override
 
 import pytest
 from fastapi.testclient import TestClient

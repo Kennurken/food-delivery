@@ -19,6 +19,26 @@ jobs:
       - run: uv run alembic upgrade head && uv run alembic check
       - run: uv run pytest -q
 
+  backend-postgres:
+    runs-on: ubuntu-latest
+    defaults:
+      run: { working-directory: backend }
+    services:
+      db:
+        image: postgres:16-alpine
+        env: { POSTGRES_USER: food, POSTGRES_PASSWORD: food, POSTGRES_DB: food }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U food" --health-interval 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://food:food@localhost:5432/food
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with: { enable-cache: true }
+      - run: uv sync --frozen
+      - run: uv run alembic upgrade head && uv run alembic check
+      - run: uv run pytest -q
+
   mobile:
     runs-on: ubuntu-latest
     defaults:

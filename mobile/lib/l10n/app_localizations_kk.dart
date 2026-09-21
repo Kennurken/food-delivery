@@ -414,4 +414,22 @@ class L10nKk extends L10n {
 
   @override
   String get setAsDefault => 'Негізгі ету';
+
+  @override
+  String get changePassword => 'Құпиясөзді өзгерту';
+
+  @override
+  String get currentPassword => 'Қазіргі құпиясөз';
+
+  @override
+  String get newPassword => 'Жаңа құпиясөз';
+
+  @override
+  String get confirmPassword => 'Жаңа құпиясөзді қайталаңыз';
+
+  @override
+  String get passwordChanged => 'Құпиясөз жаңартылды';
+
+  @override
+  String get passwordsDoNotMatch => 'Құпиясөздер сәйкес емес';
 }

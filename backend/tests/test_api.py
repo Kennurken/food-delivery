@@ -189,6 +189,35 @@ def test_profile_and_addresses(client, auth):
     assert lst[0]["id"] == a1["id"] and lst[0]["is_default"] is True
 
 
+def test_change_password(client, auth):
+    assert (
+        client.post(
+            "/api/v1/me/password",
+            json={"current_password": "wrong", "new_password": "newpass1"},
+            headers=auth,
+        ).status_code
+        == 400
+    )
+    assert client.post("/api/v1/me/password", json={"current_password": "user123", "new_password": "x"}).status_code == 401
+    r = client.post(
+        "/api/v1/me/password",
+        json={"current_password": "user123", "new_password": "newpass1"},
+        headers=auth,
+    )
+    assert r.status_code == 204
+    assert client.post("/api/v1/auth/login/json", json={"email": "user@food.dev", "password": "user123"}).status_code == 401
+    assert client.post("/api/v1/auth/login/json", json={"email": "user@food.dev", "password": "newpass1"}).status_code == 200
+    # later tests reuse the user123 fixture login — put it back
+    assert (
+        client.post(
+            "/api/v1/me/password",
+            json={"current_password": "newpass1", "new_password": "user123"},
+            headers=auth,
+        ).status_code
+        == 204
+    )
+
+
 def test_rate_order_updates_restaurant(client, auth, admin, courier):
     before = client.get("/api/v1/restaurants/2").json()
     oid = _place(client, auth)

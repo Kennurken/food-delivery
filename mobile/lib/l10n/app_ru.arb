@@ -127,5 +127,11 @@
   "restaurantClosed": "Ресторан сейчас закрыт",
   "cancelOrderTitle": "Отменить заказ?",
   "cancelOrderBody": "Кухня остановится, если ещё не начала готовить.",
-  "setAsDefault": "Сделать основным"
+  "setAsDefault": "Сделать основным",
+  "changePassword": "Сменить пароль",
+  "currentPassword": "Текущий пароль",
+  "newPassword": "Новый пароль",
+  "confirmPassword": "Повторите новый пароль",
+  "passwordChanged": "Пароль обновлён",
+  "passwordsDoNotMatch": "Пароли не совпадают"
 }

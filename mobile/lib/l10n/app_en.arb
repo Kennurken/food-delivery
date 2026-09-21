@@ -137,5 +137,11 @@
   "restaurantClosed": "This restaurant is closed",
   "cancelOrderTitle": "Cancel this order?",
   "cancelOrderBody": "The kitchen will stop if it hasn't started yet.",
-  "setAsDefault": "Set as default"
+  "setAsDefault": "Set as default",
+  "changePassword": "Change password",
+  "currentPassword": "Current password",
+  "newPassword": "New password",
+  "confirmPassword": "Confirm new password",
+  "passwordChanged": "Password updated",
+  "passwordsDoNotMatch": "Passwords don't match"
 }

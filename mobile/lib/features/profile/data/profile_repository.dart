@@ -18,6 +18,16 @@ class ProfileRepository {
     return User.fromJson(r.data);
   }
 
+  Future<void> changePassword({
+    required String current,
+    required String next,
+  }) async {
+    await _dio.post(
+      '/api/v1/me/password',
+      data: {'current_password': current, 'new_password': next},
+    );
+  }
+
   Future<List<Address>> addresses() async {
     final r = await _dio.get('/api/v1/me/addresses');
     return (r.data as List).map((e) => Address.fromJson(e)).toList();

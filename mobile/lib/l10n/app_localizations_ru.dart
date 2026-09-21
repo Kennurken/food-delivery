@@ -414,4 +414,22 @@ class L10nRu extends L10n {
 
   @override
   String get setAsDefault => 'Сделать основным';
+
+  @override
+  String get changePassword => 'Сменить пароль';
+
+  @override
+  String get currentPassword => 'Текущий пароль';
+
+  @override
+  String get newPassword => 'Новый пароль';
+
+  @override
+  String get confirmPassword => 'Повторите новый пароль';
+
+  @override
+  String get passwordChanged => 'Пароль обновлён';
+
+  @override
+  String get passwordsDoNotMatch => 'Пароли не совпадают';
 }

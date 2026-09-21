@@ -414,4 +414,22 @@ class L10nEn extends L10n {
 
   @override
   String get setAsDefault => 'Set as default';
+
+  @override
+  String get changePassword => 'Change password';
+
+  @override
+  String get currentPassword => 'Current password';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get confirmPassword => 'Confirm new password';
+
+  @override
+  String get passwordChanged => 'Password updated';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords don\'t match';
 }

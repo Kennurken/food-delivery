@@ -91,6 +91,7 @@ Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim h
 | POST | /api/v1/orders/{id}/advance | courier (assigned) |
 | PATCH | /api/v1/orders/{id}/status | admin |
 | PATCH | /api/v1/me | user |
+| POST | /api/v1/me/password | user |
 | GET/POST/PATCH/DELETE | /api/v1/me/addresses[/{id}] | user |
 | POST | /api/v1/orders/{id}/rate | customer (delivered) |
 | GET | /api/v1/restaurants/cuisines | – |

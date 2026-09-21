@@ -65,6 +65,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  Future<void> _changePassword() async {
+    final ok = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const _PasswordSheet(),
+    );
+    if (ok == true && mounted) {
+      Haptics.success();
+      _toast(context.l10n.passwordChanged);
+    }
+  }
+
   Future<void> _addAddress() async {
     final result = await showModalBottomSheet<(String, String)>(
       context: context,
@@ -189,6 +201,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ).stagger(3),
           const SizedBox(height: 8),
           const _LanguagePicker(),
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.lock_outline),
+              title: Text(t.changePassword),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _changePassword,
+            ),
+          ).stagger(3),
           const SizedBox(height: 28),
           Row(
             children: [
@@ -350,6 +371,129 @@ class _DeleteBg extends StatelessWidget {
       color: Theme.of(context).colorScheme.onError,
     ),
   );
+}
+
+class _PasswordSheet extends ConsumerStatefulWidget {
+  const _PasswordSheet();
+
+  @override
+  ConsumerState<_PasswordSheet> createState() => _PasswordSheetState();
+}
+
+class _PasswordSheetState extends ConsumerState<_PasswordSheet> {
+  final _current = TextEditingController();
+  final _next = TextEditingController();
+  final _confirm = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _current.dispose();
+    _next.dispose();
+    _confirm.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final t = context.l10n;
+    if (_next.text.length < 6) {
+      setState(() => _error = t.minChars(6));
+      return;
+    }
+    if (_next.text != _confirm.text) {
+      setState(() => _error = t.passwordsDoNotMatch);
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref
+          .read(profileRepositoryProvider)
+          .changePassword(current: _current.text, next: _next.text);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) setState(() => _error = errorMessage(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        0,
+        24,
+        24 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            t.changePassword,
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _current,
+            obscureText: true,
+            autofillHints: const [AutofillHints.password],
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: t.currentPassword,
+              prefixIcon: const Icon(Icons.lock_outline),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _next,
+            obscureText: true,
+            autofillHints: const [AutofillHints.newPassword],
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: t.newPassword,
+              prefixIcon: const Icon(Icons.lock_reset),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _confirm,
+            obscureText: true,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) {
+              if (!_busy) _save();
+            },
+            decoration: InputDecoration(
+              labelText: t.confirmPassword,
+              prefixIcon: const Icon(Icons.lock_reset),
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 12),
+            Text(_error!, style: TextStyle(color: scheme.error)),
+          ],
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: _busy ? null : _save,
+            child: _busy
+                ? const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(t.save),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _AddressSheet extends StatefulWidget {

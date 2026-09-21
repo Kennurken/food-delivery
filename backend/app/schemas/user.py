@@ -30,6 +30,11 @@ class UserUpdate(BaseModel):
     phone: str | None = Field(default=None, max_length=30)
 
 
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=6, max_length=128)
+
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str

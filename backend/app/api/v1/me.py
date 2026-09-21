@@ -1,9 +1,12 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 
 from app.api.deps import DB, CurrentUser
+from app.core.config import settings
+from app.core.ratelimit import limiter
+from app.core.security import hash_password, verify_password
 from app.models import Address, User
 from app.schemas.address import AddressCreate, AddressOut, AddressUpdate
-from app.schemas.user import UserOut, UserUpdate
+from app.schemas.user import PasswordChange, UserOut, UserUpdate
 
 router = APIRouter(prefix="/me", tags=["me"])
 
@@ -15,6 +18,17 @@ def update_profile(data: UserUpdate, db: DB, user: CurrentUser) -> User:
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.post("/password", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(lambda: settings.login_rate_limit)
+def change_password(request: Request, data: PasswordChange, db: DB, user: CurrentUser) -> None:
+    if not verify_password(data.current_password, user.hashed_password):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid credentials")
+    if data.current_password == data.new_password:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "New password must be different")
+    user.hashed_password = hash_password(data.new_password)
+    db.commit()
 
 
 @router.get("/addresses", response_model=list[AddressOut])

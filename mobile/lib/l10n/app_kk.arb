@@ -127,5 +127,11 @@
   "restaurantClosed": "Мейрамхана қазір жабық",
   "cancelOrderTitle": "Тапсырысты болдырмау керек пе?",
   "cancelOrderBody": "Ас үй әлі бастамаса, тоқтайды.",
-  "setAsDefault": "Негізгі ету"
+  "setAsDefault": "Негізгі ету",
+  "changePassword": "Құпиясөзді өзгерту",
+  "currentPassword": "Қазіргі құпиясөз",
+  "newPassword": "Жаңа құпиясөз",
+  "confirmPassword": "Жаңа құпиясөзді қайталаңыз",
+  "passwordChanged": "Құпиясөз жаңартылды",
+  "passwordsDoNotMatch": "Құпиясөздер сәйкес емес"
 }

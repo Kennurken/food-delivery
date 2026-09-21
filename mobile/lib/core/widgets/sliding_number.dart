@@ -13,6 +13,9 @@ class SlidingNumber extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = this.style ?? DefaultTextStyle.of(context).style;
+    if (Motion.reduced(context)) {
+      return Text(text, style: style);
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

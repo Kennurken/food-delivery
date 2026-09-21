@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:food_delivery/features/cart/domain/cart_item.dart';
 import 'package:food_delivery/features/cart/presentation/cart_controller.dart';
 import 'package:food_delivery/features/restaurants/domain/menu_item.dart';
 
@@ -13,11 +14,29 @@ MenuItem item(int id, int restaurantId, double price) => MenuItem(
   isAvailable: true,
 );
 
+class MemoryCartStore implements CartStore {
+  CartState? value;
+
+  @override
+  Future<CartState?> read() async => value;
+
+  @override
+  Future<void> write(CartState state) async {
+    value = state.isEmpty ? null : state;
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized(); // CartController fires haptics
   late ProviderContainer container;
+  late MemoryCartStore store;
 
-  setUp(() => container = ProviderContainer());
+  setUp(() {
+    store = MemoryCartStore();
+    container = ProviderContainer(
+      overrides: [cartStorageProvider.overrideWith((ref) => store)],
+    );
+  });
   tearDown(() => container.dispose());
 
   test('adds and increments quantity', () {
@@ -43,5 +62,22 @@ void main() {
     cart.remove(item(1, 10, 100));
     expect(container.read(cartProvider).isEmpty, isTrue);
     expect(container.read(cartProvider).restaurantId, isNull);
+  });
+
+  test('hydrates from storage', () async {
+    store.value = CartState(
+      restaurantId: 10,
+      items: {1: CartItem(item: item(1, 10, 100), quantity: 2)},
+    );
+    container.read(cartProvider);
+    await Future<void>.delayed(Duration.zero);
+    expect(container.read(cartProvider).count, 2);
+    expect(container.read(cartProvider).subtotal, 200);
+  });
+
+  test('persists after add', () async {
+    container.read(cartProvider.notifier).add(item(1, 10, 100));
+    await Future<void>.delayed(Duration.zero);
+    expect(store.value?.count, 1);
   });
 }

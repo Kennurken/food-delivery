@@ -5,8 +5,10 @@ import '../theme/motion.dart';
 
 /// Fade + slide-up entrance, staggered by index (jitter "Animated App List").
 extension StaggerX on Widget {
-  Widget stagger(int index, {double slide = 0.08}) =>
-      animate(delay: Motion.stagger * index)
+  Widget stagger(int index, {double slide = 0.08}) => Builder(
+    builder: (context) {
+      if (Motion.reduced(context)) return this;
+      return animate(delay: Motion.stagger * index)
           .fadeIn(duration: Motion.normal, curve: Motion.enter)
           .slideY(
             begin: slide,
@@ -14,4 +16,6 @@ extension StaggerX on Widget {
             duration: Motion.normal,
             curve: Motion.enter,
           );
+    },
+  );
 }

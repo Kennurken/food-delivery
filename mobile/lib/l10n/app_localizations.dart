@@ -216,7 +216,7 @@ abstract class L10n {
   /// No description provided for @searchRestaurants.
   ///
   /// In en, this message translates to:
-  /// **'Search restaurants'**
+  /// **'Restaurants, dishes'**
   String get searchRestaurants;
 
   /// No description provided for @all.
@@ -236,6 +236,12 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retry;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
 
   /// No description provided for @orders.
   ///
@@ -320,6 +326,12 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Cart is empty'**
   String get cartEmpty;
+
+  /// No description provided for @cartEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add something tasty from a restaurant'**
+  String get cartEmptyHint;
 
   /// No description provided for @deliveryAddress.
   ///

@@ -69,7 +69,7 @@ class L10nEn extends L10n {
   String get greetingNight => 'Late night';
 
   @override
-  String get searchRestaurants => 'Search restaurants';
+  String get searchRestaurants => 'Restaurants, dishes';
 
   @override
   String get all => 'All';
@@ -79,6 +79,9 @@ class L10nEn extends L10n {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get navHome => 'Home';
 
   @override
   String get orders => 'Orders';
@@ -125,6 +128,9 @@ class L10nEn extends L10n {
 
   @override
   String get cartEmpty => 'Cart is empty';
+
+  @override
+  String get cartEmptyHint => 'Add something tasty from a restaurant';
 
   @override
   String get deliveryAddress => 'Delivery address';

@@ -69,7 +69,7 @@ class L10nRu extends L10n {
   String get greetingNight => 'Поздний вечер';
 
   @override
-  String get searchRestaurants => 'Поиск ресторанов';
+  String get searchRestaurants => 'Рестораны, блюда';
 
   @override
   String get all => 'Все';
@@ -79,6 +79,9 @@ class L10nRu extends L10n {
 
   @override
   String get retry => 'Повторить';
+
+  @override
+  String get navHome => 'Главная';
 
   @override
   String get orders => 'Заказы';
@@ -125,6 +128,9 @@ class L10nRu extends L10n {
 
   @override
   String get cartEmpty => 'Корзина пуста';
+
+  @override
+  String get cartEmptyHint => 'Добавьте что-нибудь вкусное из ресторана';
 
   @override
   String get deliveryAddress => 'Адрес доставки';

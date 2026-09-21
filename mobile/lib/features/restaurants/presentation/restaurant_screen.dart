@@ -8,6 +8,7 @@ import '../../../core/l10n/l10n.dart';
 
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/dish_thumb.dart';
 import '../../../core/widgets/list_skeleton.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/shimmer.dart';
@@ -333,6 +334,8 @@ class _MenuTile extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
             child: Row(
               children: [
+                DishThumb(url: item.imageUrl, size: 76, radius: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -497,6 +500,10 @@ class _ItemSheet extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (item.imageUrl != null && item.imageUrl!.isNotEmpty) ...[
+            Center(child: DishThumb(url: item.imageUrl, size: 168, radius: 24)),
+            const SizedBox(height: 16),
+          ],
           Text(
             item.category.toUpperCase(),
             style: text.labelSmall?.copyWith(

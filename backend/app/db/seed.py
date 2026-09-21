@@ -21,9 +21,27 @@ RESTAURANTS = [
         "delivery_time_min": 25,
         "image_url": "https://images.unsplash.com/photo-1555126634-323283e090fa?w=800",
         "menu": [
-            ("Pork Bao", "Steamed bun, pork belly, hoisin", 1500, "Buns"),
-            ("Tonkotsu Ramen", "Rich pork broth, egg, chashu", 2900, "Ramen"),
-            ("Pad Thai", "Rice noodles, shrimp, peanuts", 2600, "Wok"),
+            (
+                "Pork Bao",
+                "Steamed bun, pork belly, hoisin",
+                1500,
+                "Buns",
+                "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600",
+            ),
+            (
+                "Tonkotsu Ramen",
+                "Rich pork broth, egg, chashu",
+                2900,
+                "Ramen",
+                "https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=600",
+            ),
+            (
+                "Pad Thai",
+                "Rice noodles, shrimp, peanuts",
+                2600,
+                "Wok",
+                "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=600",
+            ),
         ],
     },
     {
@@ -35,9 +53,27 @@ RESTAURANTS = [
         "delivery_time_min": 35,
         "image_url": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
         "menu": [
-            ("Margherita", "Tomato, mozzarella, basil", 3200, "Pizza"),
-            ("Pepperoni", "Tomato, mozzarella, pepperoni", 3800, "Pizza"),
-            ("Tiramisu", "Classic", 1800, "Dessert"),
+            (
+                "Margherita",
+                "Tomato, mozzarella, basil",
+                3200,
+                "Pizza",
+                "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600",
+            ),
+            (
+                "Pepperoni",
+                "Tomato, mozzarella, pepperoni",
+                3800,
+                "Pizza",
+                "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600",
+            ),
+            (
+                "Tiramisu",
+                "Classic",
+                1800,
+                "Dessert",
+                "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600",
+            ),
         ],
     },
     {
@@ -49,9 +85,27 @@ RESTAURANTS = [
         "delivery_time_min": 20,
         "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800",
         "menu": [
-            ("Classic Smash", "Double patty, cheese, pickles", 2700, "Burgers"),
-            ("Fries", "Sea salt", 900, "Sides"),
-            ("Vanilla Shake", "Real vanilla", 1400, "Drinks"),
+            (
+                "Classic Smash",
+                "Double patty, cheese, pickles",
+                2700,
+                "Burgers",
+                "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600",
+            ),
+            (
+                "Fries",
+                "Sea salt",
+                900,
+                "Sides",
+                "https://images.unsplash.com/photo-1576107232684-1279f390859f?w=600",
+            ),
+            (
+                "Vanilla Shake",
+                "Real vanilla",
+                1400,
+                "Drinks",
+                "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600",
+            ),
         ],
     },
 ]
@@ -67,11 +121,30 @@ def seed_catalog() -> int:
             menu = data.pop("menu")
             restaurant = Restaurant(**data, rating_count=10)
             restaurant.menu_items = [
-                MenuItem(name=n, description=d, price=p, category=c) for n, d, p, c in menu
+                MenuItem(name=n, description=d, price=p, category=c, image_url=img)
+                for n, d, p, c, img in menu
             ]
             db.add(restaurant)
         db.commit()
         return 3
+
+
+def ensure_menu_images() -> int:
+    """Backfill dish photos on existing demo rows that were seeded without them."""
+    wanted = {(r["name"], n): img for r in RESTAURANTS for n, _d, _p, _c, img in r["menu"]}
+    updated = 0
+    with SessionLocal() as db:
+        for item in db.scalars(select(MenuItem)).all():
+            if item.image_url:
+                continue
+            url = wanted.get((item.restaurant.name, item.name))
+            if not url:
+                continue
+            item.image_url = url
+            updated += 1
+        if updated:
+            db.commit()
+    return updated
 
 
 def ensure_user(email: str, password: str, role: UserRole, name: str, phone: str | None = None) -> bool:
@@ -147,6 +220,7 @@ def seed() -> None:
     """Local/dev: catalog + demo accounts with well-known passwords."""
     seed_demo_users()
     added = seed_catalog()
+    ensure_menu_images()
     print("Already seeded" if added == 0 else "Seeded: 3 users, 3 restaurants, 9 menu items")
 
 
@@ -163,7 +237,10 @@ if __name__ == "__main__":
 
     if args.catalog_only or settings.is_prod:
         n = seed_catalog()
+        photos = ensure_menu_images()
         print(f"Catalog: {'seeded' if n else 'already present'}")
+        if photos:
+            print(f"Menu photos: backfilled {photos}")
         killed = disable_known_demo_accounts()
         if killed:
             print("Disabled local demo logins:", ", ".join(killed))

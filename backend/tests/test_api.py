@@ -19,6 +19,15 @@ def test_list_restaurants(client):
     assert len(r.json()) >= 3
 
 
+def test_search_matches_dish_name(client):
+    by_dish = client.get("/api/v1/restaurants", params={"q": "ramen"}).json()
+    assert any(r["name"] == "Bao Bar" for r in by_dish)
+    by_cuisine = client.get("/api/v1/restaurants", params={"q": "italian"}).json()
+    assert [r["name"] for r in by_cuisine] == ["Pizza Roma"]
+    menu = client.get("/api/v1/restaurants/1/menu").json()
+    assert any(item.get("image_url") for item in menu)
+
+
 def test_order_flow(client, auth):
     menu = client.get("/api/v1/restaurants/1/menu").json()
     payload = {

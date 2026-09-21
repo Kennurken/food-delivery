@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import exists, or_, select
 
 from app.api.deps import DB
 from app.models import MenuItem, Restaurant
@@ -18,7 +18,14 @@ def list_restaurants(
     if cuisine:
         stmt = stmt.where(Restaurant.cuisine == cuisine)
     if q:
-        stmt = stmt.where(Restaurant.name.ilike(f"%{q}%"))
+        like = f"%{q}%"
+        stmt = stmt.where(
+            or_(
+                Restaurant.name.ilike(like),
+                Restaurant.cuisine.ilike(like),
+                exists().where(MenuItem.restaurant_id == Restaurant.id, MenuItem.name.ilike(like)),
+            )
+        )
     return list(db.scalars(stmt.order_by(Restaurant.rating.desc())))
 
 

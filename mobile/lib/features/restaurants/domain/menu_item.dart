@@ -29,4 +29,15 @@ class MenuItem {
     imageUrl: json['image_url'] as String?,
     isAvailable: json['is_available'] as bool,
   );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'restaurant_id': restaurantId,
+    'name': name,
+    'description': description,
+    'price': price,
+    'category': category,
+    'image_url': imageUrl,
+    'is_available': isAvailable,
+  };
 }

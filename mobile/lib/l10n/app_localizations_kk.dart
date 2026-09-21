@@ -69,7 +69,7 @@ class L10nKk extends L10n {
   String get greetingNight => 'Түнгі уақыт';
 
   @override
-  String get searchRestaurants => 'Мейрамхана іздеу';
+  String get searchRestaurants => 'Мейрамхана, тағам';
 
   @override
   String get all => 'Барлығы';
@@ -79,6 +79,9 @@ class L10nKk extends L10n {
 
   @override
   String get retry => 'Қайталау';
+
+  @override
+  String get navHome => 'Басты';
 
   @override
   String get orders => 'Тапсырыстар';
@@ -125,6 +128,9 @@ class L10nKk extends L10n {
 
   @override
   String get cartEmpty => 'Себет бос';
+
+  @override
+  String get cartEmptyHint => 'Мейрамханадан дәмді нәрсе қосыңыз';
 
   @override
   String get deliveryAddress => 'Жеткізу мекенжайы';

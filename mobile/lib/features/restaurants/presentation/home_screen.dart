@@ -10,6 +10,7 @@ import '../../../core/l10n/l10n.dart';
 
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/shimmer.dart';
 import '../../../core/widgets/sliding_number.dart';
@@ -114,7 +115,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    Text('${user?.name.split(' ').first ?? ''} 👋'),
+                    Text(user?.name.split(' ').first ?? ''),
                   ],
                 ),
         ),
@@ -133,16 +134,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             onPressed: _toggleSearch,
           ),
-          IconButton(
-            icon: const Icon(Icons.receipt_long_outlined),
-            tooltip: t.orders,
-            onPressed: () => context.push('/orders'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            tooltip: t.profile,
-            onPressed: () => context.push('/profile'),
-          ),
         ],
       ),
       floatingActionButton: const _CartFab(),
@@ -157,7 +148,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onRetry: () => ref.invalidate(restaurantsProvider),
               ),
               data: (list) => list.isEmpty
-                  ? Center(child: Text(t.nothingFound))
+                  ? EmptyState(icon: Icons.search_off, title: t.nothingFound)
                   : RefreshIndicator(
                       onRefresh: () => ref.refresh(restaurantsProvider.future),
                       child: ListView.separated(

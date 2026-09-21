@@ -14,6 +14,7 @@ import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/restaurants/presentation/home_screen.dart';
 import '../../features/restaurants/presentation/restaurant_screen.dart';
+import '../../features/shell/customer_shell.dart';
 
 /// Bridges Riverpod auth state to GoRouter's refreshListenable.
 class _AuthNotifier extends ChangeNotifier {
@@ -62,7 +63,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
-      GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
       GoRoute(path: '/courier', builder: (_, _) => const CourierScreen()),
       GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
       GoRoute(
@@ -70,18 +70,40 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, s) =>
             AdminMenuScreen(restaurantId: int.parse(s.pathParameters['id']!)),
       ),
-      GoRoute(
-        path: '/restaurants/:id',
-        builder: (_, s) =>
-            RestaurantScreen(id: int.parse(s.pathParameters['id']!)),
-      ),
-      GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
-      GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
-      GoRoute(path: '/orders', builder: (_, _) => const OrdersScreen()),
-      GoRoute(
-        path: '/orders/:id',
-        builder: (_, s) =>
-            OrderDetailScreen(id: int.parse(s.pathParameters['id']!)),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            CustomerShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
+              GoRoute(
+                path: '/restaurants/:id',
+                builder: (_, s) =>
+                    RestaurantScreen(id: int.parse(s.pathParameters['id']!)),
+              ),
+              GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: '/orders', builder: (_, _) => const OrdersScreen()),
+              GoRoute(
+                path: '/orders/:id',
+                builder: (_, s) =>
+                    OrderDetailScreen(id: int.parse(s.pathParameters['id']!)),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                builder: (_, _) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );

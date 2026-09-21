@@ -9,6 +9,8 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/dish_thumb.dart';
+import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/sliding_number.dart';
 import '../../../core/widgets/stagger.dart';
@@ -98,18 +100,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     if (cart.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: Text(t.cart)),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.shopping_bag_outlined,
-                size: 64,
-                color: scheme.outline,
-              ).animate().scale(curve: Motion.pop, duration: Motion.slow),
-              const SizedBox(height: 12),
-              Text(t.cartEmpty),
-            ],
+        body: EmptyState(
+          icon: Icons.shopping_bag_outlined,
+          title: t.cartEmpty,
+          hint: t.cartEmptyHint,
+          action: FilledButton.tonal(
+            onPressed: () => context.go('/'),
+            child: Text(t.browseRestaurants),
           ),
         ),
       );
@@ -145,6 +142,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
                     child: Row(
                       children: [
+                        DishThumb(
+                          url: line.item.imageUrl,
+                          size: 56,
+                          radius: 12,
+                        ),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

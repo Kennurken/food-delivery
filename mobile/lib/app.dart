@@ -5,6 +5,7 @@ import 'core/l10n/l10n.dart';
 import 'core/l10n/locale_controller.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/app_shell.dart';
 import 'features/notifications/live_events_listener.dart';
 
 class FoodDeliveryApp extends ConsumerWidget {
@@ -23,7 +24,8 @@ class FoodDeliveryApp extends ConsumerWidget {
       supportedLocales: L10n.supportedLocales,
       onGenerateTitle: (context) => context.l10n.appName,
       debugShowCheckedModeBanner: false,
-      builder: (context, child) => LiveEventsListener(child: child!),
+      builder: (context, child) =>
+          AppShell(child: LiveEventsListener(child: child!)),
     );
   }
 }

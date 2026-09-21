@@ -131,18 +131,20 @@ Mobile UI is English / Russian / Kazakh; pick the language in Profile. Native re
 
 | Primitive | Source | Notes |
 |---|---|---|
-| `Pressable` | animate-ui Button `tapScale 0.95` | wraps cards, buttons, stars |
+| `Pressable` | animate-ui Button `tapScale 0.95` / `hoverScale 1.05` | wraps cards, buttons, stars; no scale if reduced-motion |
 | `SlidingNumber` | jitter Counter | digits roll on change — cart totals, qty |
 | `.stagger(i)` | jitter Animated App List | fade + slide-up, 55 ms interval |
 | `Shimmer` / `Bone` | — | skeleton while lists load |
 | `SuccessCheck` | jitter Loading → Success | drawn with `CustomPainter` after checkout |
 | `StretchSwitch` | animate-ui Switch `pressedWidth` | thumb stretches while pressed |
-| `PillTabBar` | animate-ui Tabs (spring 300/32) | sliding pill indicator |
+| `PillTabBar` / `SlidingBottomNav` | animate-ui Tabs (spring 300/32) + jitter Navigation Bar | sliding pill on customer tabs |
 | `LiveToast` | jitter Simple Notification | WS events → top banner, per role |
 | `AnimatedGradient` | animate-ui Gradient background | login backdrop |
 | `QuantityStepper` | jitter View Cart: Split | `+` morphs into `− n +` |
-| Item bottom sheet | animate-ui Sheet (spring 150/22) | emphasized curve |
+| Item bottom sheet | animate-ui Sheet (spring 150/22) | emphasized curve + dish photo |
 | `Hero` restaurant image | — | list → detail |
+| `AppShell` | phone-width storefront | max 560px column on web/desktop |
+| `DishThumb` | — | menu, cart, and item sheet photos |
 
 Theme: Manrope via `google_fonts`, light + dark from one seed, 20px radii, flat cards.
 

@@ -95,7 +95,7 @@ class _MineTab extends ConsumerWidget {
         if (next == null) return const SizedBox.shrink();
         return FilledButton(
           onPressed: () => _advance(context, ref, o.id),
-          child: Text(next.label),
+          child: Text(next.actionLabel),
         );
       },
     );

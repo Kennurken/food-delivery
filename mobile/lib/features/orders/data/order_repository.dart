@@ -43,6 +43,12 @@ class OrderRepository {
     return Order.fromJson(r.data);
   }
 
+  // --- admin
+  Future<Order> setStatus(int id, OrderStatus status) async {
+    final r = await _dio.patch('/api/v1/orders/$id/status', data: {'status': status.wire});
+    return Order.fromJson(r.data);
+  }
+
   // --- courier
   Future<List<Order>> available() async {
     final r = await _dio.get('/api/v1/orders/available');

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/admin/presentation/admin_menu_screen.dart';
+import '../../features/admin/presentation/admin_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
@@ -36,11 +38,14 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       if (user == null) return onAuthPage ? null : '/login';
 
-      final home = user.isCourier ? '/courier' : '/';
+      // Each role has its own surface; keep them there.
+      final home = user.isAdmin ? '/admin' : user.isCourier ? '/courier' : '/';
       if (onAuthPage || loc == '/splash') return home;
-      // Keep roles on their own surfaces.
-      if (user.isCourier && !loc.startsWith('/courier')) return '/courier';
-      if (!user.isCourier && loc.startsWith('/courier')) return '/';
+      final onCourier = loc.startsWith('/courier');
+      final onAdmin = loc.startsWith('/admin');
+      if (user.isAdmin && !onAdmin) return home;
+      if (user.isCourier && !onCourier) return home;
+      if (!user.isAdmin && !user.isCourier && (onAdmin || onCourier)) return home;
       return null;
     },
     routes: [
@@ -52,6 +57,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
       GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
       GoRoute(path: '/courier', builder: (_, _) => const CourierScreen()),
+      GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
+      GoRoute(
+        path: '/admin/restaurants/:id',
+        builder: (_, s) => AdminMenuScreen(restaurantId: int.parse(s.pathParameters['id']!)),
+      ),
       GoRoute(
         path: '/restaurants/:id',
         builder: (_, s) => RestaurantScreen(id: int.parse(s.pathParameters['id']!)),

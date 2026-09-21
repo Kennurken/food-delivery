@@ -53,6 +53,9 @@ Android emulator hits `10.0.2.2:8000`, iOS sim hits `127.0.0.1:8000`. Override: 
 | POST | /api/v1/orders/{id}/accept | courier |
 | POST | /api/v1/orders/{id}/advance | courier (assigned) |
 | PATCH | /api/v1/orders/{id}/status | admin |
+| GET/PATCH | /api/v1/admin/restaurants[/{id}] | admin |
+| POST | /api/v1/admin/restaurants/{id}/menu | admin |
+| PATCH/DELETE | /api/v1/admin/menu/{id} | admin |
 
 Order status machine: `pending → confirmed → preparing → on_the_way → delivered`; cancel allowed from `pending`/`confirmed`.
 Admin confirms; courier picks up from `confirmed`/`preparing` and advances step by step. Client polls order every 4s until final.
@@ -71,6 +74,6 @@ cd mobile && flutter test
 - [x] Courier role + order assignment
 - [x] Alembic migrations, Postgres via docker compose
 - [ ] Push notifications on status change (FCM) — replaces polling
-- [ ] Restaurant/admin panel (confirm orders, edit menu)
+- [x] Admin panel in-app (confirm/advance orders, toggle restaurant, edit menu)
 - [ ] Map/geocoding for address
 - [ ] Payments (Kaspi / Stripe)

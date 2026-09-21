@@ -86,3 +86,42 @@ def test_courier_flow(client, auth, courier, admin):
 
 def test_customer_cannot_use_courier_endpoints(client, auth):
     assert client.get("/api/v1/orders/available", headers=auth).status_code == 403
+
+
+def test_admin_menu_and_restaurant(client, admin, auth):
+    # customer forbidden
+    assert client.get("/api/v1/admin/restaurants", headers=auth).status_code == 403
+
+    r = client.post(
+        "/api/v1/admin/restaurants/3/menu",
+        json={"name": "Onion Rings", "price": 1100, "category": "Sides"},
+        headers=admin,
+    )
+    assert r.status_code == 201
+    item_id = r.json()["id"]
+
+    r = client.patch(f"/api/v1/admin/menu/{item_id}", json={"is_available": False, "price": 1200}, headers=admin)
+    assert r.json() == {**r.json(), "is_available": False, "price": 1200}
+
+    # unavailable item cannot be ordered
+    r = client.post(
+        "/api/v1/orders",
+        json={"restaurant_id": 3, "address": "Abay 1", "items": [{"menu_item_id": item_id, "quantity": 1}]},
+        headers=auth,
+    )
+    assert r.status_code == 400
+
+    # closing restaurant hides it from public list
+    client.patch("/api/v1/admin/restaurants/3", json={"is_open": False}, headers=admin)
+    assert 3 not in [x["id"] for x in client.get("/api/v1/restaurants").json()]
+    assert 3 in [x["id"] for x in client.get("/api/v1/admin/restaurants", headers=admin).json()]
+    client.patch("/api/v1/admin/restaurants/3", json={"is_open": True}, headers=admin)
+
+    assert client.delete(f"/api/v1/admin/menu/{item_id}", headers=admin).status_code == 204
+
+
+def test_order_carries_customer_and_restaurant(client, auth):
+    oid = _place(client, auth)
+    o = client.get(f"/api/v1/orders/{oid}", headers=auth).json()
+    assert o["customer"]["name"] == "Test User"
+    assert o["restaurant_name"] == "Pizza Roma"

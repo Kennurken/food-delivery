@@ -12,14 +12,14 @@ class OrderItem {
       );
 }
 
-class Courier {
-  const Courier({required this.id, required this.name, this.phone});
+class UserBrief {
+  const UserBrief({required this.id, required this.name, this.phone});
 
   final int id;
   final String name;
   final String? phone;
 
-  factory Courier.fromJson(Map<String, dynamic> json) => Courier(
+  factory UserBrief.fromJson(Map<String, dynamic> json) => UserBrief(
         id: json['id'] as int,
         name: json['name'] as String,
         phone: json['phone'] as String?,
@@ -51,6 +51,25 @@ enum OrderStatus {
       };
 
   bool get canCancel => this == pending || this == confirmed;
+
+  /// Button label for an action that moves an order *to* this status.
+  String get actionLabel => switch (this) {
+        confirmed => 'Confirm',
+        preparing => 'Start preparing',
+        onTheWay => 'Hand to courier',
+        delivered => 'Mark delivered',
+        cancelled => 'Cancel',
+        pending => 'Pending',
+      };
+
+  /// Admin transitions (mirrors backend state machine).
+  List<OrderStatus> get adminNext => switch (this) {
+        pending => [confirmed, cancelled],
+        confirmed => [preparing, cancelled],
+        preparing => [onTheWay],
+        onTheWay => [delivered],
+        _ => [],
+      };
   bool get isFinal => this == delivered || this == cancelled;
 
   /// Next step a courier can push this order to, or null.
@@ -73,13 +92,17 @@ class Order {
     required this.total,
     required this.createdAt,
     required this.items,
+    required this.customer,
+    required this.restaurantName,
     this.comment,
     this.courier,
   });
 
   final int id;
   final int restaurantId;
-  final Courier? courier;
+  final String restaurantName;
+  final UserBrief customer;
+  final UserBrief? courier;
   final OrderStatus status;
   final String address;
   final String? comment;
@@ -92,7 +115,9 @@ class Order {
   factory Order.fromJson(Map<String, dynamic> json) => Order(
         id: json['id'] as int,
         restaurantId: json['restaurant_id'] as int,
-        courier: json['courier'] == null ? null : Courier.fromJson(json['courier']),
+        restaurantName: json['restaurant_name'] as String,
+        customer: UserBrief.fromJson(json['customer']),
+        courier: json['courier'] == null ? null : UserBrief.fromJson(json['courier']),
         status: OrderStatus.parse(json['status'] as String),
         address: json['address'] as String,
         comment: json['comment'] as String?,

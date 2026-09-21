@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -79,6 +80,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: () => context.push('/register'),
                     child: const Text('Create account'),
                   ),
+                  if (kDebugMode) ...[
+                    const SizedBox(height: 16),
+                    // Dev-only: quick switch between seeded accounts.
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 8,
+                      children: [
+                        for (final (label, email, pass) in const [
+                          ('User', 'user@food.dev', 'user123'),
+                          ('Courier', 'courier@food.dev', 'courier123'),
+                          ('Admin', 'admin@food.dev', 'admin123'),
+                        ])
+                          ActionChip(
+                            label: Text(label),
+                            onPressed: () {
+                              _email.text = email;
+                              _password.text = pass;
+                              _submit();
+                            },
+                          ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

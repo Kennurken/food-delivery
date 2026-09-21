@@ -38,6 +38,14 @@ class Order(Base):
         back_populates="order", cascade="all, delete-orphan", lazy="selectin"
     )
 
+    @property
+    def customer(self) -> "User":  # noqa: F821
+        return self.user
+
+    @property
+    def restaurant_name(self) -> str:
+        return self.restaurant.name
+
 
 class OrderItem(Base):
     __tablename__ = "order_items"

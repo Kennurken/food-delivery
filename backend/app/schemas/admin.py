@@ -1,0 +1,25 @@
+from pydantic import BaseModel, Field
+
+
+class RestaurantUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=150)
+    description: str | None = None
+    is_open: bool | None = None
+    delivery_fee: float | None = Field(default=None, ge=0)
+    delivery_time_min: int | None = Field(default=None, ge=1, le=240)
+
+
+class MenuItemCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=150)
+    description: str = ""
+    price: float = Field(gt=0)
+    category: str = Field(default="Main", max_length=50)
+    image_url: str | None = None
+
+
+class MenuItemUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=150)
+    description: str | None = None
+    price: float | None = Field(default=None, gt=0)
+    category: str | None = Field(default=None, max_length=50)
+    is_available: bool | None = None

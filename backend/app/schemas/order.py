@@ -27,7 +27,7 @@ class OrderItemOut(BaseModel):
     quantity: int
 
 
-class CourierOut(BaseModel):
+class UserBrief(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -40,7 +40,9 @@ class OrderOut(BaseModel):
 
     id: int
     restaurant_id: int
-    courier: CourierOut | None = None
+    customer: UserBrief
+    courier: UserBrief | None = None
+    restaurant_name: str
     status: OrderStatus
     address: str
     comment: str | None

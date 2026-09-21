@@ -9,9 +9,11 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60  # refresh token renews it
     refresh_token_expire_days: int = 30
-    cors_origins: str = "*"  # comma-separated allowlist in prod; empty = none
+    cors_origins: str = "*"  # comma-separated allowlist in prod; empty/`none` = none
+    cors_origin_regex: str = ""  # e.g. https://.*\\.vercel\\.app
     login_rate_limit: str = "10/minute"
     env: str = "dev"  # "prod" enables safety checks
+    allow_ephemeral_db: bool = False  # sqlite in /tmp on Vercel — data dies on cold start
 
     @property
     def sqlalchemy_url(self) -> str:
@@ -41,9 +43,9 @@ class Settings(BaseSettings):
             return
         if self.secret_key in ("dev-secret", "change-me", "change-me-in-prod"):
             raise RuntimeError("SECRET_KEY must be set to a strong random value in prod")
-        if self.cors_origins.strip() == "*":
+        if self.cors_origins.strip() == "*" and not self.cors_origin_regex:
             raise RuntimeError("CORS_ORIGINS must be an explicit allowlist (or empty) in prod")
-        if self.sqlalchemy_url.startswith("sqlite"):
+        if self.sqlalchemy_url.startswith("sqlite") and not self.allow_ephemeral_db:
             raise RuntimeError("DATABASE_URL must not be sqlite in prod")
 
 

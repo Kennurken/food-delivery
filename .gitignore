@@ -16,6 +16,10 @@ mobile/.idea/
 
 .DS_Store
 
+# Vercel
+.vercel
+mobile/build/
+
 # Android signing — never commit
 mobile/android/key.properties
 mobile/android/app/*.jks

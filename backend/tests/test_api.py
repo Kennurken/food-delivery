@@ -233,8 +233,10 @@ def test_prod_guard_rejects_default_secret():
     Settings(
         env="prod",
         secret_key="x" * 48,
-        cors_origins="https://example.com",
-        database_url="postgresql+psycopg://food:food@localhost/food",
+        cors_origins="none",
+        cors_origin_regex=r"https://.*\.vercel\.app",
+        allow_ephemeral_db=True,
+        database_url="sqlite:////tmp/food.db",
     ).validate_for_prod()
 
 

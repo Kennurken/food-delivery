@@ -10,6 +10,10 @@
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+**Live:** [app](https://food-delivery-drab-theta.vercel.app) · [API](https://food-delivery-api-jet.vercel.app/health)
+
+Demo logins: `user@food.dev / user123` · `courier@food.dev / courier123` · `admin@food.dev / admin123`
+
 <img src="docs/screens/hero.png" alt="Home · Restaurant · Item sheet · Order tracking · Live toast · Admin" width="100%">
 
 </div>
@@ -99,13 +103,25 @@ Admin confirms; courier picks up from `confirmed`/`preparing` and advances step 
 
 Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","order":{...}}` to the customer, the assigned courier, and admins. Couriers also get unassigned pickable orders (the available pool). Hub is in-process — one instance; swap for Redis pub/sub to scale out.
 
-Login and refresh are rate-limited. Access tokens last 60 minutes; a 30-day refresh token issues a new access token. The app refuses to start in `ENV=prod` with the default `SECRET_KEY`, `CORS_ORIGINS=*`, or a sqlite `DATABASE_URL`. `/docs` is off in prod. Seed is blocked in prod because it creates `admin123` / `user123`.
+Login and refresh are rate-limited. Access tokens last 60 minutes; a 30-day refresh token issues a new access token. The app refuses to start in `ENV=prod` with the default `SECRET_KEY`, `CORS_ORIGINS=*` (unless `CORS_ORIGIN_REGEX` is set), or a sqlite `DATABASE_URL` (unless `ALLOW_EPHEMERAL_DB=1` for a Vercel demo). `/docs` is off in prod. Seed is blocked from the CLI in prod because it creates `admin123` / `user123`.
 
 Schema migrations: `cd backend && uv run alembic revision --autogenerate -m "..." && uv run alembic upgrade head`.
 
 Fly: `cd backend && ./deploy.sh` (creates the app + Postgres, sets `SECRET_KEY` once, never reseeds). Health: `GET /health` pings the database.
 
-Mobile UI is English / Russian / Kazakh; pick the language in Profile. Release builds need `--dart-define=API_URL=https://…`.
+Cloud (Vercel): the API is a FastAPI function; the Flutter web client is a static deploy. Demo uses sqlite in `/tmp` (`ALLOW_EPHEMERAL_DB=1`) so orders reset on cold start — attach Neon/Postgres when you care. WebSockets work on Fluid compute with a ~5 min cap; the client reconnects.
+
+```bash
+# API
+cd backend && vercel --prod --yes
+# Web (after API URL exists)
+cd mobile && flutter build web --release --dart-define=API_URL=https://food-delivery-api-jet.vercel.app
+cp web/vercel.json build/web/ && vercel --prod --yes build/web
+```
+
+Live right now: [food-delivery-drab-theta.vercel.app](https://food-delivery-drab-theta.vercel.app) talks to [food-delivery-api-jet.vercel.app](https://food-delivery-api-jet.vercel.app/health).
+
+Mobile UI is English / Russian / Kazakh; pick the language in Profile. Native release builds need `--dart-define=API_URL=https://…`.
 
 ## Motion system
 

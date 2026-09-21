@@ -17,6 +17,12 @@ from app.db.session import SessionLocal
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    if settings.allow_ephemeral_db:
+        from app.db.seed import seed
+        from app.db.session import Base, engine
+
+        Base.metadata.create_all(bind=engine)
+        seed()
     # Sync endpoints run in a threadpool; hub needs the main loop to push WS frames.
     hub.bind_loop(asyncio.get_running_loop())
     yield
@@ -37,6 +43,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
+    allow_origin_regex=settings.cors_origin_regex or None,
     allow_methods=["*"],
     allow_headers=["*"],
 )

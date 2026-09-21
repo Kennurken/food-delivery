@@ -1,4 +1,8 @@
-"""Seed dev database. Run after `alembic upgrade head`: uv run python -m app.db.seed"""
+"""Seed catalog (and optional demo users). Run after `alembic upgrade head`."""
+
+from __future__ import annotations
+
+import secrets
 
 from sqlalchemy import select
 
@@ -53,12 +57,49 @@ RESTAURANTS = [
 ]
 
 
-def seed() -> None:
+def seed_catalog() -> int:
+    """Insert the three demo restaurants if the catalog is empty. Returns count added."""
     with SessionLocal() as db:
         if db.scalar(select(Restaurant).limit(1)):
-            print("Already seeded")
-            return
+            return 0
+        for raw in RESTAURANTS:
+            data = dict(raw)
+            menu = data.pop("menu")
+            restaurant = Restaurant(**data, rating_count=10)
+            restaurant.menu_items = [
+                MenuItem(name=n, description=d, price=p, category=c) for n, d, p, c in menu
+            ]
+            db.add(restaurant)
+        db.commit()
+        return 3
 
+
+def ensure_user(email: str, password: str, role: UserRole, name: str, phone: str | None = None) -> bool:
+    """Create a user if that email does not exist. Returns True if created."""
+    with SessionLocal() as db:
+        if db.scalar(select(User).where(User.email == email)):
+            return False
+        db.add(
+            User(
+                email=email,
+                name=name,
+                phone=phone,
+                hashed_password=hash_password(password),
+                role=role,
+            )
+        )
+        db.commit()
+        return True
+
+
+def ensure_admin(email: str, password: str, name: str = "Admin") -> bool:
+    return ensure_user(email, password, UserRole.admin, name)
+
+
+def seed_demo_users() -> None:
+    with SessionLocal() as db:
+        if db.scalar(select(User).limit(1)):
+            return
         db.add(
             User(
                 email="admin@food.dev",
@@ -84,25 +125,59 @@ def seed() -> None:
                 hashed_password=hash_password("user123"),
             )
         )
-
-        for raw in RESTAURANTS:
-            data = dict(raw)
-            menu = data.pop("menu")
-            restaurant = Restaurant(**data, rating_count=10)
-            restaurant.menu_items = [
-                MenuItem(name=n, description=d, price=p, category=c) for n, d, p, c in menu
-            ]
-            db.add(restaurant)
-
         db.commit()
-        print("Seeded: 3 users, 3 restaurants, 9 menu items")
+
+
+def disable_known_demo_accounts() -> list[str]:
+    """Scramble passwords for the well-known local demo emails if they exist in this DB."""
+    changed: list[str] = []
+    with SessionLocal() as db:
+        for email in ("admin@food.dev", "courier@food.dev", "user@food.dev"):
+            user = db.scalar(select(User).where(User.email == email))
+            if user is None:
+                continue
+            user.hashed_password = hash_password(secrets.token_urlsafe(24))
+            changed.append(email)
+        if changed:
+            db.commit()
+    return changed
+
+
+def seed() -> None:
+    """Local/dev: catalog + demo accounts with well-known passwords."""
+    seed_demo_users()
+    added = seed_catalog()
+    print("Already seeded" if added == 0 else "Seeded: 3 users, 3 restaurants, 9 menu items")
 
 
 if __name__ == "__main__":
+    import argparse
     import os
 
     from app.core.config import settings
 
-    if settings.is_prod and not os.environ.get("ALLOW_SEED"):
-        raise SystemExit("Refusing to seed in prod (demo passwords). Set ALLOW_SEED=1 to override.")
-    seed()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--catalog-only", action="store_true", help="restaurants, no demo users")
+    parser.add_argument("--admin-email", default=os.environ.get("ADMIN_EMAIL", "admin@food.delivery"))
+    args = parser.parse_args()
+
+    if args.catalog_only or settings.is_prod:
+        n = seed_catalog()
+        print(f"Catalog: {'seeded' if n else 'already present'}")
+        killed = disable_known_demo_accounts()
+        if killed:
+            print("Disabled local demo logins:", ", ".join(killed))
+        accounts = [
+            (args.admin_email, UserRole.admin, "Admin", None),
+            ("courier@food.delivery", UserRole.courier, "Courier Bek", "+77007654321"),
+            ("user@food.delivery", UserRole.customer, "Demo User", "+77001234567"),
+        ]
+        print("Accounts:")
+        for email, role, name, phone in accounts:
+            password = secrets.token_urlsafe(18)
+            if ensure_user(email, password, role, name, phone):
+                print(f"  {role.value:9}  {email}  {password}")
+            else:
+                print(f"  {role.value:9}  {email}  (already exists, password unchanged)")
+    else:
+        seed()

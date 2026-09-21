@@ -3,5 +3,6 @@
 .ruff_cache
 __pycache__
 *.db
+.env
 tests
 .python-version

@@ -221,6 +221,9 @@ def test_prod_guard_rejects_default_secret():
 
     with pytest.raises(RuntimeError, match="SECRET_KEY"):
         Settings(env="prod", secret_key="change-me").validate_for_prod()
+    with pytest.raises(RuntimeError, match="SECRET_KEY"):
+        Settings(env="prod", secret_key="").validate_for_prod()
+    assert Settings(allow_ephemeral_db="").allow_ephemeral_db is False
     with pytest.raises(RuntimeError, match="CORS_ORIGINS"):
         Settings(env="prod", secret_key="x" * 48, cors_origins="*").validate_for_prod()
     with pytest.raises(RuntimeError, match="DATABASE_URL"):

@@ -23,6 +23,10 @@ async def lifespan(_: FastAPI):
 
         Base.metadata.create_all(bind=engine)
         seed()
+    elif not settings.sqlalchemy_url.startswith("sqlite"):
+        from app.db.seed import seed_catalog
+
+        seed_catalog()
     # Sync endpoints run in a threadpool; hub needs the main loop to push WS frames.
     hub.bind_loop(asyncio.get_running_loop())
     yield

@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +15,14 @@ class Settings(BaseSettings):
     login_rate_limit: str = "10/minute"
     env: str = "dev"  # "prod" enables safety checks
     allow_ephemeral_db: bool = False  # sqlite in /tmp on Vercel — data dies on cold start
+
+    @field_validator("allow_ephemeral_db", mode="before")
+    @classmethod
+    def _empty_bool_false(cls, value: object) -> object:
+        # Vercel env pull / blank dashboard values show up as "".
+        if value in ("", None):
+            return False
+        return value
 
     @property
     def sqlalchemy_url(self) -> str:
@@ -41,7 +50,10 @@ class Settings(BaseSettings):
     def validate_for_prod(self) -> None:
         if not self.is_prod:
             return
-        if self.secret_key in ("dev-secret", "change-me", "change-me-in-prod"):
+        if (
+            self.secret_key in ("dev-secret", "change-me", "change-me-in-prod")
+            or len(self.secret_key.strip()) < 32
+        ):
             raise RuntimeError("SECRET_KEY must be set to a strong random value in prod")
         if self.cors_origins.strip() == "*" and not self.cors_origin_regex:
             raise RuntimeError("CORS_ORIGINS must be an explicit allowlist (or empty) in prod")

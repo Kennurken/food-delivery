@@ -12,7 +12,7 @@
 
 **Live:** [app](https://food-delivery-drab-theta.vercel.app) · [API](https://food-delivery-api-jet.vercel.app/health)
 
-Demo logins: `user@food.dev / user123` · `courier@food.dev / courier123` · `admin@food.dev / admin123`
+The public API stores data in Neon Postgres. Register a customer account there. Local-only demo logins (`user@food.dev / user123` and the courier/admin twins) are created by `uv run python -m app.db.seed` against sqlite — they are not on production.
 
 <img src="docs/screens/hero.png" alt="Home · Restaurant · Item sheet · Order tracking · Live toast · Admin" width="100%">
 
@@ -103,13 +103,13 @@ Admin confirms; courier picks up from `confirmed`/`preparing` and advances step 
 
 Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","order":{...}}` to the customer, the assigned courier, and admins. Couriers also get unassigned pickable orders (the available pool). Hub is in-process — one instance; swap for Redis pub/sub to scale out.
 
-Login and refresh are rate-limited. Access tokens last 60 minutes; a 30-day refresh token issues a new access token. The app refuses to start in `ENV=prod` with the default `SECRET_KEY`, `CORS_ORIGINS=*` (unless `CORS_ORIGIN_REGEX` is set), or a sqlite `DATABASE_URL` (unless `ALLOW_EPHEMERAL_DB=1` for a Vercel demo). `/docs` is off in prod. Seed is blocked from the CLI in prod because it creates `admin123` / `user123`.
+Login and refresh are rate-limited. Access tokens last 60 minutes; a 30-day refresh token issues a new access token. The app refuses to start in `ENV=prod` with a short/default `SECRET_KEY`, `CORS_ORIGINS=*` (unless `CORS_ORIGIN_REGEX` is set), or a sqlite `DATABASE_URL` (unless `ALLOW_EPHEMERAL_DB=1` for a throwaway demo). `/docs` is off in prod. `python -m app.db.seed` in prod (or `--catalog-only`) inserts restaurants only and mints random staff passwords — it will not create `admin123` / `user123`.
 
 Schema migrations: `cd backend && uv run alembic revision --autogenerate -m "..." && uv run alembic upgrade head`.
 
 Fly: `cd backend && ./deploy.sh` (creates the app + Postgres, sets `SECRET_KEY` once, never reseeds). Health: `GET /health` pings the database.
 
-Cloud (Vercel): the API is a FastAPI function; the Flutter web client is a static deploy. Demo uses sqlite in `/tmp` (`ALLOW_EPHEMERAL_DB=1`) so orders reset on cold start — attach Neon/Postgres when you care. WebSockets work on Fluid compute with a ~5 min cap; the client reconnects.
+Cloud (Vercel + Neon): the API is a FastAPI function; the Flutter web client is a static deploy. Postgres is Neon (`DATABASE_URL` pooled, SQLAlchemy `NullPool`). Catalog seed is idempotent and does not insert demo passwords. WebSockets work on Fluid compute with a ~5 min cap; the client reconnects.
 
 ```bash
 # API
@@ -164,6 +164,7 @@ cd mobile && flutter test
 - [x] Admin panel in-app (confirm/advance orders, toggle restaurant, edit menu)
 - [x] Refresh tokens, login rate limits, prod secret/CORS/sqlite guards
 - [x] en / ru / kk UI
+- [x] Vercel + Neon (persistent orders, no public `admin123`)
 - [ ] Push notifications when app is in background (FCM)
 - [ ] Map/geocoding for address
 - [ ] Payments (Kaspi / Stripe)

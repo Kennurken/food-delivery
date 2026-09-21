@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/theme/buttons.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/list_skeleton.dart';
+import '../../../core/widgets/pill_tab_bar.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
-import '../../../core/widgets/pill_tab_bar.dart';
 import '../../orders/presentation/orders_screen.dart';
 
 /// Courier home: pick up available orders, advance own orders.
@@ -22,10 +26,11 @@ class CourierScreen extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Courier · ${user?.name ?? ''}'),
+          title: Text(user?.name ?? 'Courier'),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
+              tooltip: 'Log out',
               onPressed: () =>
                   ref.read(authControllerProvider.notifier).logout(),
             ),
@@ -44,6 +49,7 @@ class _AvailableTab extends ConsumerWidget {
   Future<void> _accept(BuildContext context, WidgetRef ref, int id) async {
     try {
       await ref.read(orderRepositoryProvider).accept(id);
+      Haptics.success();
       ref.invalidate(availableOrdersProvider);
       ref.invalidate(ordersProvider);
       if (context.mounted) DefaultTabController.of(context).animateTo(1);
@@ -58,16 +64,21 @@ class _AvailableTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orders = ref.watch(availableOrdersProvider);
     return _OrderList(
-      orders: orders,
-      empty: 'No orders waiting',
+      orders: ref.watch(availableOrdersProvider),
+      empty: const EmptyState(
+        icon: Icons.hourglass_empty,
+        title: 'No orders waiting',
+        hint: 'New pickups appear here instantly',
+      ),
       onRefresh: () => ref.refresh(availableOrdersProvider.future),
       action: (o) => Pressable(
         onTap: () => _accept(context, ref, o.id),
-        child: FilledButton.tonal(
+        child: FilledButton.icon(
+          style: AppButtons.inline,
           onPressed: () => _accept(context, ref, o.id),
-          child: const Text('Accept'),
+          icon: const Icon(Icons.check),
+          label: const Text('Accept'),
         ),
       ),
     );
@@ -80,6 +91,7 @@ class _MineTab extends ConsumerWidget {
   Future<void> _advance(BuildContext context, WidgetRef ref, int id) async {
     try {
       await ref.read(orderRepositoryProvider).advance(id);
+      Haptics.success();
       ref.invalidate(ordersProvider);
     } catch (e) {
       if (context.mounted) {
@@ -97,16 +109,27 @@ class _MineTab extends ConsumerWidget {
         .whenData((list) => list.where((o) => !o.status.isFinal).toList());
     return _OrderList(
       orders: orders,
-      empty: 'No active deliveries',
+      empty: const EmptyState(
+        icon: Icons.delivery_dining,
+        title: 'No active deliveries',
+        hint: 'Accept an order from Available',
+      ),
       onRefresh: () => ref.refresh(ordersProvider.future),
       action: (o) {
         final next = o.status.courierNext;
         if (next == null) return const SizedBox.shrink();
         return Pressable(
           onTap: () => _advance(context, ref, o.id),
-          child: FilledButton(
+          child: FilledButton.icon(
+            style: AppButtons.inline,
             onPressed: () => _advance(context, ref, o.id),
-            child: Text(next.actionLabel),
+            icon: Icon(switch (next) {
+              OrderStatus.preparing => Icons.restaurant,
+              OrderStatus.onTheWay => Icons.two_wheeler,
+              OrderStatus.delivered => Icons.done_all,
+              _ => Icons.arrow_forward,
+            }),
+            label: Text(next.actionLabel),
           ),
         );
       },
@@ -123,23 +146,25 @@ class _OrderList extends StatelessWidget {
   });
 
   final AsyncValue<List<Order>> orders;
-  final String empty;
+  final Widget empty;
   final Future<void> Function() onRefresh;
   final Widget Function(Order) action;
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
     return orders.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text(errorMessage(e))),
+      loading: () => const ListSkeleton(rowHeight: 150),
+      error: (e, _) => EmptyState(
+        icon: Icons.wifi_off,
+        title: 'Couldn\'t load',
+        hint: errorMessage(e),
+      ),
       data: (list) => RefreshIndicator(
         onRefresh: onRefresh,
         child: list.isEmpty
-            ? ListView(
-                children: [
-                  SizedBox(height: 200, child: Center(child: Text(empty))),
-                ],
-              )
+            ? empty
             : ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: list.length,
@@ -149,7 +174,7 @@ class _OrderList extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Card(
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -157,27 +182,47 @@ class _OrderList extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    'Order #${o.id} · ${formatMoney(o.total)}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium,
+                                    o.restaurantName,
+                                    style: text.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                 ),
                                 StatusChip(o.status),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(o.address),
-                            Text(
+                            const SizedBox(height: 10),
+                            _Line(Icons.place_outlined, o.address),
+                            _Line(
+                              Icons.person_outline,
+                              '${o.customer.name}${o.customer.phone != null ? ' · ${o.customer.phone}' : ''}',
+                            ),
+                            _Line(
+                              Icons.shopping_bag_outlined,
                               o.items
                                   .map((i) => '${i.quantity}× ${i.name}')
                                   .join(', '),
-                              style: Theme.of(context).textTheme.bodySmall,
                             ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: action(o),
+                            if (o.comment != null)
+                              _Line(Icons.chat_bubble_outline, o.comment!),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Text(
+                                  formatMoney(o.total),
+                                  style: text.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                Text(
+                                  '  ·  #${o.id}',
+                                  style: text.labelSmall?.copyWith(
+                                    color: scheme.outline,
+                                  ),
+                                ),
+                                const Spacer(),
+                                action(o),
+                              ],
                             ),
                           ],
                         ),
@@ -186,6 +231,31 @@ class _OrderList extends StatelessWidget {
                   ).stagger(i);
                 },
               ),
+      ),
+    );
+  }
+}
+
+class _Line extends StatelessWidget {
+  const _Line(this.icon, this.text);
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text, style: Theme.of(context).textTheme.bodySmall),
+          ),
+        ],
       ),
     );
   }

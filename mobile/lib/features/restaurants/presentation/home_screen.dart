@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,9 +28,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _searching = false;
   final _search = TextEditingController();
   final _focus = FocusNode();
+  Timer? _debounce;
+
+  void _onQuery(String v) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 250), () {
+      if (mounted) ref.read(restaurantSearchProvider.notifier).set(v);
+    });
+  }
+
+  String get _greeting {
+    final h = DateTime.now().hour;
+    if (h < 5) return 'Late night';
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _search.dispose();
     _focus.dispose();
     super.dispose();
@@ -78,12 +97,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       vertical: 10,
                     ),
                   ),
-                  onChanged: (v) =>
-                      ref.read(restaurantSearchProvider.notifier).set(v),
+                  onChanged: _onQuery,
                 )
-              : Text(
-                  'Hi, ${user?.name.split(' ').first ?? ''} 👋',
+              : Column(
                   key: const ValueKey('title'),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _greeting,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text('${user?.name.split(' ').first ?? ''} 👋'),
+                  ],
                 ),
         ),
         actions: [

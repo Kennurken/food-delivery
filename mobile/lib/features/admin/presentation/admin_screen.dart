@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/theme/buttons.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/list_skeleton.dart';
 import '../../../core/widgets/pill_tab_bar.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../../core/widgets/stretch_switch.dart';
@@ -49,6 +53,7 @@ class _OrdersTab extends ConsumerWidget {
   ) async {
     try {
       await ref.read(orderRepositoryProvider).setStatus(o.id, s);
+      Haptics.success();
       ref.invalidate(ordersProvider);
     } catch (e) {
       if (context.mounted) {
@@ -67,18 +72,15 @@ class _OrdersTab extends ConsumerWidget {
       return [...active, ...done];
     });
     return orders.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const ListSkeleton(rowHeight: 140),
       error: (e, _) => Center(child: Text(errorMessage(e))),
       data: (list) => RefreshIndicator(
         onRefresh: () => ref.refresh(ordersProvider.future),
         child: list.isEmpty
-            ? ListView(
-                children: const [
-                  SizedBox(
-                    height: 200,
-                    child: Center(child: Text('No orders')),
-                  ),
-                ],
+            ? const EmptyState(
+                icon: Icons.inbox_outlined,
+                title: 'No orders yet',
+                hint: 'New orders land here in real time',
               )
             : ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -120,21 +122,28 @@ class _OrdersTab extends ConsumerWidget {
                               ),
                             if (o.status.adminNext.isNotEmpty) ...[
                               const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
+                              Row(
                                 children: [
-                                  for (final s in o.status.adminNext)
-                                    s == OrderStatus.cancelled
-                                        ? OutlinedButton(
-                                            onPressed: () =>
-                                                _set(context, ref, o, s),
-                                            child: Text(s.actionLabel),
-                                          )
-                                        : FilledButton.tonal(
-                                            onPressed: () =>
-                                                _set(context, ref, o, s),
-                                            child: Text(s.actionLabel),
-                                          ),
+                                  for (final s in o.status.adminNext) ...[
+                                    if (s == OrderStatus.cancelled)
+                                      OutlinedButton(
+                                        style: AppButtons.inline,
+                                        onPressed: () =>
+                                            _set(context, ref, o, s),
+                                        child: Text(s.actionLabel),
+                                      )
+                                    else
+                                      Expanded(
+                                        child: FilledButton.tonal(
+                                          style: AppButtons.inline,
+                                          onPressed: () =>
+                                              _set(context, ref, o, s),
+                                          child: Text(s.actionLabel),
+                                        ),
+                                      ),
+                                    if (s != o.status.adminNext.last)
+                                      const SizedBox(width: 8),
+                                  ],
                                 ],
                               ),
                             ],
@@ -157,7 +166,7 @@ class _RestaurantsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final restaurants = ref.watch(adminRestaurantsProvider);
     return restaurants.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const ListSkeleton(),
       error: (e, _) => Center(child: Text(errorMessage(e))),
       data: (list) => ListView.builder(
         padding: const EdgeInsets.all(16),

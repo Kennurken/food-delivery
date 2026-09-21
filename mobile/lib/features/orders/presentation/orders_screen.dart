@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/list_skeleton.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/stagger.dart';
 import '../data/order_repository.dart';
@@ -19,40 +21,155 @@ class OrdersScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('My orders')),
       body: orders.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(errorMessage(e))),
-        data: (list) => list.isEmpty
-            ? const Center(child: Text('No orders yet'))
-            : RefreshIndicator(
-                onRefresh: () => ref.refresh(ordersProvider.future),
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: list.length,
-                  itemBuilder: (_, i) {
-                    final o = list[i];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Pressable(
-                        onTap: () => context.push('/orders/${o.id}'),
-                        child: Card(
-                          child: ListTile(
-                            title: Text(
-                              '${o.restaurantName} · ${formatMoney(o.total)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '#${o.id} · ${o.items.length} items · ${o.address}',
-                            ),
-                            trailing: StatusChip(o.status),
-                          ),
+        loading: () => const ListSkeleton(),
+        error: (e, _) => EmptyState(
+          icon: Icons.wifi_off,
+          title: 'Couldn\'t load orders',
+          hint: errorMessage(e),
+          action: FilledButton.tonal(
+            onPressed: () => ref.invalidate(ordersProvider),
+            child: const Text('Retry'),
+          ),
+        ),
+        data: (list) {
+          final active = list.where((o) => !o.status.isFinal).toList();
+          final past = list.where((o) => o.status.isFinal).toList();
+          return RefreshIndicator(
+            onRefresh: () => ref.refresh(ordersProvider.future),
+            child: list.isEmpty
+                ? EmptyState(
+                    icon: Icons.receipt_long_outlined,
+                    title: 'No orders yet',
+                    hint: 'Your orders will show up here',
+                    action: FilledButton.tonal(
+                      onPressed: () => context.go('/'),
+                      child: const Text('Browse restaurants'),
+                    ),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      if (active.isNotEmpty) ...[
+                        _Header('Active', active.length),
+                        for (final (i, o) in active.indexed)
+                          _OrderCard(o).stagger(i),
+                      ],
+                      if (past.isNotEmpty) ...[
+                        if (active.isNotEmpty) const SizedBox(height: 12),
+                        _Header('History', past.length),
+                        for (final (i, o) in past.indexed)
+                          _OrderCard(o).stagger(active.length + i),
+                      ],
+                    ],
+                  ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header(this.title, this.count);
+
+  final String title;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '$count',
+              style: text.labelSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderCard extends StatelessWidget {
+  const _OrderCard(this.o);
+
+  final Order o;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Pressable(
+        onTap: () => context.push('/orders/${o.id}'),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        o.restaurantName,
+                        style: text.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ).stagger(i);
-                  },
+                      const SizedBox(height: 2),
+                      Text(
+                        o.items
+                            .map((i) => '${i.quantity}× ${i.name}')
+                            .join(', '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Text(
+                            formatMoney(o.total),
+                            style: text.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          Text(
+                            '  ·  #${o.id}',
+                            style: text.labelSmall?.copyWith(
+                              color: scheme.outline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                StatusChip(o.status),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

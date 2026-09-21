@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/haptics.dart';
+
 import '../../restaurants/domain/menu_item.dart';
 import '../domain/cart_item.dart';
 
@@ -37,6 +39,7 @@ class CartController extends Notifier<CartState> {
           existing?.copyWith(quantity: existing.quantity + 1) ??
           CartItem(item: item, quantity: 1);
     state = state.copyWith(restaurantId: item.restaurantId, items: next);
+    Haptics.add();
     return true;
   }
 
@@ -49,6 +52,12 @@ class CartController extends Notifier<CartState> {
     } else {
       next[item.id] = existing.copyWith(quantity: existing.quantity - 1);
     }
+    state = next.isEmpty ? const CartState() : state.copyWith(items: next);
+    Haptics.tap();
+  }
+
+  void removeAll(MenuItem item) {
+    final next = Map<int, CartItem>.from(state.items)..remove(item.id);
     state = next.isEmpty ? const CartState() : state.copyWith(items: next);
   }
 

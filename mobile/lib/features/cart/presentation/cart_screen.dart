@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/theme/motion.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/sliding_number.dart';
@@ -57,6 +58,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       ref.read(cartProvider.notifier).clear();
       ref.invalidate(ordersProvider);
       if (!mounted) return;
+      Haptics.success();
       setState(() => _placedOrderId = order.id);
       // Let the success animation play before moving on.
       await Future<void>.delayed(const Duration(milliseconds: 1400));
@@ -120,38 +122,55 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           for (final line in cart.items.values)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              line.item.name,
-                              style: text.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
+              child: Dismissible(
+                key: ValueKey(line.item.id),
+                direction: DismissDirection.endToStart,
+                onDismissed: (_) {
+                  Haptics.warn();
+                  ref.read(cartProvider.notifier).removeAll(line.item);
+                },
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  decoration: BoxDecoration(
+                    color: scheme.error,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(Icons.delete_outline, color: scheme.onError),
+                ),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                line.item.name,
+                                style: text.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                            ),
-                            SlidingNumber(
-                              formatMoney(line.lineTotal),
-                              style: text.bodySmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
+                              SlidingNumber(
+                                formatMoney(line.lineTotal),
+                                style: text.bodySmall?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      QuantityStepper(
-                        qty: line.quantity,
-                        onAdd: () =>
-                            ref.read(cartProvider.notifier).add(line.item),
-                        onRemove: () =>
-                            ref.read(cartProvider.notifier).remove(line.item),
-                      ),
-                    ],
+                        QuantityStepper(
+                          qty: line.quantity,
+                          onAdd: () =>
+                              ref.read(cartProvider.notifier).add(line.item),
+                          onRemove: () =>
+                              ref.read(cartProvider.notifier).remove(line.item),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

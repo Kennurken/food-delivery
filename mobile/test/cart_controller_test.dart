@@ -14,6 +14,7 @@ MenuItem item(int id, int restaurantId, double price) => MenuItem(
 );
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized(); // CartController fires haptics
   late ProviderContainer container;
 
   setUp(() => container = ProviderContainer());

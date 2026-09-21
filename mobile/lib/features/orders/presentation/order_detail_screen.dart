@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/theme/motion.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/stagger.dart';
@@ -31,6 +33,7 @@ class OrderDetailScreen extends ConsumerWidget {
 
   Future<void> _rate(BuildContext context, WidgetRef ref, int stars) async {
     try {
+      Haptics.success();
       await ref.read(orderRepositoryProvider).rate(id, stars);
       ref.invalidate(orderLiveProvider(id));
       ref.invalidate(ordersProvider);
@@ -121,7 +124,13 @@ class OrderDetailScreen extends ConsumerWidget {
                       subtitle: Text(o.courier!.phone ?? 'Courier'),
                       trailing: o.courier!.phone == null
                           ? null
-                          : Icon(Icons.phone_outlined, color: scheme.primary),
+                          : IconButton.filledTonal(
+                              icon: const Icon(Icons.phone_outlined),
+                              tooltip: 'Call courier',
+                              onPressed: () => launchUrl(
+                                Uri(scheme: 'tel', path: o.courier!.phone),
+                              ),
+                            ),
                     ),
                   ).stagger(idx++),
                 ],

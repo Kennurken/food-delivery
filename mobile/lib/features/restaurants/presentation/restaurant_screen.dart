@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/list_skeleton.dart';
 import '../../../core/widgets/pressable.dart';
+import '../../../core/widgets/shimmer.dart';
 import '../../../core/widgets/sliding_number.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../cart/presentation/cart_controller.dart';
@@ -27,7 +29,7 @@ class RestaurantScreen extends ConsumerWidget {
 
     return Scaffold(
       body: restaurant.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const _RestaurantSkeleton(),
         error: (e, _) => Center(child: Text(errorMessage(e))),
         data: (r) {
           final byCategory = <String, List<MenuItem>>{};
@@ -509,4 +511,29 @@ class _ItemSheet extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _RestaurantSkeleton extends StatelessWidget {
+  const _RestaurantSkeleton();
+
+  @override
+  Widget build(BuildContext context) => Shimmer(
+    child: Column(
+      children: [
+        const AspectRatio(aspectRatio: 16 / 9, child: Bone(radius: 0)),
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Bone(width: 220, height: 22),
+              SizedBox(height: 10),
+              Bone(width: 160, height: 14),
+            ],
+          ),
+        ),
+        const Expanded(child: ListSkeleton(count: 3)),
+      ],
+    ),
+  );
 }

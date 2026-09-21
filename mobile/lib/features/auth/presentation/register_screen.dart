@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/theme/motion.dart';
+import '../../../core/widgets/pressable.dart';
 import 'auth_controller.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -17,6 +20,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _email = TextEditingController();
   final _phone = TextEditingController();
   final _password = TextEditingController();
+  bool _obscure = true;
 
   @override
   void dispose() {
@@ -41,6 +45,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
     ref.listen(authControllerProvider, (_, next) {
       if (next.hasError) {
         ScaffoldMessenger.of(context)
@@ -48,51 +54,102 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
     });
 
+    final fields = <Widget>[
+      Text(
+        'Create account',
+        style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+      ),
+      Text(
+        'Takes less than a minute.',
+        style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+      ),
+      const SizedBox(height: 28),
+      TextFormField(
+        controller: _name,
+        textCapitalization: TextCapitalization.words,
+        textInputAction: TextInputAction.next,
+        decoration: const InputDecoration(
+          labelText: 'Name',
+          prefixIcon: Icon(Icons.person_outline),
+        ),
+        validator: (v) => v != null && v.trim().isNotEmpty ? null : 'Required',
+      ),
+      const SizedBox(height: 12),
+      TextFormField(
+        controller: _email,
+        keyboardType: TextInputType.emailAddress,
+        textInputAction: TextInputAction.next,
+        decoration: const InputDecoration(
+          labelText: 'Email',
+          prefixIcon: Icon(Icons.alternate_email),
+        ),
+        validator: (v) => v != null && v.contains('@') ? null : 'Invalid email',
+      ),
+      const SizedBox(height: 12),
+      TextFormField(
+        controller: _phone,
+        keyboardType: TextInputType.phone,
+        textInputAction: TextInputAction.next,
+        decoration: const InputDecoration(
+          labelText: 'Phone (optional)',
+          prefixIcon: Icon(Icons.phone_outlined),
+        ),
+      ),
+      const SizedBox(height: 12),
+      TextFormField(
+        controller: _password,
+        obscureText: _obscure,
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (_) => _submit(),
+        decoration: InputDecoration(
+          labelText: 'Password',
+          prefixIcon: const Icon(Icons.lock_outline),
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscure
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+            ),
+            onPressed: () => setState(() => _obscure = !_obscure),
+          ),
+        ),
+        validator: (v) => v != null && v.length >= 6 ? null : 'Min 6 chars',
+      ),
+      const SizedBox(height: 24),
+      Pressable(
+        onTap: auth.isLoading ? null : _submit,
+        child: FilledButton(
+          onPressed: auth.isLoading ? null : _submit,
+          child: AnimatedSwitcher(
+            duration: Motion.fast,
+            child: auth.isLoading
+                ? const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Sign up'),
+          ),
+        ),
+      ),
+    ];
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
+      appBar: AppBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
         child: Form(
           key: _form,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _name,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (v) =>
-                    v != null && v.trim().isNotEmpty ? null : 'Required',
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _email,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (v) =>
-                    v != null && v.contains('@') ? null : 'Invalid email',
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _phone,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Phone (optional)',
+            children: fields
+                .animate(interval: Motion.stagger)
+                .fadeIn(duration: Motion.normal, curve: Motion.enter)
+                .slideY(
+                  begin: 0.12,
+                  end: 0,
+                  duration: Motion.normal,
+                  curve: Motion.enter,
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _password,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password'),
-                validator: (v) =>
-                    v != null && v.length >= 6 ? null : 'Min 6 chars',
-              ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: auth.isLoading ? null : _submit,
-                child: const Text('Sign up'),
-              ),
-            ],
           ),
         ),
       ),

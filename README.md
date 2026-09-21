@@ -1,23 +1,55 @@
-# Food Delivery
+<div align="center">
 
-Mobile food delivery app. Flutter client + FastAPI backend.
+# 🛵 Food Delivery
+
+**Flutter + FastAPI food delivery app. Three roles, live WebSocket updates, a real motion system.**
+
+[![CI](https://github.com/Kennurken/food-delivery/actions/workflows/ci.yml/badge.svg)](https://github.com/Kennurken/food-delivery/actions/workflows/ci.yml)
+![Flutter](https://img.shields.io/badge/Flutter-3.47-02569B?logo=flutter&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+<img src="docs/screens/hero.png" alt="Home · Restaurant · Item sheet · Order tracking · Live toast · Admin" width="100%">
+
+</div>
+
+## What's inside
+
+| Customer | Courier | Admin |
+|---|---|---|
+| Browse by cuisine, search, hero-image menus | Pick up confirmed orders | Confirm / advance / cancel any order |
+| Cart with morphing stepper, saved addresses | Advance step by step to *delivered* | Toggle restaurants open/closed |
+| Live order tracking, rate after delivery | Live "ready for pickup" banners | Menu editor: price, availability, delete |
+
+Every status change is pushed over WebSocket to whoever cares — the customer, the assigned courier, all staff — and surfaces as an in-app banner.
+
+<details>
+<summary><b>More screens</b> (light + dark)</summary>
+<p align="center">
+<img src="docs/screens/login.png" width="19%"> <img src="docs/screens/cart.png" width="19%"> <img src="docs/screens/success.png" width="19%"> <img src="docs/screens/dark_admin.png" width="19%"> <img src="docs/screens/dark_menu.png" width="19%">
+</p>
+</details>
+
+## Layout
 
 ```
 food-delivery/
-├── backend/                 # Python 3.12+, FastAPI, SQLAlchemy 2, JWT
+├── backend/                 # Python 3.12+, FastAPI, SQLAlchemy 2, Alembic, JWT
 │   ├── app/
-│   │   ├── api/v1/          # auth, restaurants, orders routers
-│   │   ├── core/            # config, security (bcrypt + JWT)
+│   │   ├── api/v1/          # auth, me, restaurants, orders, admin, ws
+│   │   ├── core/            # config, security (bcrypt + JWT), events (WS hub)
 │   │   ├── db/              # session, seed
-│   │   ├── models/          # User, Restaurant, MenuItem, Order, OrderItem
+│   │   ├── models/          # User, Address, Restaurant, MenuItem, Order, OrderItem
 │   │   ├── schemas/         # Pydantic I/O
-│   │   ├── services/        # order_service (pricing, status machine)
+│   │   ├── services/        # order_service (pricing, status machine, rating)
 │   │   └── main.py
+│   ├── alembic/             # migrations
 │   └── tests/
-└── mobile/                  # Flutter 3.47, Riverpod 3, go_router, dio
+└── mobile/                  # Flutter 3.47, Riverpod 3, go_router, dio, flutter_animate
     └── lib/
-        ├── core/            # api client, secure token storage, router, theme
-        └── features/        # auth, restaurants, cart, orders (data/domain/presentation)
+        ├── core/            # api client + WS stream, router, theme + motion tokens, widgets
+        └── features/        # auth, restaurants, cart, orders, courier, admin, profile, notifications
 ```
 
 ## Run

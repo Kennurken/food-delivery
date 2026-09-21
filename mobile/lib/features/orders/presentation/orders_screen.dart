@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -18,17 +20,18 @@ class OrdersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orders = ref.watch(ordersProvider);
+    final t = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('My orders')),
+      appBar: AppBar(title: Text(t.myOrders)),
       body: orders.when(
         loading: () => const ListSkeleton(),
         error: (e, _) => EmptyState(
           icon: Icons.wifi_off,
-          title: 'Couldn\'t load orders',
+          title: t.couldNotLoad,
           hint: errorMessage(e),
           action: FilledButton.tonal(
             onPressed: () => ref.invalidate(ordersProvider),
-            child: const Text('Retry'),
+            child: Text(t.retry),
           ),
         ),
         data: (list) {
@@ -39,24 +42,24 @@ class OrdersScreen extends ConsumerWidget {
             child: list.isEmpty
                 ? EmptyState(
                     icon: Icons.receipt_long_outlined,
-                    title: 'No orders yet',
-                    hint: 'Your orders will show up here',
+                    title: t.noOrdersYet,
+                    hint: t.noOrdersHint,
                     action: FilledButton.tonal(
                       onPressed: () => context.go('/'),
-                      child: const Text('Browse restaurants'),
+                      child: Text(t.browseRestaurants),
                     ),
                   )
                 : ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
                       if (active.isNotEmpty) ...[
-                        _Header('Active', active.length),
+                        _Header(t.active, active.length),
                         for (final (i, o) in active.indexed)
                           _OrderCard(o).stagger(i),
                       ],
                       if (past.isNotEmpty) ...[
                         if (active.isNotEmpty) const SizedBox(height: 12),
-                        _Header('History', past.length),
+                        _Header(t.history, past.length),
                         for (final (i, o) in past.indexed)
                           _OrderCard(o).stagger(active.length + i),
                       ],
@@ -206,7 +209,7 @@ class StatusChip extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            status.label,
+            status.label(context.l10n),
             style: TextStyle(
               color: color,
               fontSize: 12,

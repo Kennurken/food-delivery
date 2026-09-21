@@ -1,0 +1,417 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Russian (`ru`).
+class L10nRu extends L10n {
+  L10nRu([String locale = 'ru']) : super(locale);
+
+  @override
+  String get appName => 'Food Delivery';
+
+  @override
+  String get tagline => 'Горячая еда — быстро.';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Пароль';
+
+  @override
+  String get name => 'Имя';
+
+  @override
+  String get phone => 'Телефон';
+
+  @override
+  String get phoneOptional => 'Телефон (необязательно)';
+
+  @override
+  String get signIn => 'Войти';
+
+  @override
+  String get signUp => 'Зарегистрироваться';
+
+  @override
+  String get createAccount => 'Создать аккаунт';
+
+  @override
+  String get createAccountHint => 'Меньше минуты.';
+
+  @override
+  String get invalidEmail => 'Некорректный email';
+
+  @override
+  String minChars(int n) {
+    return 'Минимум $n символов';
+  }
+
+  @override
+  String get required => 'Обязательно';
+
+  @override
+  String get logOut => 'Выйти';
+
+  @override
+  String get greetingMorning => 'Доброе утро';
+
+  @override
+  String get greetingAfternoon => 'Добрый день';
+
+  @override
+  String get greetingEvening => 'Добрый вечер';
+
+  @override
+  String get greetingNight => 'Поздний вечер';
+
+  @override
+  String get searchRestaurants => 'Поиск ресторанов';
+
+  @override
+  String get all => 'Все';
+
+  @override
+  String get nothingFound => 'Ничего не найдено';
+
+  @override
+  String get retry => 'Повторить';
+
+  @override
+  String get orders => 'Заказы';
+
+  @override
+  String get profile => 'Профиль';
+
+  @override
+  String minutes(int n) {
+    return '$n мин';
+  }
+
+  @override
+  String deliveryFee(String fee) {
+    return 'доставка $fee';
+  }
+
+  @override
+  String get unavailable => 'Нет в наличии';
+
+  @override
+  String get addToCart => 'В корзину';
+
+  @override
+  String get done => 'Готово';
+
+  @override
+  String get viewCart => 'Корзина';
+
+  @override
+  String get newCartTitle => 'Начать новую корзину?';
+
+  @override
+  String get newCartBody => 'В корзине блюда из другого ресторана.';
+
+  @override
+  String get keep => 'Оставить';
+
+  @override
+  String get replace => 'Заменить';
+
+  @override
+  String get cart => 'Корзина';
+
+  @override
+  String get cartEmpty => 'Корзина пуста';
+
+  @override
+  String get deliveryAddress => 'Адрес доставки';
+
+  @override
+  String get courierComment => 'Комментарий курьеру (необязательно)';
+
+  @override
+  String get subtotal => 'Сумма';
+
+  @override
+  String get delivery => 'Доставка';
+
+  @override
+  String get total => 'Итого';
+
+  @override
+  String get placeOrder => 'Оформить заказ';
+
+  @override
+  String get enterAddress => 'Введите адрес доставки';
+
+  @override
+  String orderPlaced(int id) {
+    return 'Заказ #$id оформлен';
+  }
+
+  @override
+  String get keepYouPosted => 'Будем держать в курсе';
+
+  @override
+  String get myOrders => 'Мои заказы';
+
+  @override
+  String get active => 'Активные';
+
+  @override
+  String get history => 'История';
+
+  @override
+  String get noOrdersYet => 'Заказов пока нет';
+
+  @override
+  String get noOrdersHint => 'Ваши заказы появятся здесь';
+
+  @override
+  String get browseRestaurants => 'К ресторанам';
+
+  @override
+  String get couldNotLoad => 'Не удалось загрузить';
+
+  @override
+  String items(int n) {
+    return '$n поз.';
+  }
+
+  @override
+  String orderN(int id) {
+    return 'Заказ #$id';
+  }
+
+  @override
+  String get status => 'Статус';
+
+  @override
+  String get cancelOrder => 'Отменить заказ';
+
+  @override
+  String get callCourier => 'Позвонить курьеру';
+
+  @override
+  String get courier => 'Курьер';
+
+  @override
+  String get howWasIt => 'Как вам?';
+
+  @override
+  String get thanksForRating => 'Спасибо за оценку!';
+
+  @override
+  String get statusPending => 'Ожидает';
+
+  @override
+  String get statusConfirmed => 'Подтверждён';
+
+  @override
+  String get statusPreparing => 'Готовится';
+
+  @override
+  String get statusOnTheWay => 'В пути';
+
+  @override
+  String get statusDelivered => 'Доставлен';
+
+  @override
+  String get statusCancelled => 'Отменён';
+
+  @override
+  String get hintPending => 'Ждём подтверждения ресторана';
+
+  @override
+  String get hintConfirmed => 'Подтверждён — ищем курьера';
+
+  @override
+  String get hintPreparing => 'Кухня готовит ваш заказ';
+
+  @override
+  String get hintOnTheWay => 'Курьер уже едет';
+
+  @override
+  String get hintDelivered => 'Доставлено. Приятного аппетита!';
+
+  @override
+  String get hintCancelled => 'Заказ отменён';
+
+  @override
+  String get actionConfirm => 'Подтвердить';
+
+  @override
+  String get actionStartPreparing => 'Начать готовить';
+
+  @override
+  String get actionHandToCourier => 'Передать курьеру';
+
+  @override
+  String get actionMarkDelivered => 'Доставлен';
+
+  @override
+  String get actionCancel => 'Отменить';
+
+  @override
+  String get accept => 'Принять';
+
+  @override
+  String get available => 'Доступные';
+
+  @override
+  String get myDeliveries => 'Мои доставки';
+
+  @override
+  String get noOrdersWaiting => 'Нет заказов';
+
+  @override
+  String get noOrdersWaitingHint => 'Новые заказы появятся мгновенно';
+
+  @override
+  String get noActiveDeliveries => 'Нет активных доставок';
+
+  @override
+  String get noActiveDeliveriesHint => 'Примите заказ из «Доступных»';
+
+  @override
+  String get admin => 'Админ';
+
+  @override
+  String get restaurants => 'Рестораны';
+
+  @override
+  String get noOrdersAdminHint => 'Новые заказы появляются в реальном времени';
+
+  @override
+  String get open => 'открыт';
+
+  @override
+  String get closed => 'закрыт';
+
+  @override
+  String get menu => 'Меню';
+
+  @override
+  String get newItem => 'Новое блюдо';
+
+  @override
+  String get editItem => 'Редактировать';
+
+  @override
+  String get description => 'Описание';
+
+  @override
+  String get priceTenge => 'Цена, ₸';
+
+  @override
+  String get category => 'Категория';
+
+  @override
+  String get mustBePositive => 'Должно быть > 0';
+
+  @override
+  String get save => 'Сохранить';
+
+  @override
+  String get cancel => 'Отмена';
+
+  @override
+  String get delete => 'Удалить';
+
+  @override
+  String deleteItemTitle(String name) {
+    return 'Удалить «$name»?';
+  }
+
+  @override
+  String get deleteItemBody =>
+      'Прошлые заказы сохранят снимок; блюдо исчезнет из меню.';
+
+  @override
+  String get saved => 'Сохранено';
+
+  @override
+  String get saveChanges => 'Сохранить изменения';
+
+  @override
+  String get addresses => 'Адреса';
+
+  @override
+  String get add => 'Добавить';
+
+  @override
+  String get noSavedAddresses => 'Нет сохранённых адресов';
+
+  @override
+  String get noSavedAddressesHint => 'Добавьте — оформление в один тап';
+
+  @override
+  String get swipeToDelete => 'Смахните влево, чтобы удалить';
+
+  @override
+  String get default_ => 'Основной';
+
+  @override
+  String get newAddress => 'Новый адрес';
+
+  @override
+  String get labelHome => 'Дом';
+
+  @override
+  String get labelWork => 'Работа';
+
+  @override
+  String get labelOther => 'Другое';
+
+  @override
+  String get addressLine => 'Улица, дом, квартира';
+
+  @override
+  String get saveAddress => 'Сохранить адрес';
+
+  @override
+  String toastNewOrder(int id) {
+    return 'Новый заказ #$id';
+  }
+
+  @override
+  String toastReadyForPickup(int id) {
+    return 'Заказ #$id готов к выдаче';
+  }
+
+  @override
+  String toastCourier(String name) {
+    return 'Курьер $name';
+  }
+
+  @override
+  String get language => 'Язык';
+
+  @override
+  String get languageSystem => 'Системный';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageRussian => 'Русский';
+
+  @override
+  String get languageKazakh => 'Қазақша';
+
+  @override
+  String get restaurantClosed => 'Ресторан сейчас закрыт';
+
+  @override
+  String get cancelOrderTitle => 'Отменить заказ?';
+
+  @override
+  String get cancelOrderBody =>
+      'Кухня остановится, если ещё не начала готовить.';
+
+  @override
+  String get setAsDefault => 'Сделать основным';
+}

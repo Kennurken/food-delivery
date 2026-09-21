@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
@@ -19,6 +21,25 @@ class OrderDetailScreen extends ConsumerWidget {
   final int id;
 
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
+    final t = context.l10n;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(t.cancelOrderTitle),
+        content: Text(t.cancelOrderBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(t.keep),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(t.cancelOrder),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
     try {
       await ref.read(orderRepositoryProvider).cancel(id);
       ref.invalidate(orderLiveProvider(id));
@@ -48,10 +69,11 @@ class OrderDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final order = ref.watch(orderLiveProvider(id));
+    final t = context.l10n;
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text('Order #$id')),
+      appBar: AppBar(title: Text(t.orderN(id))),
       body: order.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(errorMessage(e))),
@@ -97,7 +119,7 @@ class OrderDetailScreen extends ConsumerWidget {
                         _StatusTimeline(o.status),
                         const SizedBox(height: 6),
                         Text(
-                          _hint(o.status),
+                          o.status.hint(t),
                           style: text.bodySmall?.copyWith(
                             color: scheme.onSurfaceVariant,
                           ),
@@ -121,12 +143,12 @@ class OrderDetailScreen extends ConsumerWidget {
                         o.courier!.name,
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
-                      subtitle: Text(o.courier!.phone ?? 'Courier'),
+                      subtitle: Text(o.courier!.phone ?? t.courier),
                       trailing: o.courier!.phone == null
                           ? null
                           : IconButton.filledTonal(
                               icon: const Icon(Icons.phone_outlined),
-                              tooltip: 'Call courier',
+                              tooltip: t.callCourier,
                               onPressed: () => launchUrl(
                                 Uri(scheme: 'tel', path: o.courier!.phone),
                               ),
@@ -171,9 +193,9 @@ class OrderDetailScreen extends ConsumerWidget {
                         padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
                         child: Column(
                           children: [
-                            _Row('Subtotal', formatMoney(o.subtotal)),
-                            _Row('Delivery', formatMoney(o.deliveryFee)),
-                            _Row('Total', formatMoney(o.total), bold: true),
+                            _Row(t.subtotal, formatMoney(o.subtotal)),
+                            _Row(t.delivery, formatMoney(o.deliveryFee)),
+                            _Row(t.total, formatMoney(o.total), bold: true),
                           ],
                         ),
                       ),
@@ -184,7 +206,7 @@ class OrderDetailScreen extends ConsumerWidget {
                 if (o.status.canCancel)
                   OutlinedButton(
                     onPressed: () => _cancel(context, ref),
-                    child: const Text('Cancel order'),
+                    child: Text(t.cancelOrder),
                   ).stagger(idx++),
                 if (o.status == OrderStatus.delivered)
                   _RatingRow(
@@ -198,15 +220,6 @@ class OrderDetailScreen extends ConsumerWidget {
       ),
     );
   }
-
-  String _hint(OrderStatus s) => switch (s) {
-    OrderStatus.pending => 'Waiting for the restaurant to confirm',
-    OrderStatus.confirmed => 'Confirmed — looking for a courier',
-    OrderStatus.preparing => 'Kitchen is cooking your order',
-    OrderStatus.onTheWay => 'Courier is on the way',
-    OrderStatus.delivered => 'Delivered. Enjoy!',
-    OrderStatus.cancelled => 'This order was cancelled',
-  };
 }
 
 class _RatingRow extends StatefulWidget {
@@ -232,7 +245,7 @@ class _RatingRowState extends State<_RatingRow> {
         child: Column(
           children: [
             Text(
-              done ? 'Thanks for rating!' : 'How was it?',
+              done ? context.l10n.thanksForRating : context.l10n.howWasIt,
               style: Theme.of(context).textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),

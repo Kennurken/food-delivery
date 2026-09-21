@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/widgets/list_skeleton.dart';
@@ -26,6 +28,8 @@ class RestaurantScreen extends ConsumerWidget {
     final cart = ref.watch(cartProvider);
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+
+    final t = context.l10n;
 
     return Scaffold(
       body: restaurant.when(
@@ -102,6 +106,34 @@ class RestaurantScreen extends ConsumerWidget {
                 sliver: SliverList.list(
                   children: [
                     Text(r.description, style: text.bodyMedium).stagger(idx++),
+                    if (!r.isOpen) ...[
+                      const SizedBox(height: 12),
+                      Material(
+                        color: scheme.errorContainer,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.storefront,
+                                color: scheme.onErrorContainer,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  t.restaurantClosed,
+                                  style: text.bodyMedium?.copyWith(
+                                    color: scheme.onErrorContainer,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ).stagger(idx++),
+                    ],
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -113,7 +145,7 @@ class RestaurantScreen extends ConsumerWidget {
                         ),
                         _InfoChip(
                           Icons.schedule,
-                          '${r.deliveryTimeMin} min',
+                          t.minutes(r.deliveryTimeMin),
                           scheme.primary,
                         ),
                         _InfoChip(
@@ -132,7 +164,8 @@ class RestaurantScreen extends ConsumerWidget {
                         ),
                       ).stagger(idx++),
                       const SizedBox(height: 10),
-                      for (final m in entry.value) _MenuTile(m).stagger(idx++),
+                      for (final m in entry.value)
+                        _MenuTile(m, restaurantOpen: r.isOpen).stagger(idx++),
                       const SizedBox(height: 16),
                     ],
                     const SizedBox(height: 80),
@@ -181,7 +214,7 @@ class RestaurantScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 10),
-                          const Text('View cart'),
+                          Text(t.viewCart),
                         ],
                       ),
                       SlidingNumber(
@@ -235,9 +268,10 @@ class _InfoChip extends StatelessWidget {
 }
 
 class _MenuTile extends ConsumerWidget {
-  const _MenuTile(this.item);
+  const _MenuTile(this.item, {this.restaurantOpen = true});
 
   final MenuItem item;
+  final bool restaurantOpen;
 
   static Future<void> add(
     BuildContext context,
@@ -250,16 +284,16 @@ class _MenuTile extends ConsumerWidget {
     final replace = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Start a new cart?'),
-        content: const Text('Your cart has items from another restaurant.'),
+        title: Text(context.l10n.newCartTitle),
+        content: Text(context.l10n.newCartBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep'),
+            child: Text(context.l10n.keep),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Replace'),
+            child: Text(context.l10n.replace),
           ),
         ],
       ),
@@ -284,6 +318,7 @@ class _MenuTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final canAdd = item.isAvailable && restaurantOpen;
     final qty = ref.watch(
       cartProvider.select((c) => c.items[item.id]?.quantity ?? 0),
     );
@@ -292,7 +327,7 @@ class _MenuTile extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Pressable(
-        onTap: item.isAvailable ? () => _openSheet(context) : null,
+        onTap: canAdd ? () => _openSheet(context) : null,
         child: Card(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
@@ -322,9 +357,9 @@ class _MenuTile extends ConsumerWidget {
                       ],
                       const SizedBox(height: 6),
                       Text(
-                        item.isAvailable
+                        item.isAvailable && restaurantOpen
                             ? formatMoney(item.price)
-                            : 'Unavailable',
+                            : context.l10n.unavailable,
                         style: text.labelLarge?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: scheme.primary,
@@ -336,7 +371,7 @@ class _MenuTile extends ConsumerWidget {
                 const SizedBox(width: 12),
                 QuantityStepper(
                   qty: qty,
-                  enabled: item.isAvailable,
+                  enabled: canAdd,
                   onAdd: () => add(context, ref, item),
                   onRemove: () => ref.read(cartProvider.notifier).remove(item),
                 ),
@@ -505,7 +540,7 @@ class _ItemSheet extends ConsumerWidget {
               if (qty == 0) _MenuTile.add(context, ref, item);
               Navigator.pop(context);
             },
-            child: Text(qty == 0 ? 'Add to cart' : 'Done'),
+            child: Text(qty == 0 ? context.l10n.addToCart : context.l10n.done),
           ),
         ],
       ),

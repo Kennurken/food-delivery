@@ -46,26 +46,7 @@ enum OrderStatus {
   static OrderStatus parse(String s) =>
       values.firstWhere((v) => v.wire == s, orElse: () => pending);
 
-  String get label => switch (this) {
-    pending => 'Pending',
-    confirmed => 'Confirmed',
-    preparing => 'Preparing',
-    onTheWay => 'On the way',
-    delivered => 'Delivered',
-    cancelled => 'Cancelled',
-  };
-
   bool get canCancel => this == pending || this == confirmed;
-
-  /// Button label for an action that moves an order *to* this status.
-  String get actionLabel => switch (this) {
-    confirmed => 'Confirm',
-    preparing => 'Start preparing',
-    onTheWay => 'Hand to courier',
-    delivered => 'Mark delivered',
-    cancelled => 'Cancel',
-    pending => 'Pending',
-  };
 
   /// Admin transitions (mirrors backend state machine).
   List<OrderStatus> get adminNext => switch (this) {

@@ -1,12 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/api/api_client.dart';
 import '../data/auth_repository.dart';
 import '../domain/user.dart';
 
 /// Holds current user. `null` = signed out. Loading only on app start.
 class AuthController extends AsyncNotifier<User?> {
   @override
-  Future<User?> build() => ref.read(authRepositoryProvider).me();
+  Future<User?> build() {
+    ref.listen(authExpiredProvider, (prev, next) {
+      if (prev != null && next != prev) {
+        state = const AsyncData(null);
+      }
+    });
+    return ref.read(authRepositoryProvider).me();
+  }
 
   Future<void> login(String email, String password) async {
     state = const AsyncLoading();

@@ -15,3 +15,7 @@ mobile/.idea/
 *.iml
 
 .DS_Store
+
+# Android signing — never commit
+mobile/android/key.properties
+mobile/android/app/*.jks

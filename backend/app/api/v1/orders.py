@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select
 
 from app.api.deps import DB, AdminUser, CourierUser, CurrentUser
@@ -15,9 +15,14 @@ def create_order(data: OrderCreate, db: DB, user: CurrentUser) -> Order:
 
 
 @router.get("", response_model=list[OrderOut])
-def my_orders(db: DB, user: CurrentUser) -> list[Order]:
-    """Customer: own orders. Courier: assigned orders. Admin: everything."""
-    stmt = select(Order).order_by(Order.created_at.desc())
+def my_orders(
+    db: DB,
+    user: CurrentUser,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> list[Order]:
+    """Customer: own orders. Courier: assigned orders. Admin: everything. Newest first."""
+    stmt = select(Order).order_by(Order.created_at.desc(), Order.id.desc()).limit(limit).offset(offset)
     if user.role == UserRole.customer:
         stmt = stmt.where(Order.user_id == user.id)
     elif user.role == UserRole.courier:

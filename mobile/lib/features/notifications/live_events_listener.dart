@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/order_events.dart';
+import '../../core/l10n/l10n.dart';
 import '../../core/router/app_router.dart';
 import '../../core/widgets/live_toast.dart';
 import '../auth/presentation/auth_controller.dart';
@@ -23,12 +24,13 @@ class LiveEventsListener extends ConsumerWidget {
         if (evt == null || evt == prev?.value) return;
         final order = Order.fromJson(evt.order);
         final router = ref.read(routerProvider);
+        final t = context.l10n;
 
         if (user.isAdmin) {
           if (order.status == OrderStatus.pending) {
             LiveToast.show(
               icon: Icons.receipt_long,
-              title: 'New order #${order.id}',
+              title: t.toastNewOrder(order.id),
               body: '${order.restaurantName} · ${order.customer.name}',
               onTap: () => router.go('/admin'),
             );
@@ -37,7 +39,7 @@ class LiveEventsListener extends ConsumerWidget {
           if (order.courier == null && order.status == OrderStatus.confirmed) {
             LiveToast.show(
               icon: Icons.delivery_dining,
-              title: 'Order #${order.id} ready for pickup',
+              title: t.toastReadyForPickup(order.id),
               body: order.address,
               onTap: () => router.go('/courier'),
             );
@@ -46,9 +48,9 @@ class LiveEventsListener extends ConsumerWidget {
             order.status != OrderStatus.pending) {
           LiveToast.show(
             icon: Icons.local_dining,
-            title: 'Order #${order.id} · ${order.status.label}',
+            title: '${t.orderN(order.id)} · ${order.status.label(t)}',
             body: order.courier != null
-                ? 'Courier ${order.courier!.name}'
+                ? t.toastCourier(order.courier!.name)
                 : order.restaurantName,
             onTap: () => router.push('/orders/${order.id}'),
           );

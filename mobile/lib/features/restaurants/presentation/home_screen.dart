@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/widgets/pressable.dart';
@@ -39,10 +41,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   String get _greeting {
     final h = DateTime.now().hour;
-    if (h < 5) return 'Late night';
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+    final t = context.l10n;
+    if (h < 5) return t.greetingNight;
+    if (h < 12) return t.greetingMorning;
+    if (h < 17) return t.greetingAfternoon;
+    return t.greetingEvening;
   }
 
   @override
@@ -67,6 +70,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final restaurants = ref.watch(restaurantsProvider);
     final user = ref.watch(authControllerProvider).value;
+    final t = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
@@ -89,8 +93,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   key: const ValueKey('search'),
                   controller: _search,
                   focusNode: _focus,
-                  decoration: const InputDecoration(
-                    hintText: 'Search restaurants',
+                  decoration: InputDecoration(
+                    hintText: t.searchRestaurants,
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 14,
@@ -131,12 +135,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.receipt_long_outlined),
-            tooltip: 'Orders',
+            tooltip: t.orders,
             onPressed: () => context.push('/orders'),
           ),
           IconButton(
             icon: const Icon(Icons.person_outline),
-            tooltip: 'Profile',
+            tooltip: t.profile,
             onPressed: () => context.push('/profile'),
           ),
         ],
@@ -153,7 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onRetry: () => ref.invalidate(restaurantsProvider),
               ),
               data: (list) => list.isEmpty
-                  ? const Center(child: Text('Nothing found'))
+                  ? Center(child: Text(t.nothingFound))
                   : RefreshIndicator(
                       onRefresh: () => ref.refresh(restaurantsProvider.future),
                       child: ListView.separated(
@@ -243,7 +247,7 @@ class _CuisineChips extends ConsumerWidget {
         itemCount: cuisines.length + 1,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (_, i) {
-          final label = i == 0 ? 'All' : cuisines[i - 1];
+          final label = i == 0 ? context.l10n.all : cuisines[i - 1];
           final isSel = i == 0 ? selected == null : cuisines[i - 1] == selected;
           return FilterChip(
             label: Text(label),
@@ -308,9 +312,18 @@ class _RestaurantCard extends StatelessWidget {
                   right: 12,
                   child: _Pill(
                     icon: Icons.schedule,
-                    label: '${r.deliveryTimeMin} min',
+                    label: context.l10n.minutes(r.deliveryTimeMin),
                   ),
                 ),
+                if (!r.isOpen)
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: _Pill(
+                      icon: Icons.storefront,
+                      label: context.l10n.closed,
+                    ),
+                  ),
               ],
             ),
             Padding(
@@ -345,7 +358,7 @@ class _RestaurantCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${r.cuisine} · delivery ${formatMoney(r.deliveryFee)}',
+                    '${r.cuisine} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))}',
                     style: text.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -436,7 +449,7 @@ class _ErrorView extends StatelessWidget {
       children: [
         Text(message, textAlign: TextAlign.center),
         const SizedBox(height: 8),
-        TextButton(onPressed: onRetry, child: const Text('Retry')),
+        TextButton(onPressed: onRetry, child: Text(context.l10n.retry)),
       ],
     ),
   );

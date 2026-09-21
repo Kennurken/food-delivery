@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
@@ -41,9 +43,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   Future<void> _checkout() async {
     final cart = ref.read(cartProvider);
     if (_address.text.trim().length < 3) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Enter delivery address')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.enterAddress)));
       return;
     }
     setState(() => _submitting = true);
@@ -91,11 +92,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
+    final t = context.l10n;
     if (_placedOrderId != null) return _SuccessView(orderId: _placedOrderId!);
 
     if (cart.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Cart')),
+        appBar: AppBar(title: Text(t.cart)),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -106,7 +108,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 color: scheme.outline,
               ).animate().scale(curve: Motion.pop, duration: Motion.slow),
               const SizedBox(height: 12),
-              const Text('Cart is empty'),
+              Text(t.cartEmpty),
             ],
           ),
         ),
@@ -115,7 +117,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
     var idx = 0;
     return Scaffold(
-      appBar: AppBar(title: Text(restaurant?.name ?? 'Cart')),
+      appBar: AppBar(title: Text(restaurant?.name ?? t.cart)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -195,16 +197,16 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           ],
           TextField(
             controller: _address,
-            decoration: const InputDecoration(
-              labelText: 'Delivery address',
+            decoration: InputDecoration(
+              labelText: t.deliveryAddress,
               prefixIcon: Icon(Icons.place_outlined),
             ),
           ).stagger(idx++),
           const SizedBox(height: 12),
           TextField(
             controller: _comment,
-            decoration: const InputDecoration(
-              labelText: 'Comment for courier (optional)',
+            decoration: InputDecoration(
+              labelText: t.courierComment,
               prefixIcon: Icon(Icons.chat_bubble_outline),
             ),
             maxLines: 2,
@@ -215,10 +217,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _Row('Subtotal', formatMoney(cart.subtotal)),
-                  _Row('Delivery', formatMoney(fee)),
+                  _Row(t.subtotal, formatMoney(cart.subtotal)),
+                  _Row(t.delivery, formatMoney(fee)),
                   const Divider(height: 20),
-                  _Row('Total', formatMoney(cart.subtotal + fee), bold: true),
+                  _Row(t.total, formatMoney(cart.subtotal + fee), bold: true),
                 ],
               ),
             ),
@@ -242,7 +244,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Place order'),
+                          Text(t.placeOrder),
                           SlidingNumber(
                             formatMoney(cart.subtotal + fee),
                             style: TextStyle(
@@ -277,7 +279,7 @@ class _SuccessView extends StatelessWidget {
             const SuccessCheck(size: 120),
             const SizedBox(height: 24),
             Text(
-                  'Order #$orderId placed',
+                  context.l10n.orderPlaced(orderId),
                   style: text.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -286,7 +288,7 @@ class _SuccessView extends StatelessWidget {
                 .fadeIn(duration: Motion.normal)
                 .slideY(begin: 0.3, end: 0, curve: Motion.enter),
             const SizedBox(height: 6),
-            Text('We\'ll keep you posted', style: text.bodyMedium)
+            Text(context.l10n.keepYouPosted, style: text.bodyMedium)
                 .animate(delay: 650.ms)
                 .fadeIn(duration: Motion.normal)
                 .slideY(begin: 0.3, end: 0, curve: Motion.enter),

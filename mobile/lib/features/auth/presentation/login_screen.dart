@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+
 import '../../../core/theme/motion.dart';
 import '../../../core/widgets/animated_gradient.dart';
 import '../../../core/widgets/pressable.dart';
@@ -19,8 +21,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _form = GlobalKey<FormState>();
-  final _email = TextEditingController(text: 'user@food.dev');
-  final _password = TextEditingController(text: 'user123');
+  final _email = TextEditingController(text: kDebugMode ? 'user@food.dev' : '');
+  final _password = TextEditingController(text: kDebugMode ? 'user123' : '');
 
   @override
   void dispose() {
@@ -40,6 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
     final scheme = Theme.of(context).colorScheme;
+    final t = context.l10n;
     ref.listen(authControllerProvider, (_, next) {
       if (next.hasError) {
         ScaffoldMessenger.of(context)
@@ -80,13 +83,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
       const SizedBox(height: 20),
       Text(
-        'Food Delivery',
+        t.appName,
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.headlineMedium
             ?.copyWith(fontWeight: FontWeight.w800),
       ),
       Text(
-        'Hot food, fast.',
+        t.tagline,
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.bodyMedium
             ?.copyWith(color: scheme.onSurfaceVariant),
@@ -95,21 +98,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       TextFormField(
         controller: _email,
         keyboardType: TextInputType.emailAddress,
-        decoration: const InputDecoration(
-          labelText: 'Email',
+        decoration: InputDecoration(
+          labelText: t.email,
           prefixIcon: Icon(Icons.alternate_email),
         ),
-        validator: (v) => v != null && v.contains('@') ? null : 'Invalid email',
+        validator: (v) => v != null && v.contains('@') ? null : t.invalidEmail,
       ),
       const SizedBox(height: 12),
       TextFormField(
         controller: _password,
         obscureText: true,
-        decoration: const InputDecoration(
-          labelText: 'Password',
+        decoration: InputDecoration(
+          labelText: t.password,
           prefixIcon: Icon(Icons.lock_outline),
         ),
-        validator: (v) => v != null && v.length >= 6 ? null : 'Min 6 chars',
+        validator: (v) => v != null && v.length >= 6 ? null : t.minChars(6),
         onFieldSubmitted: (_) => _submit(),
       ),
       const SizedBox(height: 24),
@@ -124,13 +127,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     dimension: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Sign in'),
+                : Text(t.signIn),
           ),
         ),
       ),
       TextButton(
         onPressed: () => context.push('/register'),
-        child: const Text('Create account'),
+        child: Text(t.createAccount),
       ),
       if (kDebugMode) ...[
         const SizedBox(height: 12),

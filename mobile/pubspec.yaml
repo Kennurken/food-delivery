@@ -1,5 +1,5 @@
 name: food_delivery
-description: "A new Flutter project."
+description: "Flutter + FastAPI food delivery app"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -43,6 +43,9 @@ dependencies:
   flutter_animate: ^4.5.2
   google_fonts: ^8.2.1
   url_launcher: ^6.3.2
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -60,6 +63,7 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  generate: true
 
   # To add assets to your application, add an assets section, like this:
   # assets:

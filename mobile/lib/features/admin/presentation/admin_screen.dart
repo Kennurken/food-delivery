@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+
 import '../../../core/theme/buttons.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
@@ -22,11 +24,12 @@ class AdminScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.l10n;
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Admin'),
+          title: Text(t.admin),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -34,7 +37,7 @@ class AdminScreen extends ConsumerWidget {
                   ref.read(authControllerProvider.notifier).logout(),
             ),
           ],
-          bottom: const PillTabBar(tabs: ['Orders', 'Restaurants']),
+          bottom: PillTabBar(tabs: [t.orders, t.restaurants]),
         ),
         body: const TabBarView(children: [_OrdersTab(), _RestaurantsTab()]),
       ),
@@ -77,10 +80,10 @@ class _OrdersTab extends ConsumerWidget {
       data: (list) => RefreshIndicator(
         onRefresh: () => ref.refresh(ordersProvider.future),
         child: list.isEmpty
-            ? const EmptyState(
+            ? EmptyState(
                 icon: Icons.inbox_outlined,
-                title: 'No orders yet',
-                hint: 'New orders land here in real time',
+                title: context.l10n.noOrdersYet,
+                hint: context.l10n.noOrdersAdminHint,
               )
             : ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -117,7 +120,7 @@ class _OrdersTab extends ConsumerWidget {
                             ),
                             if (o.courier != null)
                               Text(
-                                'Courier: ${o.courier!.name}',
+                                '${context.l10n.courier}: ${o.courier!.name}',
                                 style: text.bodySmall,
                               ),
                             if (o.status.adminNext.isNotEmpty) ...[
@@ -130,7 +133,9 @@ class _OrdersTab extends ConsumerWidget {
                                         style: AppButtons.inline,
                                         onPressed: () =>
                                             _set(context, ref, o, s),
-                                        child: Text(s.actionLabel),
+                                        child: Text(
+                                          s.actionLabel(context.l10n),
+                                        ),
                                       )
                                     else
                                       Expanded(
@@ -138,7 +143,9 @@ class _OrdersTab extends ConsumerWidget {
                                           style: AppButtons.inline,
                                           onPressed: () =>
                                               _set(context, ref, o, s),
-                                          child: Text(s.actionLabel),
+                                          child: Text(
+                                            s.actionLabel(context.l10n),
+                                          ),
                                         ),
                                       ),
                                     if (s != o.status.adminNext.last)
@@ -181,7 +188,7 @@ class _RestaurantsTab extends ConsumerWidget {
                 leading: const Icon(Icons.restaurant_menu),
                 title: Text(r.name),
                 subtitle: Text(
-                  '${r.cuisine} · delivery ${formatMoney(r.deliveryFee)} · ${r.isOpen ? 'open' : 'closed'}',
+                  '${r.cuisine} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))} · ${r.isOpen ? context.l10n.open : context.l10n.closed}',
                 ),
                 onTap: () => context.push('/admin/restaurants/${r.id}'),
                 trailing: StretchSwitch(

@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+
 import '../../../core/theme/motion.dart';
 import '../../../core/widgets/pressable.dart';
 import 'auth_controller.dart';
@@ -47,6 +49,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final auth = ref.watch(authControllerProvider);
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final t = context.l10n;
     ref.listen(authControllerProvider, (_, next) {
       if (next.hasError) {
         ScaffoldMessenger.of(context)
@@ -56,11 +59,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     final fields = <Widget>[
       Text(
-        'Create account',
+        t.createAccount,
         style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
       ),
       Text(
-        'Takes less than a minute.',
+        t.createAccountHint,
         style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
       ),
       const SizedBox(height: 28),
@@ -68,30 +71,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         controller: _name,
         textCapitalization: TextCapitalization.words,
         textInputAction: TextInputAction.next,
-        decoration: const InputDecoration(
-          labelText: 'Name',
+        decoration: InputDecoration(
+          labelText: t.name,
           prefixIcon: Icon(Icons.person_outline),
         ),
-        validator: (v) => v != null && v.trim().isNotEmpty ? null : 'Required',
+        validator: (v) => v != null && v.trim().isNotEmpty ? null : t.required,
       ),
       const SizedBox(height: 12),
       TextFormField(
         controller: _email,
         keyboardType: TextInputType.emailAddress,
         textInputAction: TextInputAction.next,
-        decoration: const InputDecoration(
-          labelText: 'Email',
+        decoration: InputDecoration(
+          labelText: t.email,
           prefixIcon: Icon(Icons.alternate_email),
         ),
-        validator: (v) => v != null && v.contains('@') ? null : 'Invalid email',
+        validator: (v) => v != null && v.contains('@') ? null : t.invalidEmail,
       ),
       const SizedBox(height: 12),
       TextFormField(
         controller: _phone,
         keyboardType: TextInputType.phone,
         textInputAction: TextInputAction.next,
-        decoration: const InputDecoration(
-          labelText: 'Phone (optional)',
+        decoration: InputDecoration(
+          labelText: t.phoneOptional,
           prefixIcon: Icon(Icons.phone_outlined),
         ),
       ),
@@ -102,7 +105,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         textInputAction: TextInputAction.done,
         onFieldSubmitted: (_) => _submit(),
         decoration: InputDecoration(
-          labelText: 'Password',
+          labelText: t.password,
           prefixIcon: const Icon(Icons.lock_outline),
           suffixIcon: IconButton(
             icon: Icon(
@@ -113,7 +116,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             onPressed: () => setState(() => _obscure = !_obscure),
           ),
         ),
-        validator: (v) => v != null && v.length >= 6 ? null : 'Min 6 chars',
+        validator: (v) => v != null && v.length >= 6 ? null : t.minChars(6),
       ),
       const SizedBox(height: 24),
       Pressable(
@@ -127,7 +130,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     dimension: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Sign up'),
+                : Text(t.signUp),
           ),
         ),
       ),

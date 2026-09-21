@@ -36,6 +36,14 @@ class ProfileRepository {
   }
 
   Future<void> deleteAddress(int id) => _dio.delete('/api/v1/me/addresses/$id');
+
+  Future<Address> setDefault(int id) async {
+    final r = await _dio.patch(
+      '/api/v1/me/addresses/$id',
+      data: {'is_default': true},
+    );
+    return Address.fromJson(r.data);
+  }
 }
 
 final profileRepositoryProvider = Provider(

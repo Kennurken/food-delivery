@@ -16,7 +16,7 @@ def test_register_and_me(client):
 def test_list_restaurants(client):
     r = client.get("/api/v1/restaurants")
     assert r.status_code == 200
-    assert len(r.json()) == 3
+    assert len(r.json()) >= 3
 
 
 def test_order_flow(client, auth):
@@ -41,6 +41,30 @@ def test_order_flow(client, auth):
 
 def test_order_requires_auth(client):
     assert client.get("/api/v1/orders").status_code == 401
+
+
+def test_refresh_token_flow(client):
+    r = client.post("/api/v1/auth/login/json", json={"email": "user@food.dev", "password": "user123"})
+    tokens = r.json()
+    assert tokens["refresh_token"]
+    # refresh token cannot be used as access token
+    assert client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {tokens['refresh_token']}"}).status_code == 401
+    r = client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
+    assert r.status_code == 200
+    new_access = r.json()["access_token"]
+    assert client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {new_access}"}).status_code == 200
+    # access token cannot be used to refresh
+    assert client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["access_token"]}).status_code == 401
+
+
+def test_orders_pagination(client, auth):
+    for _ in range(3):
+        _place(client, auth)
+    page1 = client.get("/api/v1/orders?limit=2&offset=0", headers=auth).json()
+    page2 = client.get("/api/v1/orders?limit=2&offset=2", headers=auth).json()
+    assert len(page1) == 2
+    assert {o["id"] for o in page1}.isdisjoint({o["id"] for o in page2})
+    assert page1[0]["id"] > page1[1]["id"]  # newest first
 
 
 def _place(client, auth):
@@ -187,7 +211,7 @@ def test_rate_order_updates_restaurant(client, auth, admin, courier):
 
 
 def test_cuisines(client):
-    assert client.get("/api/v1/restaurants/cuisines").json() == ["American", "Asian", "Italian"]
+    assert {"American", "Asian", "Italian"} <= set(client.get("/api/v1/restaurants/cuisines").json())
 
 
 def test_prod_guard_rejects_default_secret():
@@ -195,6 +219,74 @@ def test_prod_guard_rejects_default_secret():
 
     from app.core.config import Settings
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match="SECRET_KEY"):
         Settings(env="prod", secret_key="change-me").validate_for_prod()
-    Settings(env="prod", secret_key="x" * 48).validate_for_prod()
+    with pytest.raises(RuntimeError, match="CORS_ORIGINS"):
+        Settings(env="prod", secret_key="x" * 48, cors_origins="*").validate_for_prod()
+    with pytest.raises(RuntimeError, match="DATABASE_URL"):
+        Settings(
+            env="prod",
+            secret_key="x" * 48,
+            cors_origins="",
+            database_url="sqlite:///./food.db",
+        ).validate_for_prod()
+    Settings(
+        env="prod",
+        secret_key="x" * 48,
+        cors_origins="https://example.com",
+        database_url="postgresql+psycopg://food:food@localhost/food",
+    ).validate_for_prod()
+
+
+def test_idor_customer_cannot_read_foreign_order(client, auth):
+    oid = _place(client, auth)
+    other = client.post(
+        "/api/v1/auth/register",
+        json={"email": "other@x.com", "name": "Other", "password": "secret1"},
+    ).json()["access_token"]
+    r = client.get(f"/api/v1/orders/{oid}", headers={"Authorization": f"Bearer {other}"})
+    assert r.status_code == 404
+
+
+def test_malformed_jwt_subject_is_401(client):
+    from datetime import timedelta
+
+    from app.core.security import _encode
+
+    token = _encode("not-an-int", "access", timedelta(minutes=5))
+    assert client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"}).status_code == 401
+
+
+def test_admin_can_create_restaurant(client, admin):
+    r = client.post(
+        "/api/v1/admin/restaurants",
+        json={"name": "Lagman House", "cuisine": "Kazakh", "delivery_fee": 400},
+        headers=admin,
+    )
+    assert r.status_code == 201, r.text
+    assert r.json()["cuisine"] == "Kazakh"
+    assert any(x["id"] == r.json()["id"] for x in client.get("/api/v1/restaurants").json())
+
+
+def test_set_default_address(client, auth):
+    a1 = client.post("/api/v1/me/addresses", json={"label": "Home", "line": "Abay 10"}, headers=auth).json()
+    a2 = client.post("/api/v1/me/addresses", json={"label": "Work", "line": "Dostyk 1"}, headers=auth).json()
+    r = client.patch(f"/api/v1/me/addresses/{a2['id']}", json={"is_default": True}, headers=auth)
+    assert r.status_code == 200 and r.json()["is_default"] is True
+    lst = client.get("/api/v1/me/addresses", headers=auth).json()
+    by_id = {a["id"]: a["is_default"] for a in lst}
+    assert by_id[a1["id"]] is False and by_id[a2["id"]] is True
+
+
+
+def test_login_rate_limited(client, monkeypatch):
+    from app.core.config import settings
+    from app.core.ratelimit import limiter
+
+    limiter.reset()
+    monkeypatch.setattr(settings, "login_rate_limit", "2/minute")
+    bad = {"email": "nobody@food.dev", "password": "x" * 8}
+    assert client.post("/api/v1/auth/login/json", json=bad).status_code == 401
+    assert client.post("/api/v1/auth/login/json", json=bad).status_code == 401
+    assert client.post("/api/v1/auth/login/json", json=bad).status_code == 429
+    limiter.reset()

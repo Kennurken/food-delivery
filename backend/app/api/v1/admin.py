@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from app.api.deps import DB, AdminUser
 from app.models import MenuItem, Restaurant
-from app.schemas.admin import MenuItemCreate, MenuItemUpdate, RestaurantUpdate
+from app.schemas.admin import MenuItemCreate, MenuItemUpdate, RestaurantCreate, RestaurantUpdate
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -15,6 +15,15 @@ def _restaurant_or_404(db, restaurant_id: int) -> Restaurant:
     r = db.get(Restaurant, restaurant_id)
     if not r:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
+    return r
+
+
+@router.post("/restaurants", response_model=RestaurantOut, status_code=status.HTTP_201_CREATED)
+def create_restaurant(data: RestaurantCreate, db: DB, _: AdminUser) -> Restaurant:
+    r = Restaurant(**data.model_dump())
+    db.add(r)
+    db.commit()
+    db.refresh(r)
     return r
 
 

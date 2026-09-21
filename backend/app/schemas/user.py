@@ -6,7 +6,7 @@ from app.models.user import UserRole
 class UserCreate(BaseModel):
     email: EmailStr
     name: str = Field(min_length=1, max_length=100)
-    phone: str | None = None
+    phone: str | None = Field(default=None, max_length=30)
     password: str = Field(min_length=6, max_length=128)
 
 
@@ -32,5 +32,15 @@ class UserUpdate(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     user: UserOut
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class AccessToken(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

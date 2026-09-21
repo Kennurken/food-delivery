@@ -85,9 +85,10 @@ def seed() -> None:
             )
         )
 
-        for r in RESTAURANTS:
-            menu = r.pop("menu")
-            restaurant = Restaurant(**r, rating_count=10)
+        for raw in RESTAURANTS:
+            data = dict(raw)
+            menu = data.pop("menu")
+            restaurant = Restaurant(**data, rating_count=10)
             restaurant.menu_items = [
                 MenuItem(name=n, description=d, price=p, category=c) for n, d, p, c in menu
             ]
@@ -98,4 +99,10 @@ def seed() -> None:
 
 
 if __name__ == "__main__":
+    import os
+
+    from app.core.config import settings
+
+    if settings.is_prod and not os.environ.get("ALLOW_SEED"):
+        raise SystemExit("Refusing to seed in prod (demo passwords). Set ALLOW_SEED=1 to override.")
     seed()

@@ -6,13 +6,22 @@ from app.core.events import hub
 from app.models import MenuItem, Order, OrderItem, OrderStatus, Restaurant, User, UserRole
 from app.schemas.order import OrderCreate, OrderOut
 
+# Statuses a courier can pick up from
+COURIER_PICKABLE = {OrderStatus.confirmed, OrderStatus.preparing}
+
 
 def notify(db: Session, order: Order) -> None:
-    """Push order snapshot to everyone who cares: customer, assigned courier, staff."""
-    staff = set(db.scalars(select(User.id).where(User.role.in_([UserRole.admin, UserRole.courier]))))
-    targets = staff | {order.user_id}
+    """Push the order snapshot to the customer, assigned courier, and admins.
+
+    Unassigned pickable orders also go to every courier so the available-pool
+    banner still fires — they do not see other couriers' in-flight deliveries.
+    """
+    admins = set(db.scalars(select(User.id).where(User.role == UserRole.admin)))
+    targets = admins | {order.user_id}
     if order.courier_id:
         targets.add(order.courier_id)
+    elif order.status in COURIER_PICKABLE:
+        targets.update(db.scalars(select(User.id).where(User.role == UserRole.courier)))
     payload = {"type": "order.updated", "order": OrderOut.model_validate(order).model_dump(mode="json")}
     hub.publish_threadsafe(targets, payload)
 
@@ -66,20 +75,19 @@ def create_order(db: Session, user: User, data: OrderCreate) -> Order:
     return order
 
 
-# Statuses a courier can pick up from
-COURIER_PICKABLE = {OrderStatus.confirmed, OrderStatus.preparing}
-
-
 def accept_order(db: Session, courier: User, order: Order) -> Order:
-    if order.courier_id is not None:
+    locked = db.scalar(select(Order).where(Order.id == order.id).with_for_update())
+    if locked is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")
+    if locked.courier_id is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Order already taken")
-    if order.status not in COURIER_PICKABLE:
+    if locked.status not in COURIER_PICKABLE:
         raise HTTPException(status.HTTP_409_CONFLICT, "Order not ready for pickup")
-    order.courier_id = courier.id
+    locked.courier_id = courier.id
     db.commit()
-    db.refresh(order)
-    notify(db, order)
-    return order
+    db.refresh(locked)
+    notify(db, locked)
+    return locked
 
 
 def advance_order(db: Session, courier: User, order: Order) -> Order:

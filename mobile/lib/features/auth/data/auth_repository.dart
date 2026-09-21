@@ -38,20 +38,28 @@ class AuthRepository {
   }
 
   Future<User?> me() async {
-    if (await _storage.read() == null) return null;
+    if (await _storage.read() == null && await _storage.readRefresh() == null) {
+      return null;
+    }
     try {
       final r = await _dio.get('/api/v1/auth/me');
       return User.fromJson(r.data);
-    } on DioException {
-      await _storage.clear();
-      return null;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await _storage.clear();
+        return null;
+      }
+      rethrow;
     }
   }
 
   Future<void> logout() => _storage.clear();
 
   Future<User> _saveToken(Map<String, dynamic> data) async {
-    await _storage.write(data['access_token'] as String);
+    await _storage.write(
+      data['access_token'] as String,
+      refresh: data['refresh_token'] as String?,
+    );
     return User.fromJson(data['user']);
   }
 }

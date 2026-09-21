@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+
 import '../../../core/theme/buttons.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
@@ -22,20 +24,21 @@ class CourierScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).value;
+    final t = context.l10n;
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(user?.name ?? 'Courier'),
+          title: Text(user?.name ?? t.courier),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
-              tooltip: 'Log out',
+              tooltip: t.logOut,
               onPressed: () =>
                   ref.read(authControllerProvider.notifier).logout(),
             ),
           ],
-          bottom: const PillTabBar(tabs: ['Available', 'My deliveries']),
+          bottom: PillTabBar(tabs: [t.available, t.myDeliveries]),
         ),
         body: const TabBarView(children: [_AvailableTab(), _MineTab()]),
       ),
@@ -66,10 +69,10 @@ class _AvailableTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return _OrderList(
       orders: ref.watch(availableOrdersProvider),
-      empty: const EmptyState(
+      empty: EmptyState(
         icon: Icons.hourglass_empty,
-        title: 'No orders waiting',
-        hint: 'New pickups appear here instantly',
+        title: context.l10n.noOrdersWaiting,
+        hint: context.l10n.noOrdersWaitingHint,
       ),
       onRefresh: () => ref.refresh(availableOrdersProvider.future),
       action: (o) => Pressable(
@@ -78,7 +81,7 @@ class _AvailableTab extends ConsumerWidget {
           style: AppButtons.inline,
           onPressed: () => _accept(context, ref, o.id),
           icon: const Icon(Icons.check),
-          label: const Text('Accept'),
+          label: Text(context.l10n.accept),
         ),
       ),
     );
@@ -109,10 +112,10 @@ class _MineTab extends ConsumerWidget {
         .whenData((list) => list.where((o) => !o.status.isFinal).toList());
     return _OrderList(
       orders: orders,
-      empty: const EmptyState(
+      empty: EmptyState(
         icon: Icons.delivery_dining,
-        title: 'No active deliveries',
-        hint: 'Accept an order from Available',
+        title: context.l10n.noActiveDeliveries,
+        hint: context.l10n.noActiveDeliveriesHint,
       ),
       onRefresh: () => ref.refresh(ordersProvider.future),
       action: (o) {
@@ -129,7 +132,7 @@ class _MineTab extends ConsumerWidget {
               OrderStatus.delivered => Icons.done_all,
               _ => Icons.arrow_forward,
             }),
-            label: Text(next.actionLabel),
+            label: Text(next.actionLabel(context.l10n)),
           ),
         );
       },
@@ -158,7 +161,7 @@ class _OrderList extends StatelessWidget {
       loading: () => const ListSkeleton(rowHeight: 150),
       error: (e, _) => EmptyState(
         icon: Icons.wifi_off,
-        title: 'Couldn\'t load',
+        title: context.l10n.couldNotLoad,
         hint: errorMessage(e),
       ),
       data: (list) => RefreshIndicator(

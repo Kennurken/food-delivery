@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+import '../../../core/l10n/locale_controller.dart';
+
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -55,7 +58,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       Haptics.success();
       if (mounted) {
         setState(() => _dirty = false);
-        _toast('Saved');
+        _toast(context.l10n.saved);
       }
     } catch (e) {
       if (mounted) _toast(errorMessage(e));
@@ -86,6 +89,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = ref.watch(authControllerProvider).value;
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final t = context.l10n;
     final initials = (user?.name ?? '?')
         .trim()
         .split(' ')
@@ -96,11 +100,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(t.profile),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Log out',
+            tooltip: t.logOut,
             onPressed: () => ref.read(authControllerProvider.notifier).logout(),
           ),
         ],
@@ -147,8 +151,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           TextField(
             controller: _name,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              labelText: 'Name',
+            decoration: InputDecoration(
+              labelText: t.name,
               prefixIcon: Icon(Icons.person_outline),
             ),
           ).stagger(1),
@@ -156,8 +160,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           TextField(
             controller: _phone,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
-              labelText: 'Phone',
+            decoration: InputDecoration(
+              labelText: t.phone,
               prefixIcon: Icon(Icons.phone_outlined),
             ),
           ).stagger(2),
@@ -172,18 +176,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       onTap: _save,
                       child: FilledButton(
                         onPressed: _save,
-                        child: const Text('Save changes'),
+                        child: Text(t.saveChanges),
                       ),
                     ),
                   )
                 : const SizedBox.shrink(),
           ),
           const SizedBox(height: 28),
+          Text(
+            t.language,
+            style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ).stagger(3),
+          const SizedBox(height: 8),
+          const _LanguagePicker(),
+          const SizedBox(height: 28),
           Row(
             children: [
               Expanded(
                 child: Text(
-                  'Addresses',
+                  t.addresses,
                   style: text.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -192,10 +203,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               TextButton.icon(
                 onPressed: _addAddress,
                 icon: const Icon(Icons.add),
-                label: const Text('Add'),
+                label: Text(t.add),
               ),
             ],
-          ).stagger(3),
+          ).stagger(4),
           addresses.when(
             loading: () => const LinearProgressIndicator(),
             error: (e, _) => Text(errorMessage(e)),
@@ -204,8 +215,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     height: 220,
                     child: EmptyState(
                       icon: Icons.place_outlined,
-                      title: 'No saved addresses',
-                      hint: 'Add one to check out in a tap',
+                      title: t.noSavedAddresses,
+                      hint: t.noSavedAddressesHint,
                     ),
                   )
                 : Column(
@@ -253,13 +264,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 subtitle: Text(a.line),
                                 trailing: a.isDefault
                                     ? Text(
-                                        'Default',
+                                        t.default_,
                                         style: text.labelSmall?.copyWith(
                                           color: scheme.primary,
                                           fontWeight: FontWeight.w700,
                                         ),
                                       )
-                                    : null,
+                                    : TextButton(
+                                        onPressed: () async {
+                                          try {
+                                            await ref
+                                                .read(profileRepositoryProvider)
+                                                .setDefault(a.id);
+                                            ref.invalidate(addressesProvider);
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              _toast(errorMessage(e));
+                                            }
+                                          }
+                                        },
+                                        child: Text(t.setAsDefault),
+                                      ),
                               ),
                             ),
                           ),
@@ -267,7 +292,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          'Swipe left to delete',
+                          t.swipeToDelete,
                           style: text.labelSmall?.copyWith(
                             color: scheme.outline,
                           ),
@@ -278,6 +303,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LanguagePicker extends ConsumerWidget {
+  const _LanguagePicker();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selected = ref.watch(localeControllerProvider).value;
+    final t = context.l10n;
+    final options = <(Locale?, String)>[
+      (null, t.languageSystem),
+      (const Locale('en'), t.languageEnglish),
+      (const Locale('ru'), t.languageRussian),
+      (const Locale('kk'), t.languageKazakh),
+    ];
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final (locale, label) in options)
+          ChoiceChip(
+            label: Text(label),
+            selected: selected?.languageCode == locale?.languageCode,
+            onSelected: (_) =>
+                ref.read(localeControllerProvider.notifier).setLocale(locale),
+          ),
+      ],
     );
   }
 }
@@ -306,7 +360,7 @@ class _AddressSheet extends StatefulWidget {
 }
 
 class _AddressSheetState extends State<_AddressSheet> {
-  final _label = TextEditingController(text: 'Home');
+  late final _label = TextEditingController(text: context.l10n.labelHome);
   final _line = TextEditingController();
 
   @override
@@ -336,14 +390,18 @@ class _AddressSheetState extends State<_AddressSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'New address',
+            context.l10n.newAddress,
             style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 8,
             children: [
-              for (final l in const ['Home', 'Work', 'Other'])
+              for (final l in [
+                context.l10n.labelHome,
+                context.l10n.labelWork,
+                context.l10n.labelOther,
+              ])
                 ChoiceChip(
                   label: Text(l),
                   selected: _label.text == l,
@@ -357,13 +415,13 @@ class _AddressSheetState extends State<_AddressSheet> {
             autofocus: true,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _save(),
-            decoration: const InputDecoration(
-              labelText: 'Street, building, apt',
+            decoration: InputDecoration(
+              labelText: context.l10n.addressLine,
               prefixIcon: Icon(Icons.place_outlined),
             ),
           ),
           const SizedBox(height: 16),
-          FilledButton(onPressed: _save, child: const Text('Save address')),
+          FilledButton(onPressed: _save, child: Text(context.l10n.saveAddress)),
         ],
       ),
     );

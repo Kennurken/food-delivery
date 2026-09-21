@@ -64,9 +64,9 @@ Swagger: http://127.0.0.1:8000/docs — dev users `user@food.dev / user123`, `co
 
 Mobile:
 ```bash
-cd mobile && flutter run
+cd mobile && flutter run --dart-define=API_URL=http://10.0.2.2:8000
 ```
-Android emulator hits `10.0.2.2:8000`, iOS sim hits `127.0.0.1:8000`. Override: `--dart-define=API_URL=http://host:8000`.
+Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim hits `127.0.0.1:8000`. Release builds require `API_URL`.
 
 ## API
 
@@ -74,6 +74,7 @@ Android emulator hits `10.0.2.2:8000`, iOS sim hits `127.0.0.1:8000`. Override: 
 |---|---|---|
 | POST | /api/v1/auth/register | – |
 | POST | /api/v1/auth/login/json | – |
+| POST | /api/v1/auth/refresh | – |
 | GET | /api/v1/auth/me | user |
 | GET | /api/v1/restaurants?q=&cuisine= | – |
 | GET | /api/v1/restaurants/{id} | – |
@@ -86,21 +87,25 @@ Android emulator hits `10.0.2.2:8000`, iOS sim hits `127.0.0.1:8000`. Override: 
 | POST | /api/v1/orders/{id}/advance | courier (assigned) |
 | PATCH | /api/v1/orders/{id}/status | admin |
 | PATCH | /api/v1/me | user |
-| GET/POST/DELETE | /api/v1/me/addresses[/{id}] | user |
+| GET/POST/PATCH/DELETE | /api/v1/me/addresses[/{id}] | user |
 | POST | /api/v1/orders/{id}/rate | customer (delivered) |
 | GET | /api/v1/restaurants/cuisines | – |
-| GET/PATCH | /api/v1/admin/restaurants[/{id}] | admin |
+| GET/POST/PATCH | /api/v1/admin/restaurants[/{id}] | admin |
 | POST | /api/v1/admin/restaurants/{id}/menu | admin |
 | PATCH/DELETE | /api/v1/admin/menu/{id} | admin |
 
 Order status machine: `pending → confirmed → preparing → on_the_way → delivered`; cancel allowed from `pending`/`confirmed`.
 Admin confirms; courier picks up from `confirmed`/`preparing` and advances step by step.
 
-Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","order":{...}}` to the customer, assigned courier, and all staff on every change. In-process hub — single instance; swap for Redis pub/sub to scale out.
+Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","order":{...}}` to the customer, the assigned courier, and admins. Couriers also get unassigned pickable orders (the available pool). Hub is in-process — one instance; swap for Redis pub/sub to scale out.
 
-Prod: set `ENV=prod` and a real `SECRET_KEY` — the app refuses to start with the default key.
+Login and refresh are rate-limited. Access tokens last 60 minutes; a 30-day refresh token issues a new access token. The app refuses to start in `ENV=prod` with the default `SECRET_KEY`, `CORS_ORIGINS=*`, or a sqlite `DATABASE_URL`. `/docs` is off in prod. Seed is blocked in prod because it creates `admin123` / `user123`.
 
 Schema migrations: `cd backend && uv run alembic revision --autogenerate -m "..." && uv run alembic upgrade head`.
+
+Fly: `cd backend && ./deploy.sh` (creates the app + Postgres, sets `SECRET_KEY` once, never reseeds). Health: `GET /health` pings the database.
+
+Mobile UI is English / Russian / Kazakh; pick the language in Profile. Release builds need `--dart-define=API_URL=https://…`.
 
 ## Motion system
 
@@ -140,7 +145,9 @@ cd mobile && flutter test
 - [x] Customer profile, saved addresses, address picker at checkout
 - [x] Order rating → restaurant running average
 - [x] Cuisine filter
-- [ ] Push notifications when app is in background (FCM)
 - [x] Admin panel in-app (confirm/advance orders, toggle restaurant, edit menu)
+- [x] Refresh tokens, login rate limits, prod secret/CORS/sqlite guards
+- [x] en / ru / kk UI
+- [ ] Push notifications when app is in background (FCM)
 - [ ] Map/geocoding for address
 - [ ] Payments (Kaspi / Stripe)

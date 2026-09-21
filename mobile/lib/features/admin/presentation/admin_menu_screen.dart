@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/l10n.dart';
+
 import '../../../core/utils/money.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../../core/widgets/stretch_switch.dart';
@@ -57,7 +59,7 @@ class AdminMenuScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final restaurant = ref.watch(adminRestaurantProvider(restaurantId));
     return Scaffold(
-      appBar: AppBar(title: Text(restaurant.value?.name ?? 'Menu')),
+      appBar: AppBar(title: Text(restaurant.value?.name ?? context.l10n.menu)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _edit(context, ref),
         child: const Icon(Icons.add),
@@ -92,13 +94,36 @@ class AdminMenuScreen extends ConsumerWidget {
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline),
-                        onPressed: () => _run(
-                          context,
-                          ref,
-                          () => ref
-                              .read(adminRepositoryProvider)
-                              .deleteMenuItem(m.id),
-                        ),
+                        onPressed: () async {
+                          final t = context.l10n;
+                          final ok = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: Text(t.deleteItemTitle(m.name)),
+                              content: Text(t.deleteItemBody),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: Text(t.cancel),
+                                ),
+                                FilledButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: Text(t.delete),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (ok == true && context.mounted) {
+                            await _run(
+                              context,
+                              ref,
+                              () => ref
+                                  .read(adminRepositoryProvider)
+                                  .deleteMenuItem(m.id),
+                            );
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -143,7 +168,9 @@ class _MenuItemDialogState extends State<_MenuItemDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.item == null ? 'New item' : 'Edit item'),
+      title: Text(
+        widget.item == null ? context.l10n.newItem : context.l10n.editItem,
+      ),
       content: Form(
         key: _form,
         child: Column(
@@ -151,27 +178,29 @@ class _MenuItemDialogState extends State<_MenuItemDialog> {
           children: [
             TextFormField(
               controller: _name,
-              decoration: const InputDecoration(labelText: 'Name'),
-              validator: (v) =>
-                  v != null && v.trim().isNotEmpty ? null : 'Required',
+              decoration: InputDecoration(labelText: context.l10n.name),
+              validator: (v) => v != null && v.trim().isNotEmpty
+                  ? null
+                  : context.l10n.required,
             ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _desc,
-              decoration: const InputDecoration(labelText: 'Description'),
+              decoration: InputDecoration(labelText: context.l10n.description),
             ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _price,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Price, ₸'),
-              validator: (v) =>
-                  (double.tryParse(v ?? '') ?? 0) > 0 ? null : 'Must be > 0',
+              decoration: InputDecoration(labelText: context.l10n.priceTenge),
+              validator: (v) => (double.tryParse(v ?? '') ?? 0) > 0
+                  ? null
+                  : context.l10n.mustBePositive,
             ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _category,
-              decoration: const InputDecoration(labelText: 'Category'),
+              decoration: InputDecoration(labelText: context.l10n.category),
             ),
           ],
         ),
@@ -179,7 +208,7 @@ class _MenuItemDialogState extends State<_MenuItemDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.cancel),
         ),
         FilledButton(
           onPressed: () {
@@ -193,7 +222,7 @@ class _MenuItemDialogState extends State<_MenuItemDialog> {
                   : _category.text.trim(),
             });
           },
-          child: const Text('Save'),
+          child: Text(context.l10n.save),
         ),
       ],
     );

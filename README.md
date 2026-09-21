@@ -58,7 +58,9 @@ Android emulator hits `10.0.2.2:8000`, iOS sim hits `127.0.0.1:8000`. Override: 
 | PATCH/DELETE | /api/v1/admin/menu/{id} | admin |
 
 Order status machine: `pending → confirmed → preparing → on_the_way → delivered`; cancel allowed from `pending`/`confirmed`.
-Admin confirms; courier picks up from `confirmed`/`preparing` and advances step by step. Client polls order every 4s until final.
+Admin confirms; courier picks up from `confirmed`/`preparing` and advances step by step.
+
+Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","order":{...}}` to the customer, assigned courier, and all staff on every change. In-process hub — single instance; swap for Redis pub/sub to scale out.
 
 Schema migrations: `cd backend && uv run alembic revision --autogenerate -m "..." && uv run alembic upgrade head`.
 
@@ -73,7 +75,9 @@ cd mobile && flutter test
 
 - [x] Courier role + order assignment
 - [x] Alembic migrations, Postgres via docker compose
-- [ ] Push notifications on status change (FCM) — replaces polling
+- [x] Live order updates over WebSocket
+- [x] GitHub Actions CI (ruff, pytest, alembic check, dart format, analyze, flutter test)
+- [ ] Push notifications when app is in background (FCM)
 - [x] Admin panel in-app (confirm/advance orders, toggle restaurant, edit menu)
 - [ ] Map/geocoding for address
 - [ ] Payments (Kaspi / Stripe)

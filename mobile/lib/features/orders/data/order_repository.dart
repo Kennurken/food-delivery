@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/api/order_events.dart';
 import '../../cart/presentation/cart_controller.dart';
 import '../domain/order.dart';
 
@@ -17,14 +18,18 @@ class OrderRepository {
     required String address,
     String? comment,
   }) async {
-    final r = await _dio.post('/api/v1/orders', data: {
-      'restaurant_id': cart.restaurantId,
-      'address': address,
-      'comment': comment,
-      'items': [
-        for (final i in cart.items.values) {'menu_item_id': i.item.id, 'quantity': i.quantity},
-      ],
-    });
+    final r = await _dio.post(
+      '/api/v1/orders',
+      data: {
+        'restaurant_id': cart.restaurantId,
+        'address': address,
+        'comment': comment,
+        'items': [
+          for (final i in cart.items.values)
+            {'menu_item_id': i.item.id, 'quantity': i.quantity},
+        ],
+      },
+    );
     return Order.fromJson(r.data);
   }
 
@@ -45,7 +50,10 @@ class OrderRepository {
 
   // --- admin
   Future<Order> setStatus(int id, OrderStatus status) async {
-    final r = await _dio.patch('/api/v1/orders/$id/status', data: {'status': status.wire});
+    final r = await _dio.patch(
+      '/api/v1/orders/$id/status',
+      data: {'status': status.wire},
+    );
     return Order.fromJson(r.data);
   }
 
@@ -66,12 +74,13 @@ class OrderRepository {
   }
 }
 
-final orderRepositoryProvider = Provider((ref) => OrderRepository(ref.watch(dioProvider)));
+final orderRepositoryProvider = Provider(
+  (ref) => OrderRepository(ref.watch(dioProvider)),
+);
 
 final ordersProvider = FutureProvider<List<Order>>((ref) {
-  // Auto-refresh while the list is on screen; disposed when nobody watches it.
-  final timer = Timer(const Duration(seconds: 10), () => ref.invalidateSelf());
-  ref.onDispose(timer.cancel);
+  // Any order event may change this list (new order, status, courier assignment).
+  ref.listen(orderEventsProvider, (_, _) => ref.invalidateSelf());
   return ref.watch(orderRepositoryProvider).list();
 });
 
@@ -79,19 +88,23 @@ final orderProvider = FutureProvider.family<Order, int>(
   (ref, id) => ref.watch(orderRepositoryProvider).get(id),
 );
 
-/// Re-fetches order every [interval] while status is not final.
-/// Cheap stand-in for push notifications until FCM lands.
-final orderPollingProvider = StreamProvider.family<Order, int>((ref, id) async* {
-  final repo = ref.watch(orderRepositoryProvider);
-  const interval = Duration(seconds: 4);
-  while (true) {
-    final order = await repo.get(id);
-    yield order;
-    if (order.status.isFinal) return;
-    await Future<void>.delayed(interval);
-  }
+/// Initial fetch, then live updates for this order over WebSocket.
+final orderLiveProvider = StreamProvider.family<Order, int>((ref, id) {
+  final controller = StreamController<Order>();
+  ref
+      .watch(orderRepositoryProvider)
+      .get(id)
+      .then(controller.add, onError: controller.addError);
+  ref.listen(orderEventsProvider, (_, next) {
+    final evt = next.value;
+    if (evt != null && evt.id == id && !controller.isClosed)
+      controller.add(Order.fromJson(evt.order));
+  });
+  ref.onDispose(controller.close);
+  return controller.stream;
 });
 
-final availableOrdersProvider = FutureProvider<List<Order>>(
-  (ref) => ref.watch(orderRepositoryProvider).available(),
-);
+final availableOrdersProvider = FutureProvider<List<Order>>((ref) {
+  ref.listen(orderEventsProvider, (_, _) => ref.invalidateSelf());
+  return ref.watch(orderRepositoryProvider).available();
+});

@@ -37,7 +37,10 @@ class RestaurantScreen extends ConsumerWidget {
                   title: Text(r.name),
                   background: r.imageUrl == null
                       ? null
-                      : CachedNetworkImage(imageUrl: r.imageUrl!, fit: BoxFit.cover),
+                      : CachedNetworkImage(
+                          imageUrl: r.imageUrl!,
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
               SliverPadding(
@@ -52,7 +55,10 @@ class RestaurantScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     for (final entry in byCategory.entries) ...[
-                      Text(entry.key, style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        entry.key,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                       const SizedBox(height: 8),
                       for (final m in entry.value) _MenuTile(m),
                       const SizedBox(height: 16),
@@ -72,7 +78,9 @@ class RestaurantScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 child: FilledButton(
                   onPressed: () => context.push('/cart'),
-                  child: Text('View cart · ${cart.count} · ${formatMoney(cart.subtotal)}'),
+                  child: Text(
+                    'View cart · ${cart.count} · ${formatMoney(cart.subtotal)}',
+                  ),
                 ),
               ),
             ),
@@ -95,8 +103,14 @@ class _MenuTile extends ConsumerWidget {
         title: const Text('Start a new cart?'),
         content: const Text('Your cart has items from another restaurant.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Replace')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Replace'),
+          ),
         ],
       ),
     );
@@ -108,7 +122,9 @@ class _MenuTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final qty = ref.watch(cartProvider.select((c) => c.items[item.id]?.quantity ?? 0));
+    final qty = ref.watch(
+      cartProvider.select((c) => c.items[item.id]?.quantity ?? 0),
+    );
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -125,7 +141,8 @@ class _MenuTile extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    onPressed: () => ref.read(cartProvider.notifier).remove(item),
+                    onPressed: () =>
+                        ref.read(cartProvider.notifier).remove(item),
                     icon: const Icon(Icons.remove_circle_outline),
                   ),
                   Text('$qty', style: Theme.of(context).textTheme.titleMedium),

@@ -23,10 +23,16 @@ class AdminScreen extends ConsumerWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
-              onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+              onPressed: () =>
+                  ref.read(authControllerProvider.notifier).logout(),
             ),
           ],
-          bottom: const TabBar(tabs: [Tab(text: 'Orders'), Tab(text: 'Restaurants')]),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Orders'),
+              Tab(text: 'Restaurants'),
+            ],
+          ),
         ),
         body: const TabBarView(children: [_OrdersTab(), _RestaurantsTab()]),
       ),
@@ -37,13 +43,19 @@ class AdminScreen extends ConsumerWidget {
 class _OrdersTab extends ConsumerWidget {
   const _OrdersTab();
 
-  Future<void> _set(BuildContext context, WidgetRef ref, Order o, OrderStatus s) async {
+  Future<void> _set(
+    BuildContext context,
+    WidgetRef ref,
+    Order o,
+    OrderStatus s,
+  ) async {
     try {
       await ref.read(orderRepositoryProvider).setStatus(o.id, s);
       ref.invalidate(ordersProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage(e))));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
       }
     }
   }
@@ -62,7 +74,14 @@ class _OrdersTab extends ConsumerWidget {
       data: (list) => RefreshIndicator(
         onRefresh: () => ref.refresh(ordersProvider.future),
         child: list.isEmpty
-            ? ListView(children: const [SizedBox(height: 200, child: Center(child: Text('No orders')))])
+            ? ListView(
+                children: const [
+                  SizedBox(
+                    height: 200,
+                    child: Center(child: Text('No orders')),
+                  ),
+                ],
+              )
             : ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: list.length,
@@ -78,8 +97,10 @@ class _OrdersTab extends ConsumerWidget {
                           Row(
                             children: [
                               Expanded(
-                                child: Text('#${o.id} · ${o.restaurantName} · ${formatMoney(o.total)}',
-                                    style: text.titleMedium),
+                                child: Text(
+                                  '#${o.id} · ${o.restaurantName} · ${formatMoney(o.total)}',
+                                  style: text.titleMedium,
+                                ),
                               ),
                               StatusChip(o.status),
                             ],
@@ -87,11 +108,16 @@ class _OrdersTab extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text('${o.customer.name} · ${o.address}'),
                           Text(
-                            o.items.map((i) => '${i.quantity}× ${i.name}').join(', '),
+                            o.items
+                                .map((i) => '${i.quantity}× ${i.name}')
+                                .join(', '),
                             style: text.bodySmall,
                           ),
                           if (o.courier != null)
-                            Text('Courier: ${o.courier!.name}', style: text.bodySmall),
+                            Text(
+                              'Courier: ${o.courier!.name}',
+                              style: text.bodySmall,
+                            ),
                           if (o.status.adminNext.isNotEmpty) ...[
                             const SizedBox(height: 8),
                             Wrap(
@@ -100,11 +126,13 @@ class _OrdersTab extends ConsumerWidget {
                                 for (final s in o.status.adminNext)
                                   s == OrderStatus.cancelled
                                       ? OutlinedButton(
-                                          onPressed: () => _set(context, ref, o, s),
+                                          onPressed: () =>
+                                              _set(context, ref, o, s),
                                           child: Text(s.actionLabel),
                                         )
                                       : FilledButton.tonal(
-                                          onPressed: () => _set(context, ref, o, s),
+                                          onPressed: () =>
+                                              _set(context, ref, o, s),
                                           child: Text(s.actionLabel),
                                         ),
                               ],
@@ -140,17 +168,24 @@ class _RestaurantsTab extends ConsumerWidget {
             child: ListTile(
               leading: const Icon(Icons.restaurant_menu),
               title: Text(r.name),
-              subtitle: Text('${r.cuisine} · delivery ${formatMoney(r.deliveryFee)} · ${r.isOpen ? 'open' : 'closed'}'),
+              subtitle: Text(
+                '${r.cuisine} · delivery ${formatMoney(r.deliveryFee)} · ${r.isOpen ? 'open' : 'closed'}',
+              ),
               onTap: () => context.push('/admin/restaurants/${r.id}'),
               trailing: Switch(
                 value: r.isOpen,
                 onChanged: (v) async {
                   try {
-                    await ref.read(adminRepositoryProvider).updateRestaurant(r.id, {'is_open': v});
+                    await ref.read(adminRepositoryProvider).updateRestaurant(
+                      r.id,
+                      {'is_open': v},
+                    );
                     ref.invalidate(adminRestaurantsProvider);
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage(e))));
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(errorMessage(e))));
                     }
                   }
                 },

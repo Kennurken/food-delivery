@@ -1,15 +1,19 @@
 class OrderItem {
-  const OrderItem({required this.name, required this.price, required this.quantity});
+  const OrderItem({
+    required this.name,
+    required this.price,
+    required this.quantity,
+  });
 
   final String name;
   final double price;
   final int quantity;
 
   factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
-        name: json['name'] as String,
-        price: (json['price'] as num).toDouble(),
-        quantity: json['quantity'] as int,
-      );
+    name: json['name'] as String,
+    price: (json['price'] as num).toDouble(),
+    quantity: json['quantity'] as int,
+  );
 }
 
 class UserBrief {
@@ -20,10 +24,10 @@ class UserBrief {
   final String? phone;
 
   factory UserBrief.fromJson(Map<String, dynamic> json) => UserBrief(
-        id: json['id'] as int,
-        name: json['name'] as String,
-        phone: json['phone'] as String?,
-      );
+    id: json['id'] as int,
+    name: json['name'] as String,
+    phone: json['phone'] as String?,
+  );
 }
 
 enum OrderStatus {
@@ -39,46 +43,47 @@ enum OrderStatus {
 
   String get wire => _wire ?? name;
 
-  static OrderStatus parse(String s) => values.firstWhere((v) => v.wire == s, orElse: () => pending);
+  static OrderStatus parse(String s) =>
+      values.firstWhere((v) => v.wire == s, orElse: () => pending);
 
   String get label => switch (this) {
-        pending => 'Pending',
-        confirmed => 'Confirmed',
-        preparing => 'Preparing',
-        onTheWay => 'On the way',
-        delivered => 'Delivered',
-        cancelled => 'Cancelled',
-      };
+    pending => 'Pending',
+    confirmed => 'Confirmed',
+    preparing => 'Preparing',
+    onTheWay => 'On the way',
+    delivered => 'Delivered',
+    cancelled => 'Cancelled',
+  };
 
   bool get canCancel => this == pending || this == confirmed;
 
   /// Button label for an action that moves an order *to* this status.
   String get actionLabel => switch (this) {
-        confirmed => 'Confirm',
-        preparing => 'Start preparing',
-        onTheWay => 'Hand to courier',
-        delivered => 'Mark delivered',
-        cancelled => 'Cancel',
-        pending => 'Pending',
-      };
+    confirmed => 'Confirm',
+    preparing => 'Start preparing',
+    onTheWay => 'Hand to courier',
+    delivered => 'Mark delivered',
+    cancelled => 'Cancel',
+    pending => 'Pending',
+  };
 
   /// Admin transitions (mirrors backend state machine).
   List<OrderStatus> get adminNext => switch (this) {
-        pending => [confirmed, cancelled],
-        confirmed => [preparing, cancelled],
-        preparing => [onTheWay],
-        onTheWay => [delivered],
-        _ => [],
-      };
+    pending => [confirmed, cancelled],
+    confirmed => [preparing, cancelled],
+    preparing => [onTheWay],
+    onTheWay => [delivered],
+    _ => [],
+  };
   bool get isFinal => this == delivered || this == cancelled;
 
   /// Next step a courier can push this order to, or null.
   OrderStatus? get courierNext => switch (this) {
-        confirmed => preparing,
-        preparing => onTheWay,
-        onTheWay => delivered,
-        _ => null,
-      };
+    confirmed => preparing,
+    preparing => onTheWay,
+    onTheWay => delivered,
+    _ => null,
+  };
 }
 
 class Order {
@@ -113,18 +118,20 @@ class Order {
   final List<OrderItem> items;
 
   factory Order.fromJson(Map<String, dynamic> json) => Order(
-        id: json['id'] as int,
-        restaurantId: json['restaurant_id'] as int,
-        restaurantName: json['restaurant_name'] as String,
-        customer: UserBrief.fromJson(json['customer']),
-        courier: json['courier'] == null ? null : UserBrief.fromJson(json['courier']),
-        status: OrderStatus.parse(json['status'] as String),
-        address: json['address'] as String,
-        comment: json['comment'] as String?,
-        subtotal: (json['subtotal'] as num).toDouble(),
-        deliveryFee: (json['delivery_fee'] as num).toDouble(),
-        total: (json['total'] as num).toDouble(),
-        createdAt: DateTime.parse(json['created_at'] as String),
-        items: (json['items'] as List).map((e) => OrderItem.fromJson(e)).toList(),
-      );
+    id: json['id'] as int,
+    restaurantId: json['restaurant_id'] as int,
+    restaurantName: json['restaurant_name'] as String,
+    customer: UserBrief.fromJson(json['customer']),
+    courier: json['courier'] == null
+        ? null
+        : UserBrief.fromJson(json['courier']),
+    status: OrderStatus.parse(json['status'] as String),
+    address: json['address'] as String,
+    comment: json['comment'] as String?,
+    subtotal: (json['subtotal'] as num).toDouble(),
+    deliveryFee: (json['delivery_fee'] as num).toDouble(),
+    total: (json['total'] as num).toDouble(),
+    createdAt: DateTime.parse(json['created_at'] as String),
+    items: (json['items'] as List).map((e) => OrderItem.fromJson(e)).toList(),
+  );
 }

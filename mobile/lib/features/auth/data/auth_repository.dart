@@ -12,10 +12,10 @@ class AuthRepository {
   final TokenStorage _storage;
 
   Future<User> login(String email, String password) async {
-    final r = await _dio.post('/api/v1/auth/login/json', data: {
-      'email': email,
-      'password': password,
-    });
+    final r = await _dio.post(
+      '/api/v1/auth/login/json',
+      data: {'email': email, 'password': password},
+    );
     return _saveToken(r.data);
   }
 
@@ -25,12 +25,15 @@ class AuthRepository {
     required String password,
     String? phone,
   }) async {
-    final r = await _dio.post('/api/v1/auth/register', data: {
-      'email': email,
-      'name': name,
-      'password': password,
-      'phone': phone,
-    });
+    final r = await _dio.post(
+      '/api/v1/auth/register',
+      data: {
+        'email': email,
+        'name': name,
+        'password': password,
+        'phone': phone,
+      },
+    );
     return _saveToken(r.data);
   }
 
@@ -54,5 +57,6 @@ class AuthRepository {
 }
 
 final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => AuthRepository(ref.watch(dioProvider), ref.watch(tokenStorageProvider)),
+  (ref) =>
+      AuthRepository(ref.watch(dioProvider), ref.watch(tokenStorageProvider)),
 );

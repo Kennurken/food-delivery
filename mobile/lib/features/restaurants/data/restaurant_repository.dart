@@ -10,10 +10,13 @@ class RestaurantRepository {
   final Dio _dio;
 
   Future<List<Restaurant>> list({String? query, String? cuisine}) async {
-    final r = await _dio.get('/api/v1/restaurants', queryParameters: {
-      if (query != null && query.isNotEmpty) 'q': query,
-      'cuisine': ?cuisine,
-    });
+    final r = await _dio.get(
+      '/api/v1/restaurants',
+      queryParameters: {
+        if (query != null && query.isNotEmpty) 'q': query,
+        'cuisine': ?cuisine,
+      },
+    );
     return (r.data as List).map((e) => Restaurant.fromJson(e)).toList();
   }
 
@@ -34,7 +37,9 @@ class RestaurantSearch extends Notifier<String> {
   void set(String value) => state = value;
 }
 
-final restaurantSearchProvider = NotifierProvider<RestaurantSearch, String>(RestaurantSearch.new);
+final restaurantSearchProvider = NotifierProvider<RestaurantSearch, String>(
+  RestaurantSearch.new,
+);
 
 final restaurantsProvider = FutureProvider<List<Restaurant>>((ref) {
   final q = ref.watch(restaurantSearchProvider);

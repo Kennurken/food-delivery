@@ -31,7 +31,9 @@ class OrdersScreen extends ConsumerWidget {
                       child: ListTile(
                         onTap: () => context.push('/orders/${o.id}'),
                         title: Text('Order #${o.id} · ${formatMoney(o.total)}'),
-                        subtitle: Text('${o.items.length} items · ${o.address}'),
+                        subtitle: Text(
+                          '${o.items.length} items · ${o.address}',
+                        ),
                         trailing: StatusChip(o.status),
                       ),
                     );

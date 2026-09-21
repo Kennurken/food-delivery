@@ -39,6 +39,7 @@ dependencies:
   dio: ^5.11.1
   flutter_secure_storage: ^11.2.0
   cached_network_image: ^4.0.0
+  web_socket_channel: ^3.0.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

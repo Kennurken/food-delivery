@@ -23,10 +23,16 @@ class CourierScreen extends ConsumerWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
-              onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+              onPressed: () =>
+                  ref.read(authControllerProvider.notifier).logout(),
             ),
           ],
-          bottom: const TabBar(tabs: [Tab(text: 'Available'), Tab(text: 'My deliveries')]),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Available'),
+              Tab(text: 'My deliveries'),
+            ],
+          ),
         ),
         body: const TabBarView(children: [_AvailableTab(), _MineTab()]),
       ),
@@ -45,7 +51,8 @@ class _AvailableTab extends ConsumerWidget {
       if (context.mounted) DefaultTabController.of(context).animateTo(1);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage(e))));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
       }
       ref.invalidate(availableOrdersProvider);
     }
@@ -75,7 +82,8 @@ class _MineTab extends ConsumerWidget {
       ref.invalidate(ordersProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage(e))));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
       }
     }
   }
@@ -83,9 +91,9 @@ class _MineTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Courier's /orders returns only assigned orders; hide finished ones.
-    final orders = ref.watch(ordersProvider).whenData(
-          (list) => list.where((o) => !o.status.isFinal).toList(),
-        );
+    final orders = ref
+        .watch(ordersProvider)
+        .whenData((list) => list.where((o) => !o.status.isFinal).toList());
     return _OrderList(
       orders: orders,
       empty: 'No active deliveries',
@@ -123,7 +131,11 @@ class _OrderList extends StatelessWidget {
       data: (list) => RefreshIndicator(
         onRefresh: onRefresh,
         child: list.isEmpty
-            ? ListView(children: [SizedBox(height: 200, child: Center(child: Text(empty)))])
+            ? ListView(
+                children: [
+                  SizedBox(height: 200, child: Center(child: Text(empty))),
+                ],
+              )
             : ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: list.length,
@@ -138,8 +150,12 @@ class _OrderList extends StatelessWidget {
                           Row(
                             children: [
                               Expanded(
-                                child: Text('Order #${o.id} · ${formatMoney(o.total)}',
-                                    style: Theme.of(context).textTheme.titleMedium),
+                                child: Text(
+                                  'Order #${o.id} · ${formatMoney(o.total)}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
+                                ),
                               ),
                               StatusChip(o.status),
                             ],
@@ -147,11 +163,16 @@ class _OrderList extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(o.address),
                           Text(
-                            o.items.map((i) => '${i.quantity}× ${i.name}').join(', '),
+                            o.items
+                                .map((i) => '${i.quantity}× ${i.name}')
+                                .join(', '),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                           const SizedBox(height: 8),
-                          Align(alignment: Alignment.centerRight, child: action(o)),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: action(o),
+                          ),
                         ],
                       ),
                     ),

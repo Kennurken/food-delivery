@@ -17,10 +17,10 @@ class User {
   bool get isCourier => role == 'courier';
 
   factory User.fromJson(Map<String, dynamic> json) => User(
-        id: json['id'] as int,
-        email: json['email'] as String,
-        name: json['name'] as String,
-        role: json['role'] as String,
-        phone: json['phone'] as String?,
-      );
+    id: json['id'] as int,
+    email: json['email'] as String,
+    name: json['name'] as String,
+    role: json['role'] as String,
+    phone: json['phone'] as String?,
+  );
 }

@@ -2,8 +2,19 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import MenuItem, Order, OrderItem, OrderStatus, Restaurant, User
-from app.schemas.order import OrderCreate
+from app.core.events import hub
+from app.models import MenuItem, Order, OrderItem, OrderStatus, Restaurant, User, UserRole
+from app.schemas.order import OrderCreate, OrderOut
+
+
+def notify(db: Session, order: Order) -> None:
+    """Push order snapshot to everyone who cares: customer, assigned courier, staff."""
+    staff = set(db.scalars(select(User.id).where(User.role.in_([UserRole.admin, UserRole.courier]))))
+    targets = staff | {order.user_id}
+    if order.courier_id:
+        targets.add(order.courier_id)
+    payload = {"type": "order.updated", "order": OrderOut.model_validate(order).model_dump(mode="json")}
+    hub.publish_threadsafe(targets, payload)
 
 # Allowed status transitions: current -> set of next
 _TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
@@ -51,6 +62,7 @@ def create_order(db: Session, user: User, data: OrderCreate) -> Order:
     db.add(order)
     db.commit()
     db.refresh(order)
+    notify(db, order)
     return order
 
 
@@ -66,6 +78,7 @@ def accept_order(db: Session, courier: User, order: Order) -> Order:
     order.courier_id = courier.id
     db.commit()
     db.refresh(order)
+    notify(db, order)
     return order
 
 
@@ -91,4 +104,5 @@ def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
     order.status = new_status
     db.commit()
     db.refresh(order)
+    notify(db, order)
     return order

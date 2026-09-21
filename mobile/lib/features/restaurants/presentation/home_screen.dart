@@ -51,7 +51,8 @@ class HomeScreen extends ConsumerWidget {
                 hintText: 'Search restaurants',
                 prefixIcon: Icon(Icons.search),
               ),
-              onChanged: (v) => ref.read(restaurantSearchProvider.notifier).set(v),
+              onChanged: (v) =>
+                  ref.read(restaurantSearchProvider.notifier).set(v),
             ),
           ),
           Expanded(
@@ -98,11 +99,15 @@ class _RestaurantCard extends StatelessWidget {
             AspectRatio(
               aspectRatio: 16 / 8,
               child: r.imageUrl == null
-                  ? Container(color: Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48))
+                  ? Container(
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.restaurant, size: 48),
+                    )
                   : CachedNetworkImage(
                       imageUrl: r.imageUrl!,
                       fit: BoxFit.cover,
-                      errorWidget: (_, _, _) => Container(color: Colors.grey.shade200),
+                      errorWidget: (_, _, _) =>
+                          Container(color: Colors.grey.shade200),
                     ),
             ),
             Padding(
@@ -141,13 +146,13 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
-        ),
-      );
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(message, textAlign: TextAlign.center),
+        const SizedBox(height: 8),
+        TextButton(onPressed: onRetry, child: const Text('Retry')),
+      ],
+    ),
+  );
 }

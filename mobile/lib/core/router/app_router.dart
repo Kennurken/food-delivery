@@ -39,19 +39,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (user == null) return onAuthPage ? null : '/login';
 
       // Each role has its own surface; keep them there.
-      final home = user.isAdmin ? '/admin' : user.isCourier ? '/courier' : '/';
+      final home = user.isAdmin
+          ? '/admin'
+          : user.isCourier
+          ? '/courier'
+          : '/';
       if (onAuthPage || loc == '/splash') return home;
       final onCourier = loc.startsWith('/courier');
       final onAdmin = loc.startsWith('/admin');
       if (user.isAdmin && !onAdmin) return home;
       if (user.isCourier && !onCourier) return home;
-      if (!user.isAdmin && !user.isCourier && (onAdmin || onCourier)) return home;
+      if (!user.isAdmin && !user.isCourier && (onAdmin || onCourier))
+        return home;
       return null;
     },
     routes: [
       GoRoute(
         path: '/splash',
-        builder: (_, _) => const Scaffold(body: Center(child: CircularProgressIndicator())),
+        builder: (_, _) =>
+            const Scaffold(body: Center(child: CircularProgressIndicator())),
       ),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
@@ -60,17 +66,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
       GoRoute(
         path: '/admin/restaurants/:id',
-        builder: (_, s) => AdminMenuScreen(restaurantId: int.parse(s.pathParameters['id']!)),
+        builder: (_, s) =>
+            AdminMenuScreen(restaurantId: int.parse(s.pathParameters['id']!)),
       ),
       GoRoute(
         path: '/restaurants/:id',
-        builder: (_, s) => RestaurantScreen(id: int.parse(s.pathParameters['id']!)),
+        builder: (_, s) =>
+            RestaurantScreen(id: int.parse(s.pathParameters['id']!)),
       ),
       GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
       GoRoute(path: '/orders', builder: (_, _) => const OrdersScreen()),
       GoRoute(
         path: '/orders/:id',
-        builder: (_, s) => OrderDetailScreen(id: int.parse(s.pathParameters['id']!)),
+        builder: (_, s) =>
+            OrderDetailScreen(id: int.parse(s.pathParameters['id']!)),
       ),
     ],
   );

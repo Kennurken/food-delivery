@@ -27,7 +27,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_form.currentState!.validate()) return;
-    await ref.read(authControllerProvider.notifier).login(_email.text.trim(), _password.text);
+    await ref
+        .read(authControllerProvider.notifier)
+        .login(_email.text.trim(), _password.text);
   }
 
   @override
@@ -35,7 +37,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final auth = ref.watch(authControllerProvider);
     ref.listen(authControllerProvider, (_, next) {
       if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage(next.error!))));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(next.error!))));
       }
     });
 
@@ -51,29 +54,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const Icon(Icons.delivery_dining, size: 72),
                   const SizedBox(height: 12),
-                  Text('Food Delivery',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineMedium),
+                  Text(
+                    'Food Delivery',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (v) => v != null && v.contains('@') ? null : 'Invalid email',
+                    validator: (v) =>
+                        v != null && v.contains('@') ? null : 'Invalid email',
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _password,
                     obscureText: true,
                     decoration: const InputDecoration(labelText: 'Password'),
-                    validator: (v) => v != null && v.length >= 6 ? null : 'Min 6 chars',
+                    validator: (v) =>
+                        v != null && v.length >= 6 ? null : 'Min 6 chars',
                     onFieldSubmitted: (_) => _submit(),
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: auth.isLoading ? null : _submit,
                     child: auth.isLoading
-                        ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Text('Sign in'),
                   ),
                   TextButton(

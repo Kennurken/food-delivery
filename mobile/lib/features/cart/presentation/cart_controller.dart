@@ -16,7 +16,10 @@ class CartState {
   bool get isEmpty => items.isEmpty;
 
   CartState copyWith({int? restaurantId, Map<int, CartItem>? items}) =>
-      CartState(restaurantId: restaurantId ?? this.restaurantId, items: items ?? this.items);
+      CartState(
+        restaurantId: restaurantId ?? this.restaurantId,
+        items: items ?? this.items,
+      );
 }
 
 class CartController extends Notifier<CartState> {
@@ -25,10 +28,13 @@ class CartController extends Notifier<CartState> {
 
   /// Returns false if item belongs to another restaurant (cart must be cleared first).
   bool add(MenuItem item) {
-    if (state.restaurantId != null && state.restaurantId != item.restaurantId) return false;
+    if (state.restaurantId != null && state.restaurantId != item.restaurantId)
+      return false;
     final existing = state.items[item.id];
     final next = Map<int, CartItem>.from(state.items)
-      ..[item.id] = existing?.copyWith(quantity: existing.quantity + 1) ?? CartItem(item: item, quantity: 1);
+      ..[item.id] =
+          existing?.copyWith(quantity: existing.quantity + 1) ??
+          CartItem(item: item, quantity: 1);
     state = state.copyWith(restaurantId: item.restaurantId, items: next);
     return true;
   }
@@ -50,4 +56,6 @@ class CartController extends Notifier<CartState> {
   int quantityOf(int menuItemId) => state.items[menuItemId]?.quantity ?? 0;
 }
 
-final cartProvider = NotifierProvider<CartController, CartState>(CartController.new);
+final cartProvider = NotifierProvider<CartController, CartState>(
+  CartController.new,
+);

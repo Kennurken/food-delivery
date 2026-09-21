@@ -20,7 +20,10 @@ class AdminRepository {
     return Restaurant.fromJson(r.data);
   }
 
-  Future<Restaurant> updateRestaurant(int id, Map<String, dynamic> patch) async {
+  Future<Restaurant> updateRestaurant(
+    int id,
+    Map<String, dynamic> patch,
+  ) async {
     final r = await _dio.patch('/api/v1/admin/restaurants/$id', data: patch);
     return Restaurant.fromJson(r.data);
   }
@@ -30,15 +33,23 @@ class AdminRepository {
     return MenuItem.fromJson(r.data);
   }
 
-  Future<MenuItem> createMenuItem(int restaurantId, Map<String, dynamic> data) async {
-    final r = await _dio.post('/api/v1/admin/restaurants/$restaurantId/menu', data: data);
+  Future<MenuItem> createMenuItem(
+    int restaurantId,
+    Map<String, dynamic> data,
+  ) async {
+    final r = await _dio.post(
+      '/api/v1/admin/restaurants/$restaurantId/menu',
+      data: data,
+    );
     return MenuItem.fromJson(r.data);
   }
 
   Future<void> deleteMenuItem(int id) => _dio.delete('/api/v1/admin/menu/$id');
 }
 
-final adminRepositoryProvider = Provider((ref) => AdminRepository(ref.watch(dioProvider)));
+final adminRepositoryProvider = Provider(
+  (ref) => AdminRepository(ref.watch(dioProvider)),
+);
 
 final adminRestaurantsProvider = FutureProvider<List<Restaurant>>(
   (ref) => ref.watch(adminRepositoryProvider).restaurants(),

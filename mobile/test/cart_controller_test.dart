@@ -4,14 +4,14 @@ import 'package:food_delivery/features/cart/presentation/cart_controller.dart';
 import 'package:food_delivery/features/restaurants/domain/menu_item.dart';
 
 MenuItem item(int id, int restaurantId, double price) => MenuItem(
-      id: id,
-      restaurantId: restaurantId,
-      name: 'Item $id',
-      description: '',
-      price: price,
-      category: 'Main',
-      isAvailable: true,
-    );
+  id: id,
+  restaurantId: restaurantId,
+  name: 'Item $id',
+  description: '',
+  price: price,
+  category: 'Main',
+  isAvailable: true,
+);
 
 void main() {
   late ProviderContainer container;

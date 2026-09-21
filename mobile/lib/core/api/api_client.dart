@@ -36,7 +36,9 @@ final dioProvider = Provider<Dio>((ref) {
         String message = e.message ?? 'Network error';
         if (data is Map && data['detail'] != null) {
           final detail = data['detail'];
-          message = detail is String ? detail : (detail as List).first['msg'].toString();
+          message = detail is String
+              ? detail
+              : (detail as List).first['msg'].toString();
         }
         handler.reject(
           DioException(

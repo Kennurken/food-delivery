@@ -8,5 +8,6 @@ class CartItem {
 
   double get lineTotal => item.price * quantity;
 
-  CartItem copyWith({int? quantity}) => CartItem(item: item, quantity: quantity ?? this.quantity);
+  CartItem copyWith({int? quantity}) =>
+      CartItem(item: item, quantity: quantity ?? this.quantity);
 }

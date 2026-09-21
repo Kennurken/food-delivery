@@ -15,32 +15,36 @@ class OrderDetailScreen extends ConsumerWidget {
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
     try {
       await ref.read(orderRepositoryProvider).cancel(id);
-      ref.invalidate(orderPollingProvider(id));
+      ref.invalidate(orderLiveProvider(id));
       ref.invalidate(ordersProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage(e))));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
       }
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final order = ref.watch(orderPollingProvider(id));
+    final order = ref.watch(orderLiveProvider(id));
     return Scaffold(
       appBar: AppBar(title: Text('Order #$id')),
       body: order.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(errorMessage(e))),
         data: (o) => RefreshIndicator(
-          onRefresh: () async => ref.invalidate(orderPollingProvider(id)),
+          onRefresh: () async => ref.invalidate(orderLiveProvider(id)),
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Status', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Status',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   StatusChip(o.status),
                 ],
               ),
@@ -50,7 +54,9 @@ class OrderDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const CircleAvatar(child: Icon(Icons.delivery_dining)),
+                  leading: const CircleAvatar(
+                    child: Icon(Icons.delivery_dining),
+                  ),
                   title: Text(o.courier!.name),
                   subtitle: Text(o.courier!.phone ?? 'Courier'),
                 ),
@@ -138,7 +144,10 @@ class _Row extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(label, style: style), Text(value, style: style)],
+        children: [
+          Text(label, style: style),
+          Text(value, style: style),
+        ],
       ),
     );
   }

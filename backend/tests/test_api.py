@@ -125,3 +125,24 @@ def test_order_carries_customer_and_restaurant(client, auth):
     o = client.get(f"/api/v1/orders/{oid}", headers=auth).json()
     assert o["customer"]["name"] == "Test User"
     assert o["restaurant_name"] == "Pizza Roma"
+
+
+def test_ws_receives_order_events(client, auth, admin):
+    token = auth["Authorization"].split()[1]
+    with client.websocket_connect(f"/api/v1/ws?token={token}") as ws:
+        oid = _place(client, auth)
+        evt = ws.receive_json()
+        assert evt["type"] == "order.updated"
+        assert evt["order"]["id"] == oid
+        assert evt["order"]["status"] == "pending"
+
+        client.patch(f"/api/v1/orders/{oid}/status", json={"status": "confirmed"}, headers=admin)
+        assert ws.receive_json()["order"]["status"] == "confirmed"
+
+
+def test_ws_rejects_bad_token(client):
+    import pytest
+    from starlette.websockets import WebSocketDisconnect
+
+    with pytest.raises(WebSocketDisconnect), client.websocket_connect("/api/v1/ws?token=nope"):
+        pass

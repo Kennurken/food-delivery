@@ -15,18 +15,27 @@ class AdminMenuScreen extends ConsumerWidget {
     ref.invalidate(adminRestaurantProvider(restaurantId));
   }
 
-  Future<void> _run(BuildContext context, WidgetRef ref, Future<void> Function() op) async {
+  Future<void> _run(
+    BuildContext context,
+    WidgetRef ref,
+    Future<void> Function() op,
+  ) async {
     try {
       await op();
       _refresh(ref);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage(e))));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
       }
     }
   }
 
-  Future<void> _edit(BuildContext context, WidgetRef ref, {MenuItem? item}) async {
+  Future<void> _edit(
+    BuildContext context,
+    WidgetRef ref, {
+    MenuItem? item,
+  }) async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => _MenuItemDialog(item: item),
@@ -72,7 +81,10 @@ class AdminMenuScreen extends ConsumerWidget {
                       onChanged: (v) => _run(
                         context,
                         ref,
-                        () => ref.read(adminRepositoryProvider).updateMenuItem(m.id, {'is_available': v}),
+                        () => ref.read(adminRepositoryProvider).updateMenuItem(
+                          m.id,
+                          {'is_available': v},
+                        ),
                       ),
                     ),
                     IconButton(
@@ -80,7 +92,9 @@ class AdminMenuScreen extends ConsumerWidget {
                       onPressed: () => _run(
                         context,
                         ref,
-                        () => ref.read(adminRepositoryProvider).deleteMenuItem(m.id),
+                        () => ref
+                            .read(adminRepositoryProvider)
+                            .deleteMenuItem(m.id),
                       ),
                     ),
                   ],
@@ -107,8 +121,12 @@ class _MenuItemDialogState extends State<_MenuItemDialog> {
   final _form = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.item?.name);
   late final _desc = TextEditingController(text: widget.item?.description);
-  late final _price = TextEditingController(text: widget.item?.price.round().toString());
-  late final _category = TextEditingController(text: widget.item?.category ?? 'Main');
+  late final _price = TextEditingController(
+    text: widget.item?.price.round().toString(),
+  );
+  late final _category = TextEditingController(
+    text: widget.item?.category ?? 'Main',
+  );
 
   @override
   void dispose() {
@@ -130,24 +148,35 @@ class _MenuItemDialogState extends State<_MenuItemDialog> {
             TextFormField(
               controller: _name,
               decoration: const InputDecoration(labelText: 'Name'),
-              validator: (v) => v != null && v.trim().isNotEmpty ? null : 'Required',
+              validator: (v) =>
+                  v != null && v.trim().isNotEmpty ? null : 'Required',
             ),
             const SizedBox(height: 8),
-            TextFormField(controller: _desc, decoration: const InputDecoration(labelText: 'Description')),
+            TextFormField(
+              controller: _desc,
+              decoration: const InputDecoration(labelText: 'Description'),
+            ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _price,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Price, ₸'),
-              validator: (v) => (double.tryParse(v ?? '') ?? 0) > 0 ? null : 'Must be > 0',
+              validator: (v) =>
+                  (double.tryParse(v ?? '') ?? 0) > 0 ? null : 'Must be > 0',
             ),
             const SizedBox(height: 8),
-            TextFormField(controller: _category, decoration: const InputDecoration(labelText: 'Category')),
+            TextFormField(
+              controller: _category,
+              decoration: const InputDecoration(labelText: 'Category'),
+            ),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
         FilledButton(
           onPressed: () {
             if (!_form.currentState!.validate()) return;
@@ -155,7 +184,9 @@ class _MenuItemDialogState extends State<_MenuItemDialog> {
               'name': _name.text.trim(),
               'description': _desc.text.trim(),
               'price': double.parse(_price.text),
-              'category': _category.text.trim().isEmpty ? 'Main' : _category.text.trim(),
+              'category': _category.text.trim().isEmpty
+                  ? 'Main'
+                  : _category.text.trim(),
             });
           },
           child: const Text('Save'),

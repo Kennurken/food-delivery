@@ -28,7 +28,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _submit() async {
     if (!_form.currentState!.validate()) return;
-    await ref.read(authControllerProvider.notifier).register(
+    await ref
+        .read(authControllerProvider.notifier)
+        .register(
           email: _email.text.trim(),
           name: _name.text.trim(),
           password: _password.text,
@@ -41,7 +43,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final auth = ref.watch(authControllerProvider);
     ref.listen(authControllerProvider, (_, next) {
       if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage(next.error!))));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(next.error!))));
       }
     });
 
@@ -57,27 +60,32 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               TextFormField(
                 controller: _name,
                 decoration: const InputDecoration(labelText: 'Name'),
-                validator: (v) => v != null && v.trim().isNotEmpty ? null : 'Required',
+                validator: (v) =>
+                    v != null && v.trim().isNotEmpty ? null : 'Required',
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(labelText: 'Email'),
-                validator: (v) => v != null && v.contains('@') ? null : 'Invalid email',
+                validator: (v) =>
+                    v != null && v.contains('@') ? null : 'Invalid email',
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _phone,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Phone (optional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Phone (optional)',
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _password,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'Password'),
-                validator: (v) => v != null && v.length >= 6 ? null : 'Min 6 chars',
+                validator: (v) =>
+                    v != null && v.length >= 6 ? null : 'Min 6 chars',
               ),
               const SizedBox(height: 24),
               FilledButton(

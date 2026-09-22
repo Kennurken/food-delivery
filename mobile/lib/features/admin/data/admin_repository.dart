@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../restaurants/domain/menu_item.dart';
 import '../../restaurants/domain/restaurant.dart';
+import '../domain/platform_venue.dart';
 
 class AdminRepository {
   AdminRepository(this._dio);
@@ -122,6 +123,23 @@ class AdminRepository {
     );
     return r.data as Map<String, dynamic>;
   }
+
+  // --- platform admin directory
+  Future<List<PlatformVenue>> platformVenues({String? q, int days = 30}) async {
+    final r = await _dio.get(
+      '/api/v1/platform/restaurants',
+      queryParameters: {'days': days, if (q != null && q.isNotEmpty) 'q': q},
+    );
+    return (r.data as List).map((e) => PlatformVenue.fromJson(e)).toList();
+  }
+
+  Future<PlatformVenue> platformVenue(int id, {int days = 30}) async {
+    final r = await _dio.get(
+      '/api/v1/platform/restaurants/$id',
+      queryParameters: {'days': days},
+    );
+    return PlatformVenue.fromJson(r.data as Map<String, dynamic>);
+  }
 }
 
 final adminRepositoryProvider = Provider(
@@ -144,3 +162,28 @@ final restaurantWorkspaceProvider =
     FutureProvider.family<Map<String, dynamic>, int>(
       (ref, id) => ref.watch(adminRepositoryProvider).workspace(id),
     );
+
+class PlatformQuery {
+  const PlatformQuery({this.q = '', this.days = 30});
+
+  final String q;
+  final int days;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PlatformQuery && other.q == q && other.days == days;
+
+  @override
+  int get hashCode => Object.hash(q, days);
+}
+
+final platformVenuesProvider =
+    FutureProvider.family<List<PlatformVenue>, PlatformQuery>(
+      (ref, query) => ref
+          .watch(adminRepositoryProvider)
+          .platformVenues(q: query.q, days: query.days),
+    );
+
+final platformVenueProvider = FutureProvider.family<PlatformVenue, int>(
+  (ref, id) => ref.watch(adminRepositoryProvider).platformVenue(id),
+);

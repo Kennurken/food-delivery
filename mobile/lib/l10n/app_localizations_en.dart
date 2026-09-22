@@ -876,4 +876,58 @@ class L10nEn extends L10n {
 
   @override
   String get confirmReservation => 'Confirm';
+
+  @override
+  String get searchVenues => 'Search restaurants';
+
+  @override
+  String lastDays(int n) {
+    return '$n days';
+  }
+
+  @override
+  String ordersWindow(int n) {
+    return 'Orders / ${n}d';
+  }
+
+  @override
+  String get revenueWindow => 'Revenue';
+
+  @override
+  String get ordersAllTime => 'Orders, all time';
+
+  @override
+  String get revenueAllTime => 'Revenue, all time';
+
+  @override
+  String get noOwnerLinked => 'No owner linked';
+
+  @override
+  String get noOwnerHint => 'Add one from the restaurant\'s staff list.';
+
+  @override
+  String get recentOrders => 'Recent orders';
+
+  @override
+  String get lastOrder => 'Last order';
+
+  @override
+  String get venue => 'Restaurant';
+
+  @override
+  String get directory => 'Directory';
+
+  @override
+  String get overview => 'Overview';
+
+  @override
+  String get staff => 'Staff';
+
+  @override
+  String get rating => 'Rating';
+
+  @override
+  String billingConnected(String provider) {
+    return 'Card payments via $provider';
+  }
 }

@@ -16,6 +16,7 @@ from app.models.audit import AuditLog
 from app.models.feature_flag import FeatureOverride
 from app.models.floor_plan import Floor
 from app.models.member import RestaurantMember
+from app.services import platform_directory
 
 router = APIRouter(tags=["platform"])
 
@@ -196,6 +197,30 @@ def set_feature(restaurant_id: int, data: FeaturePatch, db: DB, _: AdminUser) ->
     db.commit()
     flags = entitlements(db, restaurant)
     return {"key": data.key, "enabled": data.enabled, "features": sorted(flags.features)}
+
+
+@router.get("/platform/restaurants")
+def platform_restaurants(
+    db: DB,
+    _: AdminUser,
+    q: str | None = Query(default=None, max_length=80),
+    days: int = Query(default=30, ge=1, le=365),
+) -> list[dict]:
+    """Every tenant with its owner, plan and trade — the platform admin's directory."""
+    return platform_directory.directory(db, days=days, query=q)
+
+
+@router.get("/platform/restaurants/{restaurant_id}")
+def platform_restaurant(
+    restaurant_id: int,
+    db: DB,
+    _: AdminUser,
+    days: int = Query(default=30, ge=1, le=365),
+) -> dict:
+    card = platform_directory.detail(db, restaurant_id, days=days)
+    if card is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
+    return card
 
 
 @router.get("/platform/audit")

@@ -13,7 +13,13 @@
   "createAccountHint": "Takes less than a minute.",
   "invalidEmail": "Invalid email",
   "minChars": "Min {n} chars",
-  "@minChars": {"placeholders": {"n": {"type": "int"}}},
+  "@minChars": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "required": "Required",
   "logOut": "Log out",
   "greetingMorning": "Good morning",
@@ -32,9 +38,21 @@
   "sortEta": "Fastest",
   "sortFee": "Fee",
   "minutes": "{n} min",
-  "@minutes": {"placeholders": {"n": {"type": "int"}}},
+  "@minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "deliveryFee": "delivery {fee}",
-  "@deliveryFee": {"placeholders": {"fee": {"type": "String"}}},
+  "@deliveryFee": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
   "unavailable": "Unavailable",
   "addToCart": "Add to cart",
   "done": "Done",
@@ -54,7 +72,13 @@
   "placeOrder": "Place order",
   "enterAddress": "Enter delivery address",
   "orderPlaced": "Order #{id} placed",
-  "@orderPlaced": {"placeholders": {"id": {"type": "int"}}},
+  "@orderPlaced": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
   "keepYouPosted": "We'll keep you posted",
   "myOrders": "My orders",
   "active": "Active",
@@ -67,9 +91,21 @@
   "someItemsUnavailable": "Some dishes are no longer available",
   "couldNotLoad": "Couldn't load",
   "items": "{n} items",
-  "@items": {"placeholders": {"n": {"type": "int"}}},
+  "@items": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "orderN": "Order #{id}",
-  "@orderN": {"placeholders": {"id": {"type": "int"}}},
+  "@orderN": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
   "status": "Status",
   "cancelOrder": "Cancel order",
   "callCourier": "Call courier",
@@ -117,7 +153,13 @@
   "cancel": "Cancel",
   "delete": "Delete",
   "deleteItemTitle": "Delete \"{name}\"?",
-  "@deleteItemTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@deleteItemTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "deleteItemBody": "Past orders keep their snapshot; the item disappears from the menu.",
   "saved": "Saved",
   "saveChanges": "Save changes",
@@ -138,11 +180,29 @@
   "intercom": "Intercom",
   "saveAddress": "Save address",
   "toastNewOrder": "New order #{id}",
-  "@toastNewOrder": {"placeholders": {"id": {"type": "int"}}},
+  "@toastNewOrder": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
   "toastReadyForPickup": "Order #{id} ready for pickup",
-  "@toastReadyForPickup": {"placeholders": {"id": {"type": "int"}}},
+  "@toastReadyForPickup": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
   "toastCourier": "Courier {name}",
-  "@toastCourier": {"placeholders": {"name": {"type": "String"}}},
+  "@toastCourier": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "language": "Language",
   "languageSystem": "System",
   "languageEnglish": "English",
@@ -194,7 +254,13 @@
   "copied": "Copied",
   "dineIn": "Dine in",
   "atTable": "Table {name}",
-  "@atTable": {"placeholders": {"name": {"type": "String"}}},
+  "@atTable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "signInToOrder": "Sign in to order",
   "setup": "Setup",
   "setupMenu": "Menu",
@@ -235,17 +301,27 @@
   "distanceM": "{m} m",
   "@distanceM": {
     "placeholders": {
-      "m": {"type": "int"}
+      "m": {
+        "type": "int"
+      }
     }
   },
   "distanceKm": "{km} km",
   "@distanceKm": {
     "placeholders": {
-      "km": {"type": "String"}
+      "km": {
+        "type": "String"
+      }
     }
   },
   "fromPrice": "from {price}",
-  "@fromPrice": {"placeholders": {"price": {"type": "String"}}},
+  "@fromPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "payCash": "Cash",
   "payCard": "Card",
   "payOnDelivery": "Pay the courier or at the counter. The order stays unpaid until then.",
@@ -264,14 +340,26 @@
   "asap": "As soon as possible",
   "schedule": "Time",
   "scheduledFor": "Scheduled · {when}",
-  "@scheduledFor": {"placeholders": {"when": {"type": "String"}}},
+  "@scheduledFor": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "promo": "Promo code",
   "applyPromo": "Apply",
   "discount": "Discount",
   "kitchenLater": "Later",
   "chat": "Chat",
   "orderChat": "Chat · #{id}",
-  "@orderChat": {"placeholders": {"id": {"type": "int"}}},
+  "@orderChat": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
   "chatHint": "Message",
   "chatSend": "Send",
   "chatEmpty": "No messages yet",
@@ -280,8 +368,12 @@
   "chatPreview": "{who}: {body}",
   "@chatPreview": {
     "placeholders": {
-      "who": {"type": "String"},
-      "body": {"type": "String"}
+      "who": {
+        "type": "String"
+      },
+      "body": {
+        "type": "String"
+      }
     }
   },
   "bookTable": "Book a table",
@@ -290,7 +382,9 @@
   "guestsCount": "{n} guests",
   "@guestsCount": {
     "placeholders": {
-      "n": {"type": "int"}
+      "n": {
+        "type": "int"
+      }
     }
   },
   "pickTable": "Table",
@@ -310,8 +404,47 @@
   "tableSeats": "{n} seats",
   "@tableSeats": {
     "placeholders": {
-      "n": {"type": "int"}
+      "n": {
+        "type": "int"
+      }
     }
   },
-  "confirmReservation": "Confirm"
+  "confirmReservation": "Confirm",
+  "searchVenues": "Search restaurants",
+  "lastDays": "{n} days",
+  "@lastDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ordersWindow": "Orders / {n}d",
+  "@ordersWindow": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "revenueWindow": "Revenue",
+  "ordersAllTime": "Orders, all time",
+  "revenueAllTime": "Revenue, all time",
+  "noOwnerLinked": "No owner linked",
+  "noOwnerHint": "Add one from the restaurant's staff list.",
+  "recentOrders": "Recent orders",
+  "lastOrder": "Last order",
+  "venue": "Restaurant",
+  "directory": "Directory",
+  "overview": "Overview",
+  "staff": "Staff",
+  "rating": "Rating",
+  "billingConnected": "Card payments via {provider}",
+  "@billingConnected": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  }
 }

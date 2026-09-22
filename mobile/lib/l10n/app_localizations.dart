@@ -1742,6 +1742,102 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Confirm'**
   String get confirmReservation;
+
+  /// No description provided for @searchVenues.
+  ///
+  /// In en, this message translates to:
+  /// **'Search restaurants'**
+  String get searchVenues;
+
+  /// No description provided for @lastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days'**
+  String lastDays(int n);
+
+  /// No description provided for @ordersWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders / {n}d'**
+  String ordersWindow(int n);
+
+  /// No description provided for @revenueWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get revenueWindow;
+
+  /// No description provided for @ordersAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders, all time'**
+  String get ordersAllTime;
+
+  /// No description provided for @revenueAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue, all time'**
+  String get revenueAllTime;
+
+  /// No description provided for @noOwnerLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'No owner linked'**
+  String get noOwnerLinked;
+
+  /// No description provided for @noOwnerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add one from the restaurant\'s staff list.'**
+  String get noOwnerHint;
+
+  /// No description provided for @recentOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent orders'**
+  String get recentOrders;
+
+  /// No description provided for @lastOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Last order'**
+  String get lastOrder;
+
+  /// No description provided for @venue.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant'**
+  String get venue;
+
+  /// No description provided for @directory.
+  ///
+  /// In en, this message translates to:
+  /// **'Directory'**
+  String get directory;
+
+  /// No description provided for @overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overview;
+
+  /// No description provided for @staff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get staff;
+
+  /// No description provided for @rating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get rating;
+
+  /// No description provided for @billingConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Card payments via {provider}'**
+  String billingConnected(String provider);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

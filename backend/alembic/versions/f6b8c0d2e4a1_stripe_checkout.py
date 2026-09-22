@@ -18,11 +18,24 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _has_column(table: str, column: str) -> bool:
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if not inspector.has_table(table):
+        return False
+    return column in {c["name"] for c in inspector.get_columns(table)}
+
+
 def upgrade() -> None:
-    op.add_column("orders", sa.Column("pay_ref", sa.String(length=120), nullable=True))
-    op.add_column("orders", sa.Column("checkout_url", sa.String(length=500), nullable=True))
+    # ensure_checkout_schema() adds these at boot on hosts without alembic.
+    if not _has_column("orders", "pay_ref"):
+        op.add_column("orders", sa.Column("pay_ref", sa.String(length=120), nullable=True))
+    if not _has_column("orders", "checkout_url"):
+        op.add_column("orders", sa.Column("checkout_url", sa.String(length=500), nullable=True))
 
 
 def downgrade() -> None:
-    op.drop_column("orders", "checkout_url")
-    op.drop_column("orders", "pay_ref")
+    if _has_column("orders", "checkout_url"):
+        op.drop_column("orders", "checkout_url")
+    if _has_column("orders", "pay_ref"):
+        op.drop_column("orders", "pay_ref")

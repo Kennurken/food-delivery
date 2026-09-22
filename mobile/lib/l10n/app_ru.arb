@@ -184,7 +184,13 @@
   "copied": "Скопировано",
   "dineIn": "В зале",
   "atTable": "Стол {name}",
-  "@atTable": {"placeholders": {"name": {"type": "String"}}},
+  "@atTable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "signInToOrder": "Войдите, чтобы заказать",
   "setup": "Запуск",
   "setupMenu": "Меню",
@@ -225,17 +231,27 @@
   "distanceM": "{m} м",
   "@distanceM": {
     "placeholders": {
-      "m": {"type": "int"}
+      "m": {
+        "type": "int"
+      }
     }
   },
   "distanceKm": "{km} км",
   "@distanceKm": {
     "placeholders": {
-      "km": {"type": "String"}
+      "km": {
+        "type": "String"
+      }
     }
   },
   "fromPrice": "от {price}",
-  "@fromPrice": {"placeholders": {"price": {"type": "String"}}},
+  "@fromPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "payCash": "Наличные",
   "payCard": "Карта",
   "payOnDelivery": "Оплата курьеру или на кассе. Заказ останется неоплаченным до этого.",
@@ -254,14 +270,26 @@
   "asap": "Как можно скорее",
   "schedule": "Время",
   "scheduledFor": "Ко времени · {when}",
-  "@scheduledFor": {"placeholders": {"when": {"type": "String"}}},
+  "@scheduledFor": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "promo": "Промокод",
   "applyPromo": "Применить",
   "discount": "Скидка",
   "kitchenLater": "Позже",
   "chat": "Чат",
   "orderChat": "Чат · №{id}",
-  "@orderChat": {"placeholders": {"id": {"type": "int"}}},
+  "@orderChat": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
   "chatHint": "Сообщение",
   "chatSend": "Отправить",
   "chatEmpty": "Пока нет сообщений",
@@ -270,8 +298,12 @@
   "chatPreview": "{who}: {body}",
   "@chatPreview": {
     "placeholders": {
-      "who": {"type": "String"},
-      "body": {"type": "String"}
+      "who": {
+        "type": "String"
+      },
+      "body": {
+        "type": "String"
+      }
     }
   },
   "bookTable": "Забронировать стол",
@@ -280,7 +312,9 @@
   "guestsCount": "{n} гостей",
   "@guestsCount": {
     "placeholders": {
-      "n": {"type": "int"}
+      "n": {
+        "type": "int"
+      }
     }
   },
   "pickTable": "Стол",
@@ -300,8 +334,26 @@
   "tableSeats": "{n} мест",
   "@tableSeats": {
     "placeholders": {
-      "n": {"type": "int"}
+      "n": {
+        "type": "int"
+      }
     }
   },
-  "confirmReservation": "Подтвердить"
+  "confirmReservation": "Подтвердить",
+  "searchVenues": "Поиск ресторанов",
+  "lastDays": "{n} дн.",
+  "ordersWindow": "Заказы / {n} дн.",
+  "revenueWindow": "Выручка",
+  "ordersAllTime": "Заказов всего",
+  "revenueAllTime": "Выручка всего",
+  "noOwnerLinked": "Владелец не привязан",
+  "noOwnerHint": "Добавьте его в списке сотрудников ресторана.",
+  "recentOrders": "Последние заказы",
+  "lastOrder": "Последний заказ",
+  "venue": "Ресторан",
+  "directory": "Справочник",
+  "overview": "Обзор",
+  "staff": "Сотрудники",
+  "rating": "Рейтинг",
+  "billingConnected": "Оплата картой через {provider}"
 }

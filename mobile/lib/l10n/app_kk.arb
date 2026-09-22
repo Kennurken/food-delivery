@@ -184,7 +184,13 @@
   "copied": "Көшірілді",
   "dineIn": "Залда",
   "atTable": "Үстел {name}",
-  "@atTable": {"placeholders": {"name": {"type": "String"}}},
+  "@atTable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "signInToOrder": "Тапсырыс үшін кіріңіз",
   "setup": "Бастау",
   "setupMenu": "Мәзір",
@@ -225,17 +231,27 @@
   "distanceM": "{m} м",
   "@distanceM": {
     "placeholders": {
-      "m": {"type": "int"}
+      "m": {
+        "type": "int"
+      }
     }
   },
   "distanceKm": "{km} км",
   "@distanceKm": {
     "placeholders": {
-      "km": {"type": "String"}
+      "km": {
+        "type": "String"
+      }
     }
   },
   "fromPrice": "{price} бастап",
-  "@fromPrice": {"placeholders": {"price": {"type": "String"}}},
+  "@fromPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "payCash": "Қолма-қол",
   "payCard": "Карта",
   "payOnDelivery": "Курьерге немесе кассада төлейсіз. Соған дейін төленбеген болады.",
@@ -254,14 +270,26 @@
   "asap": "Қазір",
   "schedule": "Уақыт",
   "scheduledFor": "Уақыты · {when}",
-  "@scheduledFor": {"placeholders": {"when": {"type": "String"}}},
+  "@scheduledFor": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "promo": "Промокод",
   "applyPromo": "Қолдану",
   "discount": "Жеңілдік",
   "kitchenLater": "Кейін",
   "chat": "Чат",
   "orderChat": "Чат · №{id}",
-  "@orderChat": {"placeholders": {"id": {"type": "int"}}},
+  "@orderChat": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
   "chatHint": "Хабар",
   "chatSend": "Жіберу",
   "chatEmpty": "Хабар жоқ",
@@ -270,8 +298,12 @@
   "chatPreview": "{who}: {body}",
   "@chatPreview": {
     "placeholders": {
-      "who": {"type": "String"},
-      "body": {"type": "String"}
+      "who": {
+        "type": "String"
+      },
+      "body": {
+        "type": "String"
+      }
     }
   },
   "bookTable": "Үстел брондау",
@@ -280,7 +312,9 @@
   "guestsCount": "{n} қонақ",
   "@guestsCount": {
     "placeholders": {
-      "n": {"type": "int"}
+      "n": {
+        "type": "int"
+      }
     }
   },
   "pickTable": "Үстел",
@@ -300,8 +334,26 @@
   "tableSeats": "{n} орын",
   "@tableSeats": {
     "placeholders": {
-      "n": {"type": "int"}
+      "n": {
+        "type": "int"
+      }
     }
   },
-  "confirmReservation": "Растау"
+  "confirmReservation": "Растау",
+  "searchVenues": "Мейрамхана іздеу",
+  "lastDays": "{n} күн",
+  "ordersWindow": "Тапсырыс / {n} күн",
+  "revenueWindow": "Түсім",
+  "ordersAllTime": "Барлық тапсырыс",
+  "revenueAllTime": "Барлық түсім",
+  "noOwnerLinked": "Иесі байланыстырылмаған",
+  "noOwnerHint": "Мейрамхана қызметкерлері тізімінен қосыңыз.",
+  "recentOrders": "Соңғы тапсырыстар",
+  "lastOrder": "Соңғы тапсырыс",
+  "venue": "Мейрамхана",
+  "directory": "Анықтамалық",
+  "overview": "Шолу",
+  "staff": "Қызметкерлер",
+  "rating": "Рейтинг",
+  "billingConnected": "Картамен төлеу — {provider}"
 }

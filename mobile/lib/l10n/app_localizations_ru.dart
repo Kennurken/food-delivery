@@ -876,4 +876,58 @@ class L10nRu extends L10n {
 
   @override
   String get confirmReservation => 'Подтвердить';
+
+  @override
+  String get searchVenues => 'Поиск ресторанов';
+
+  @override
+  String lastDays(int n) {
+    return '$n дн.';
+  }
+
+  @override
+  String ordersWindow(int n) {
+    return 'Заказы / $n дн.';
+  }
+
+  @override
+  String get revenueWindow => 'Выручка';
+
+  @override
+  String get ordersAllTime => 'Заказов всего';
+
+  @override
+  String get revenueAllTime => 'Выручка всего';
+
+  @override
+  String get noOwnerLinked => 'Владелец не привязан';
+
+  @override
+  String get noOwnerHint => 'Добавьте его в списке сотрудников ресторана.';
+
+  @override
+  String get recentOrders => 'Последние заказы';
+
+  @override
+  String get lastOrder => 'Последний заказ';
+
+  @override
+  String get venue => 'Ресторан';
+
+  @override
+  String get directory => 'Справочник';
+
+  @override
+  String get overview => 'Обзор';
+
+  @override
+  String get staff => 'Сотрудники';
+
+  @override
+  String get rating => 'Рейтинг';
+
+  @override
+  String billingConnected(String provider) {
+    return 'Оплата картой через $provider';
+  }
 }

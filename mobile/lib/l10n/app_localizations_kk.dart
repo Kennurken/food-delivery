@@ -875,4 +875,58 @@ class L10nKk extends L10n {
 
   @override
   String get confirmReservation => 'Растау';
+
+  @override
+  String get searchVenues => 'Мейрамхана іздеу';
+
+  @override
+  String lastDays(int n) {
+    return '$n күн';
+  }
+
+  @override
+  String ordersWindow(int n) {
+    return 'Тапсырыс / $n күн';
+  }
+
+  @override
+  String get revenueWindow => 'Түсім';
+
+  @override
+  String get ordersAllTime => 'Барлық тапсырыс';
+
+  @override
+  String get revenueAllTime => 'Барлық түсім';
+
+  @override
+  String get noOwnerLinked => 'Иесі байланыстырылмаған';
+
+  @override
+  String get noOwnerHint => 'Мейрамхана қызметкерлері тізімінен қосыңыз.';
+
+  @override
+  String get recentOrders => 'Соңғы тапсырыстар';
+
+  @override
+  String get lastOrder => 'Соңғы тапсырыс';
+
+  @override
+  String get venue => 'Мейрамхана';
+
+  @override
+  String get directory => 'Анықтамалық';
+
+  @override
+  String get overview => 'Шолу';
+
+  @override
+  String get staff => 'Қызметкерлер';
+
+  @override
+  String get rating => 'Рейтинг';
+
+  @override
+  String billingConnected(String provider) {
+    return 'Картамен төлеу — $provider';
+  }
 }

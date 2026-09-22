@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../../features/admin/floor_plan/presentation/floor_plan_screen.dart';
 import '../../features/admin/presentation/admin_menu_screen.dart';
 import '../../features/admin/presentation/admin_screen.dart';
+import '../../features/admin/presentation/platform_venue_screen.dart';
 import '../../features/admin/presentation/kitchen_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/login_screen.dart';
@@ -118,6 +119,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             OrderChatScreen(orderId: int.parse(s.pathParameters['id']!)),
       ),
       GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
+      GoRoute(
+        path: '/admin/platform/restaurants/:id',
+        builder: (_, s) =>
+            PlatformVenueScreen(id: int.parse(s.pathParameters['id']!)),
+      ),
       GoRoute(
         path: '/admin/restaurants/:id',
         builder: (_, s) =>

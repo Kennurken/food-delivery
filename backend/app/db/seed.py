@@ -229,6 +229,50 @@ def ensure_demo_floor_plan() -> int:
     return made
 
 
+# Each demo venue gets a person to call. Local seed only — production restaurants
+# get real owners through the staff API, not a well-known password.
+_DEMO_OWNERS: dict[str, tuple[str, str, str, str]] = {
+    # restaurant name -> (email, password, person, phone)
+    "Bao Bar": ("owner.bao@food.dev", "owner123", "Aigerim Suleimen", "+77012345001"),
+    "Pizza Roma": ("owner.roma@food.dev", "owner123", "Marco Bellini", "+77012345002"),
+    "Burger Lab": ("owner.lab@food.dev", "owner123", "Daniyar Aben", "+77012345003"),
+}
+
+
+def ensure_demo_owners() -> int:
+    """Attach an owner to each demo restaurant so the platform directory has contacts."""
+    from app.models.member import RestaurantMember
+    from app.models.restaurant import Restaurant
+
+    made = 0
+    for venue, (email, password, person, phone) in _DEMO_OWNERS.items():
+        ensure_user(email, password, UserRole.customer, person, phone)
+        with SessionLocal() as db:
+            restaurant = db.scalar(select(Restaurant).where(Restaurant.name == venue))
+            user = db.scalar(select(User).where(User.email == email))
+            if restaurant is None or user is None:
+                continue
+            existing = db.scalar(
+                select(RestaurantMember).where(
+                    RestaurantMember.restaurant_id == restaurant.id,
+                    RestaurantMember.user_id == user.id,
+                )
+            )
+            if existing is not None:
+                continue
+            db.add(
+                RestaurantMember(
+                    restaurant_id=restaurant.id,
+                    user_id=user.id,
+                    role="owner",
+                    is_active=True,
+                )
+            )
+            db.commit()
+            made += 1
+    return made
+
+
 def ensure_favorites_table() -> None:
     """Prod deploys skip alembic; create the favorites table if missing."""
     from app.db.session import engine
@@ -660,6 +704,9 @@ def seed() -> None:
     floors = ensure_demo_floor_plan()
     if floors:
         print(f"Floor plans: seeded {floors}")
+    owners = ensure_demo_owners()
+    if owners:
+        print(f"Restaurant owners: linked {owners}")
     print("Already seeded" if added == 0 else "Seeded: 3 users, 3 restaurants, 9 menu items")
 
 

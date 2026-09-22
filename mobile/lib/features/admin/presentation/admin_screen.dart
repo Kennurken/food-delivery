@@ -18,6 +18,7 @@ import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
 import '../../orders/presentation/orders_screen.dart';
 import '../data/admin_repository.dart';
+import 'platform_venues_screen.dart';
 
 class AdminScreen extends ConsumerWidget {
   const AdminScreen({super.key});
@@ -354,8 +355,36 @@ class _RestaurantDialogState extends State<_RestaurantDialog> {
   }
 }
 
-class _PlatformTab extends ConsumerWidget {
+/// Platform surface: the headline numbers, then the tenant directory.
+class _PlatformTab extends StatelessWidget {
   const _PlatformTab();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          TabBar(
+            tabs: [
+              Tab(text: t.overview),
+              Tab(text: t.directory),
+            ],
+          ),
+          const Expanded(
+            child: TabBarView(
+              children: [_PlatformOverview(), PlatformVenuesTab()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlatformOverview extends ConsumerWidget {
+  const _PlatformOverview();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -387,8 +416,12 @@ class _PlatformTab extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
+              // The overview reports the live provider; saying "not connected"
+              // while Stripe is taking cards would be a lie on the dashboard.
               Text(
-                t.billingUnconfigured,
+                (d['billing'] as String? ?? 'unconfigured') == 'unconfigured'
+                    ? t.billingUnconfigured
+                    : t.billingConnected('${d['billing']}'),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

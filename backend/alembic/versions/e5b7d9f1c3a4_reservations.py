@@ -18,7 +18,23 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _has_table(name: str) -> bool:
+    bind = op.get_bind()
+    return sa.inspect(bind).has_table(name)
+
+
+def _has_column(table: str, column: str) -> bool:
+    bind = op.get_bind()
+    if not sa.inspect(bind).has_table(table):
+        return False
+    return column in {c["name"] for c in sa.inspect(bind).get_columns(table)}
+
+
 def upgrade() -> None:
+    # Production boots this table through ensure_reservations_schema() before
+    # alembic ever runs, so creating it again would crash the upgrade.
+    if _has_table("reservations"):
+        return
     op.create_table(
         "reservations",
         sa.Column("id", sa.Integer(), primary_key=True),
@@ -51,6 +67,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    if not _has_table("reservations"):
+        return
     op.drop_index("ix_reservations_starts_at", table_name="reservations")
     op.drop_index("ix_reservations_table_object_id", table_name="reservations")
     op.drop_index("ix_reservations_user_id", table_name="reservations")

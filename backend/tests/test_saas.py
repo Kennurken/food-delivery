@@ -1,3 +1,5 @@
+from datetime import UTC, datetime, timedelta
+
 from app.core.access import has_permission
 from app.core.features import entitlements, plan_of
 from app.core.qr import parse_table_token, table_token
@@ -127,11 +129,38 @@ def test_qr_table_order(client, auth, admin, courier):
     assert order["table_object_id"] == table["id"]
     assert table["name"] in order["address"]
 
+    later = (datetime.now(UTC) + timedelta(hours=3)).isoformat()
+    blocked = client.post(
+        "/api/v1/orders",
+        json={
+            "restaurant_id": 1,
+            "qr_token": token,
+            "scheduled_for": later,
+            "items": [{"menu_item_id": menu[0]["id"], "quantity": 1}],
+        },
+        headers=auth,
+    )
+    assert blocked.status_code == 400
+
     oid = order["id"]
-    assert oid not in [o["id"] for o in client.get("/api/v1/orders/available", headers=courier).json()]
-    assert client.patch(f"/api/v1/orders/{oid}/status", json={"status": "confirmed"}, headers=admin).status_code == 200
-    assert client.patch(f"/api/v1/orders/{oid}/status", json={"status": "preparing"}, headers=admin).status_code == 200
-    ready = client.patch(f"/api/v1/orders/{oid}/status", json={"status": "on_the_way"}, headers=admin)
+    assert oid not in [
+        o["id"] for o in client.get("/api/v1/orders/available", headers=courier).json()
+    ]
+    assert (
+        client.patch(
+            f"/api/v1/orders/{oid}/status", json={"status": "confirmed"}, headers=admin
+        ).status_code
+        == 200
+    )
+    assert (
+        client.patch(
+            f"/api/v1/orders/{oid}/status", json={"status": "preparing"}, headers=admin
+        ).status_code
+        == 200
+    )
+    ready = client.patch(
+        f"/api/v1/orders/{oid}/status", json={"status": "on_the_way"}, headers=admin
+    )
     assert ready.status_code == 200, ready.text
     assert ready.json()["status"] == "on_the_way"
     done = client.patch(f"/api/v1/orders/{oid}/status", json={"status": "delivered"}, headers=admin)
@@ -160,9 +189,13 @@ def test_pickup_and_kitchen_board(client, auth, admin, courier):
     assert order["total"] == order["subtotal"]
     assert order["address"].startswith("Pickup")
     oid = order["id"]
-    assert oid not in [o["id"] for o in client.get("/api/v1/orders/available", headers=courier).json()]
+    assert oid not in [
+        o["id"] for o in client.get("/api/v1/orders/available", headers=courier).json()
+    ]
     assert client.post(f"/api/v1/orders/{oid}/accept", headers=courier).status_code == 409
-    assert client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=auth).status_code == 403
+    assert (
+        client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=auth).status_code == 403
+    )
 
     board = client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=admin)
     assert board.status_code == 200
@@ -174,7 +207,10 @@ def test_pickup_and_kitchen_board(client, auth, admin, courier):
     )
     assert cook.status_code == 201
     kitchen = {"Authorization": f"Bearer {cook.json()['access_token']}"}
-    assert client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=kitchen).status_code == 403
+    assert (
+        client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=kitchen).status_code
+        == 403
+    )
     added = client.post(
         "/api/v1/admin/restaurants/1/staff",
         json={"email": "cook-kds@x.com", "role": "kitchen"},
@@ -196,12 +232,17 @@ def test_pickup_and_kitchen_board(client, auth, admin, courier):
         },
         headers=auth,
     ).json()
-    assert client.patch(
-        f"/api/v1/orders/{other['id']}/status", json={"status": "confirmed"}, headers=kitchen
-    ).status_code == 403
+    assert (
+        client.patch(
+            f"/api/v1/orders/{other['id']}/status", json={"status": "confirmed"}, headers=kitchen
+        ).status_code
+        == 403
+    )
 
     for expected in ("confirmed", "preparing", "on_the_way", "delivered"):
-        step = client.patch(f"/api/v1/orders/{oid}/status", json={"status": expected}, headers=kitchen)
+        step = client.patch(
+            f"/api/v1/orders/{oid}/status", json={"status": expected}, headers=kitchen
+        )
         assert step.status_code == 200, step.text
         assert step.json()["status"] == expected
 
@@ -222,7 +263,11 @@ def test_basic_plan_blocks_delivery(client, auth, admin):
     ).json()
     blocked = client.post(
         "/api/v1/orders",
-        json={"restaurant_id": rid, "address": "Abay 1", "items": [{"menu_item_id": item["id"], "quantity": 1}]},
+        json={
+            "restaurant_id": rid,
+            "address": "Abay 1",
+            "items": [{"menu_item_id": item["id"], "quantity": 1}],
+        },
         headers=auth,
     )
     assert blocked.status_code == 403
@@ -246,7 +291,11 @@ def test_basic_plan_blocks_delivery(client, auth, admin):
     )
     allowed = client.post(
         "/api/v1/orders",
-        json={"restaurant_id": rid, "address": "Abay 1", "items": [{"menu_item_id": item["id"], "quantity": 1}]},
+        json={
+            "restaurant_id": rid,
+            "address": "Abay 1",
+            "items": [{"menu_item_id": item["id"], "quantity": 1}],
+        },
         headers=auth,
     )
     assert allowed.status_code == 201, allowed.text

@@ -18,7 +18,9 @@ Do **not** rebuild as a Firebase clone. The stack (Flutter + FastAPI + Neon, thr
 
 **Shipped 22 Sep 2026 (checkout):** item modifiers with ticket snapshot, cash-on-delivery (unpaid), device tokens, local notifications when paused. No Kaspi/Stripe/FCM keys — card checkout is 409, FCM send is 0.
 
-**Next:** scheduled orders, promos, chat. Card/FCM stay blocked on keys.
+**Shipped 22 Sep 2026 (offers):** checkout slot (`scheduled_for`, 30 min–48 h, 15-min picker), kitchen Later lane, courier pool waits until 40 min before the slot. Restaurant promo codes (`BAO10` / `PIZZA500` / `SMASH500` on the demo catalog), quoted at checkout, snapshotted on the ticket. Table QR cannot be scheduled. Card/FCM still blocked on keys.
+
+**Next:** in-app chat. Card/FCM stay blocked on keys.
 
 ## What we already have
 
@@ -54,7 +56,7 @@ Do **not** rebuild as a Firebase clone. The stack (Flutter + FastAPI + Neon, thr
 - **Wolt** ([item search](https://life.wolt.com/en/fin/howto/hacks/item-search), [scheduled](https://life.wolt.com/en/fin/howto/hacks/scheduled-orders), [Wolt+](https://explore.wolt.com/en/deu/wolt-plus)): dish-first search; discovery carousels; schedule at checkout; membership.
 - **Chocofood** ([App Store](https://apps.apple.com/us/app/chocofood-kz-%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%BA%D0%B0-%D0%B5%D0%B4%D1%8B/id1033887038)): courier on map, saved addresses, promos, card or cash, support, ~32 min average.
 
-We match the **order machine** (pending → delivered) and now match **basic discovery** (photos, dish search, phone-width web). We still do not match reorder, home modules, scheduled delivery, subscriptions, courier matching, or payouts.
+We match the **order machine** (pending → delivered), **basic discovery** (photos, dish search, phone-width web), checkout extras (modifiers, cash, schedule, one promo), and a live courier map. We still do not match subscriptions, courier matching, or payouts.
 
 Clones almost never implement: Uber One / Glovo Prime / Wolt+; scheduled slots; grocery/Anything verticals; geo matching; proof of delivery; live map of a named courier; in-app chat ops can see; dynamic fees; restaurant auto-pause; promo stacking; courier wallet/KYC; merchant KDS; refunds/SLA; group order.
 
@@ -78,6 +80,8 @@ Clones almost never implement: Uber One / Glovo Prime / Wolt+; scheduled slots; 
 | Floor plan editor | Admin canvas: floors, zones, tables, save/undo | Medium | Done |
 | Tenant / plans / QR table order | Restaurant membership + entitlements + `/t/:token` | Medium | Done |
 | COD | Place order = done | Yes | Done |
+| Scheduled slot | Cart picker; `scheduled_for` on the ticket | Yes | Done |
+| Promo code | One per order, restaurant-scoped, `promotions` entitlement | Yes | Done |
 | Maps / FCM / Kaspi | Blocked until keys | No | Maps done; FCM/Kaspi wait |
 
 UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md). Flutter web canvaskit still ignores programmatic input (a11y tree ≠ `TextEditingController`).
@@ -94,5 +98,6 @@ UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.c
 8. ~~Admin floor-plan editor.~~
 9. ~~QR table ordering + plan entitlements.~~
 10. ~~Item options.~~ Medusa workflow steps stay our status machine — keep WebSocket.
-11. FCM / Kaspi / Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
-12. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.
+11. ~~Scheduled checkout + restaurant promo codes.~~ Chat is still later.
+12. FCM / Kaspi / Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
+13. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.

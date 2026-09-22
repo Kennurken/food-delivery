@@ -9,6 +9,7 @@ import '../../../core/theme/buttons.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/widgets/list_skeleton.dart';
+import '../../cart/domain/schedule_slots.dart';
 import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
 import '../../orders/presentation/orders_screen.dart';
@@ -54,19 +55,35 @@ class KitchenScreen extends ConsumerWidget {
             return rows;
           }
 
-          final incoming = lane({OrderStatus.pending, OrderStatus.confirmed});
+          final incomingAll = lane({
+            OrderStatus.pending,
+            OrderStatus.confirmed,
+          });
+          final later = incomingAll.where((o) => o.isLater).toList();
+          final incoming = incomingAll.where((o) => !o.isLater).toList();
           final cooking = lane({OrderStatus.preparing});
           final ready = lane({OrderStatus.onTheWay});
           return LayoutBuilder(
             builder: (context, c) {
               const gap = 10.0;
-              final colW = c.maxWidth >= 720
-                  ? (c.maxWidth - 32 - gap * 2) / 3
+              final cols = later.isEmpty ? 3 : 4;
+              final colW = c.maxWidth >= 900
+                  ? (c.maxWidth - 32 - gap * (cols - 1)) / cols
                   : math.max(260.0, c.maxWidth - 48);
               return ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                 children: [
+                  if (later.isNotEmpty) ...[
+                    _Lane(
+                      width: colW,
+                      title: t.kitchenLater,
+                      count: later.length,
+                      orders: later,
+                      onSet: (o, s) => _set(context, ref, o, s),
+                    ),
+                    const SizedBox(width: gap),
+                  ],
                   _Lane(
                     width: colW,
                     title: t.kitchenNew,
@@ -210,6 +227,11 @@ class _Ticket extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text('${o.channelLabel(t)} · ${o.customer.name} · ${o.address}'),
+              if (o.scheduledFor != null)
+                Text(
+                  t.scheduledFor(formatSlot(o.scheduledFor!.toLocal())),
+                  style: text.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
               Text(
                 o.items.map((i) => i.ticketLine).join(', '),
                 style: text.bodySmall,

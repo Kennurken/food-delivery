@@ -16,6 +16,8 @@ from app.models.floor_plan import FloorObject
 from app.models.idempotency import IdempotencyRecord
 from app.models.member import RestaurantMember
 from app.schemas.order import OrderCreate, OrderOut
+from app.services import promo as promo_service
+from app.services.schedule import due_for_courier, parse_slot
 
 # Statuses a courier can pick up from
 COURIER_PICKABLE = {OrderStatus.confirmed, OrderStatus.preparing}
@@ -47,7 +49,11 @@ def notify(db: Session, order: Order, *, cause: str = "status") -> None:
     targets = admins | staff | {order.user_id}
     if order.courier_id:
         targets.add(order.courier_id)
-    elif _is_delivery(order) and order.status in COURIER_PICKABLE:
+    elif (
+        _is_delivery(order)
+        and order.status in COURIER_PICKABLE
+        and due_for_courier(order.scheduled_for)
+    ):
         targets.update(db.scalars(select(User.id).where(User.role == UserRole.courier)))
     payload = {
         "type": "order.updated",
@@ -85,7 +91,9 @@ def price_line(item: MenuItem, option_ids: list[int] | None) -> tuple[float, lis
     wanted = list(option_ids or [])
     by_id = {o.id: o for g in item.modifier_groups for o in g.options}
     if not wanted:
-        wanted = [o.id for g in item.modifier_groups for o in g.options if o.is_default and o.is_available]
+        wanted = [
+            o.id for g in item.modifier_groups for o in g.options if o.is_default and o.is_available
+        ]
     unknown = set(wanted) - set(by_id)
     if unknown:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unknown modifier")
@@ -177,6 +185,10 @@ def create_order(
         if not flags.enabled("delivery.enabled"):
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Delivery is not on this plan")
 
+    slot = parse_slot(data.scheduled_for)
+    if slot is not None and channel == "qr_table":
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Table orders are now, not later")
+
     ids = [i.menu_item_id for i in data.items]
     menu_items = db.scalars(
         select(MenuItem).where(MenuItem.id.in_(ids), MenuItem.restaurant_id == restaurant.id)
@@ -203,11 +215,20 @@ def create_order(
             )
         )
 
+    discount = 0.0
+    promo_code = None
+    applied = None
+    raw_code = (data.promo_code or "").strip()
+    if raw_code:
+        applied, discount = promo_service.quote(db, restaurant, raw_code, subtotal)
+        promo_code = applied.code
+        applied.used_count += 1
+
     pay_method = data.pay_method or "cash"
     if pay_method == "online" and not flags.enabled("payments.online"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Online payments are not on this plan")
     paid = get_payment_provider(method=pay_method).charge(
-        amount=round(subtotal + delivery_fee, 2),
+        amount=round(max(subtotal + delivery_fee - discount, 0), 2),
         currency="KZT",
         idempotency_key=idempotency_key or f"order:{user.id}:{restaurant.id}",
         description=f"{restaurant.name} · {len(items)} items",
@@ -229,7 +250,7 @@ def create_order(
         comment=data.comment,
         subtotal=round(subtotal, 2),
         delivery_fee=delivery_fee,
-        total=round(subtotal + delivery_fee, 2),
+        total=round(max(subtotal + delivery_fee - discount, 0), 2),
         items=items,
         channel=channel,
         table_object_id=table_object_id,
@@ -239,6 +260,9 @@ def create_order(
         pickup_lng=pickup_lng,
         pay_method=paid.provider if paid.provider == "cash" else pay_method,
         pay_status=paid.status,
+        scheduled_for=slot,
+        promo_code=promo_code,
+        discount=round(discount, 2),
     )
     db.add(order)
     db.flush()
@@ -267,6 +291,8 @@ def accept_order(db: Session, courier: User, order: Order) -> Order:
         raise HTTPException(status.HTTP_409_CONFLICT, "Order already taken")
     if locked.status not in COURIER_PICKABLE:
         raise HTTPException(status.HTTP_409_CONFLICT, "Order not ready for pickup")
+    if not due_for_courier(locked.scheduled_for):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Order is scheduled later")
     locked.courier_id = courier.id
     db.commit()
     db.refresh(locked)

@@ -381,6 +381,69 @@ def ensure_checkout_schema() -> None:
     _add("orders", "pay_status", "VARCHAR(20) DEFAULT 'unpaid'")
 
 
+def ensure_offers_schema() -> None:
+    """Prod deploys skip alembic; schedule + promo columns."""
+    from sqlalchemy import inspect, text
+
+    from app.db.session import engine
+    from app.models.promo import Promo
+
+    Promo.__table__.create(bind=engine, checkfirst=True)
+    insp = inspect(engine)
+    dialect = engine.dialect.name
+
+    def _add(table: str, name: str, typ: str) -> None:
+        if table not in insp.get_table_names():
+            return
+        existing = {c["name"] for c in insp.get_columns(table)}
+        if name in existing:
+            return
+        with engine.begin() as conn:
+            if dialect == "postgresql":
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {name} {typ}"))
+            else:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {typ}"))
+
+    _add("orders", "scheduled_for", "TIMESTAMP")
+    _add("orders", "promo_code", "VARCHAR(24)")
+    _add("orders", "discount", "FLOAT DEFAULT 0")
+
+
+DEMO_PROMOS = (
+    ("Bao Bar", "BAO10", "percent", 10, 2000),
+    ("Pizza Roma", "PIZZA500", "amount", 500, 3000),
+    ("Burger Lab", "SMASH500", "amount", 500, 2500),
+)
+
+
+def ensure_demo_promos() -> int:
+    from app.models.promo import Promo
+
+    added = 0
+    with SessionLocal() as db:
+        for name, code, kind, value, minimum in DEMO_PROMOS:
+            restaurant = db.scalar(select(Restaurant).where(Restaurant.name == name))
+            if restaurant is None:
+                continue
+            if db.scalar(
+                select(Promo).where(Promo.restaurant_id == restaurant.id, Promo.code == code)
+            ):
+                continue
+            db.add(
+                Promo(
+                    restaurant_id=restaurant.id,
+                    code=code,
+                    kind=kind,
+                    value=value,
+                    min_subtotal=minimum,
+                )
+            )
+            added += 1
+        if added:
+            db.commit()
+    return added
+
+
 def ensure_demo_modifiers() -> int:
     """Attach size/extras to the demo dishes once."""
     added = 0
@@ -407,7 +470,9 @@ def ensure_demo_modifiers() -> int:
     return added
 
 
-def ensure_user(email: str, password: str, role: UserRole, name: str, phone: str | None = None) -> bool:
+def ensure_user(
+    email: str, password: str, role: UserRole, name: str, phone: str | None = None
+) -> bool:
     """Create a user if that email does not exist. Returns True if created."""
     with SessionLocal() as db:
         if db.scalar(select(User).where(User.email == email)):
@@ -484,6 +549,8 @@ def seed() -> None:
     ensure_restaurant_coords()
     ensure_checkout_schema()
     ensure_demo_modifiers()
+    ensure_offers_schema()
+    ensure_demo_promos()
     print("Already seeded" if added == 0 else "Seeded: 3 users, 3 restaurants, 9 menu items")
 
 
@@ -495,12 +562,18 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--catalog-only", action="store_true", help="restaurants, no demo users")
-    parser.add_argument("--admin-email", default=os.environ.get("ADMIN_EMAIL", "admin@food.delivery"))
+    parser.add_argument(
+        "--admin-email", default=os.environ.get("ADMIN_EMAIL", "admin@food.delivery")
+    )
     args = parser.parse_args()
 
     if args.catalog_only or settings.is_prod:
         n = seed_catalog()
         photos = ensure_menu_images()
+        ensure_checkout_schema()
+        ensure_demo_modifiers()
+        ensure_offers_schema()
+        ensure_demo_promos()
         print(f"Catalog: {'seeded' if n else 'already present'}")
         if photos:
             print(f"Menu photos: backfilled {photos}")

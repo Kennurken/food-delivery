@@ -744,4 +744,27 @@ class L10nRu extends L10n {
 
   @override
   String get priceDelta => 'Δ ₸';
+
+  @override
+  String get asap => 'Как можно скорее';
+
+  @override
+  String get schedule => 'Время';
+
+  @override
+  String scheduledFor(String when) {
+    return 'Ко времени · $when';
+  }
+
+  @override
+  String get promo => 'Промокод';
+
+  @override
+  String get applyPromo => 'Применить';
+
+  @override
+  String get discount => 'Скидка';
+
+  @override
+  String get kitchenLater => 'Позже';
 }

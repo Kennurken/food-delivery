@@ -30,6 +30,9 @@ class OrderRepository {
         if (cart.destLng != null) 'dest_lng': cart.destLng,
         'comment': comment,
         'pay_method': payMethod,
+        if (cart.promoCode != null) 'promo_code': cart.promoCode,
+        if (cart.scheduledFor != null)
+          'scheduled_for': cart.scheduledFor!.toUtc().toIso8601String(),
         'items': [
           for (final i in cart.items.values)
             {

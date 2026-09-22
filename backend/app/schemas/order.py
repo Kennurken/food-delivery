@@ -20,6 +20,8 @@ class OrderCreate(BaseModel):
     dest_lng: float | None = Field(default=None, ge=-180, le=180)
     comment: str | None = Field(default=None, max_length=500)
     pay_method: str = Field(default="cash", pattern="^(cash|online)$")
+    promo_code: str | None = Field(default=None, max_length=24)
+    scheduled_for: datetime | None = None
     items: list[OrderItemCreate] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -84,6 +86,9 @@ class OrderOut(BaseModel):
     courier_seen_at: datetime | None = None
     pay_method: str = "cash"
     pay_status: str = "unpaid"
+    scheduled_for: datetime | None = None
+    promo_code: str | None = None
+    discount: float = 0
     created_at: datetime
     items: list[OrderItemOut]
 

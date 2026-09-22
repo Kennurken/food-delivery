@@ -104,6 +104,23 @@ void main() {
     expect(container.read(cartProvider).isPickup, isTrue);
   });
 
+  test('schedule and promo persist until the cart changes', () async {
+    final cart = container.read(cartProvider.notifier);
+    cart.add(item(1, 10, 100));
+    final slot = DateTime(2026, 9, 22, 19, 30);
+    cart.setSchedule(slot);
+    cart.setPromo(code: 'BAO10', discount: 20);
+    expect(container.read(cartProvider).payable(500), 580);
+    await Future<void>.delayed(Duration.zero);
+    expect(store.value?.scheduledFor, slot);
+    expect(store.value?.promoCode, 'BAO10');
+    cart.add(item(2, 10, 50));
+    expect(container.read(cartProvider).promoCode, isNull);
+    expect(container.read(cartProvider).scheduledFor, slot);
+    cart.setQrToken('table-1');
+    expect(container.read(cartProvider).scheduledFor, isNull);
+  });
+
   test('destination pin persists', () async {
     final cart = container.read(cartProvider.notifier);
     cart.add(item(1, 10, 100));

@@ -7,6 +7,7 @@ from app.models.floor_plan import Floor, FloorObject, FloorVersion, FloorZone
 from app.models.idempotency import IdempotencyRecord
 from app.models.member import RestaurantMember
 from app.models.order import Order, OrderItem, OrderStatus
+from app.models.promo import Promo
 from app.models.restaurant import MenuItem, ModifierGroup, ModifierOption, Restaurant
 from app.models.user import User, UserRole
 
@@ -27,6 +28,7 @@ __all__ = [
     "Order",
     "OrderItem",
     "OrderStatus",
+    "Promo",
     "Restaurant",
     "RestaurantMember",
     "User",

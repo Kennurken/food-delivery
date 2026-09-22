@@ -17,6 +17,9 @@ class CartState {
     this.destLat,
     this.destLng,
     this.destLine,
+    this.scheduledFor,
+    this.promoCode,
+    this.promoDiscount = 0,
   });
 
   final int? restaurantId;
@@ -30,6 +33,9 @@ class CartState {
   final double? destLat;
   final double? destLng;
   final String? destLine;
+  final DateTime? scheduledFor;
+  final String? promoCode;
+  final double promoDiscount;
 
   int get count => items.values.fold(0, (s, i) => s + i.quantity);
   double get subtotal => items.values.fold(0.0, (s, i) => s + i.lineTotal);
@@ -37,6 +43,12 @@ class CartState {
   bool get isDineIn => qrToken != null;
   bool get isPickup => !isDineIn && fulfillment == 'pickup';
   bool get hasDest => destLat != null && destLng != null;
+  bool get isScheduled => scheduledFor != null;
+
+  double payable(double fee) {
+    final raw = subtotal + fee - promoDiscount;
+    return raw < 0 ? 0 : raw;
+  }
 
   int quantityOf(int menuItemId) => items.values
       .where((i) => i.item.id == menuItemId)
@@ -52,6 +64,11 @@ class CartState {
     double? destLng,
     String? destLine,
     bool clearDest = false,
+    DateTime? scheduledFor,
+    bool clearSchedule = false,
+    String? promoCode,
+    double? promoDiscount,
+    bool clearPromo = false,
   }) => CartState(
     restaurantId: restaurantId ?? this.restaurantId,
     items: items ?? this.items,
@@ -60,6 +77,9 @@ class CartState {
     destLat: clearDest ? null : (destLat ?? this.destLat),
     destLng: clearDest ? null : (destLng ?? this.destLng),
     destLine: clearDest ? null : (destLine ?? this.destLine),
+    scheduledFor: clearSchedule ? null : (scheduledFor ?? this.scheduledFor),
+    promoCode: clearPromo ? null : (promoCode ?? this.promoCode),
+    promoDiscount: clearPromo ? 0 : (promoDiscount ?? this.promoDiscount),
   );
 
   factory CartState.fromJson(Map<String, dynamic> json) {
@@ -80,6 +100,11 @@ class CartState {
       destLat: coord(json['dest_lat']),
       destLng: coord(json['dest_lng']),
       destLine: json['dest_line'] as String?,
+      scheduledFor: json['scheduled_for'] == null
+          ? null
+          : DateTime.tryParse(json['scheduled_for'] as String),
+      promoCode: json['promo_code'] as String?,
+      promoDiscount: (json['promo_discount'] as num?)?.toDouble() ?? 0,
       items: parsed,
     );
   }
@@ -91,6 +116,9 @@ class CartState {
     'dest_lat': destLat,
     'dest_lng': destLng,
     'dest_line': destLine,
+    'scheduled_for': scheduledFor?.toIso8601String(),
+    'promo_code': promoCode,
+    'promo_discount': promoDiscount,
     'items': {for (final e in items.entries) e.key: e.value.toJson()},
   };
 }
@@ -168,7 +196,11 @@ class CartController extends Notifier<CartState> {
       ..[key] =
           existing?.copyWith(quantity: existing.quantity + quantity) ??
           CartItem(item: item, quantity: quantity, optionIds: ids);
-    state = state.copyWith(restaurantId: item.restaurantId, items: next);
+    state = state.copyWith(
+      restaurantId: item.restaurantId,
+      items: next,
+      clearPromo: true,
+    );
     Haptics.add();
     _save();
     return true;
@@ -194,7 +226,9 @@ class CartController extends Notifier<CartState> {
     } else {
       next[key] = existing.copyWith(quantity: existing.quantity - 1);
     }
-    state = next.isEmpty ? const CartState() : state.copyWith(items: next);
+    state = next.isEmpty
+        ? const CartState()
+        : state.copyWith(items: next, clearPromo: true);
     Haptics.tap();
     _save();
   }
@@ -208,7 +242,9 @@ class CartController extends Notifier<CartState> {
       for (final e in state.items.entries)
         if (e.value.item.id != item.id) e.key: e.value,
     };
-    state = next.isEmpty ? const CartState() : state.copyWith(items: next);
+    state = next.isEmpty
+        ? const CartState()
+        : state.copyWith(items: next, clearPromo: true);
     _save();
   }
 
@@ -226,6 +262,9 @@ class CartController extends Notifier<CartState> {
       destLat: state.destLat,
       destLng: state.destLng,
       destLine: state.destLine,
+      scheduledFor: token != null ? null : state.scheduledFor,
+      promoCode: state.promoCode,
+      promoDiscount: state.promoDiscount,
     );
     _save();
   }
@@ -243,6 +282,21 @@ class CartController extends Notifier<CartState> {
     required String line,
   }) {
     state = state.copyWith(destLat: lat, destLng: lng, destLine: line);
+    _save();
+  }
+
+  void setSchedule(DateTime? when) {
+    state = state.copyWith(scheduledFor: when, clearSchedule: when == null);
+    _save();
+  }
+
+  void setPromo({required String code, required double discount}) {
+    state = state.copyWith(promoCode: code, promoDiscount: discount);
+    _save();
+  }
+
+  void clearPromo() {
+    state = state.copyWith(clearPromo: true);
     _save();
   }
 
@@ -268,6 +322,7 @@ class CartController extends Notifier<CartState> {
       destLat: state.destLat,
       destLng: state.destLng,
       destLine: state.destLine,
+      scheduledFor: state.scheduledFor,
     );
     Haptics.add();
     _save();

@@ -24,6 +24,7 @@ import '../../restaurants/data/restaurant_repository.dart';
 import '../../restaurants/domain/restaurant.dart';
 import '../../restaurants/presentation/restaurant_screen.dart'
     show QuantityStepper;
+import '../domain/schedule_slots.dart';
 import 'cart_controller.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
@@ -36,7 +37,9 @@ class CartScreen extends ConsumerStatefulWidget {
 class _CartScreenState extends ConsumerState<CartScreen> {
   final _address = TextEditingController();
   final _comment = TextEditingController();
+  final _promo = TextEditingController();
   bool _submitting = false;
+  bool _quoting = false;
   int? _placedOrderId;
   String _payMethod = 'cash';
 
@@ -51,6 +54,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   void dispose() {
     _address.dispose();
     _comment.dispose();
+    _promo.dispose();
     super.dispose();
   }
 
@@ -143,6 +147,62 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       ref
           .read(cartProvider.notifier)
           .setDestination(lat: a.lat!, lng: a.lng!, line: a.line);
+    }
+  }
+
+  Future<void> _pickSchedule() async {
+    final t = context.l10n;
+    final slots = scheduleSlots(DateTime.now());
+    final picked = await showModalBottomSheet<Object>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: ListView(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.flash_on_outlined),
+              title: Text(t.asap),
+              onTap: () => Navigator.pop(ctx, 'asap'),
+            ),
+            for (final slot in slots)
+              ListTile(
+                leading: const Icon(Icons.schedule),
+                title: Text(formatSlot(slot)),
+                onTap: () => Navigator.pop(ctx, slot),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || picked == null) return;
+    ref
+        .read(cartProvider.notifier)
+        .setSchedule(picked == 'asap' ? null : picked as DateTime);
+  }
+
+  Future<void> _applyPromo() async {
+    final cart = ref.read(cartProvider);
+    final code = _promo.text.trim();
+    if (cart.restaurantId == null || code.length < 3) return;
+    setState(() => _quoting = true);
+    try {
+      final quote = await ref
+          .read(restaurantRepositoryProvider)
+          .quotePromo(
+            restaurantId: cart.restaurantId!,
+            code: code,
+            subtotal: cart.subtotal,
+          );
+      ref
+          .read(cartProvider.notifier)
+          .setPromo(code: quote.code, discount: quote.discount);
+      _promo.clear();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
+      }
+    } finally {
+      if (mounted) setState(() => _quoting = false);
     }
   }
 
@@ -354,6 +414,57 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               ).stagger(idx++),
             ],
           ],
+          if (!cart.isDineIn) ...[
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.schedule),
+                title: Text(
+                  cart.scheduledFor == null
+                      ? t.asap
+                      : t.scheduledFor(formatSlot(cart.scheduledFor!)),
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _pickSchedule,
+              ),
+            ).stagger(idx++),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _promo,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    labelText: t.promo,
+                    prefixIcon: const Icon(Icons.local_offer_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: FilledButton.tonal(
+                  onPressed: _quoting ? null : _applyPromo,
+                  child: Text(t.applyPromo),
+                ),
+              ),
+            ],
+          ).stagger(idx++),
+          if (cart.promoCode != null) ...[
+            const SizedBox(height: 8),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.check_circle_outline),
+              title: Text(cart.promoCode!),
+              trailing: IconButton(
+                onPressed: () => ref.read(cartProvider.notifier).clearPromo(),
+                icon: const Icon(Icons.close),
+              ),
+            ).stagger(idx++),
+          ],
           const SizedBox(height: 12),
           SegmentedButton<String>(
             segments: [
@@ -403,8 +514,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 children: [
                   _Row(t.subtotal, formatMoney(cart.subtotal)),
                   if (fee > 0) _Row(t.delivery, formatMoney(fee)),
+                  if (cart.promoDiscount > 0)
+                    _Row(t.discount, '-${formatMoney(cart.promoDiscount)}'),
                   const Divider(height: 20),
-                  _Row(t.total, formatMoney(cart.subtotal + fee), bold: true),
+                  _Row(t.total, formatMoney(cart.payable(fee)), bold: true),
                 ],
               ),
             ),
@@ -432,7 +545,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         children: [
                           Text(t.placeOrder),
                           SlidingNumber(
-                            formatMoney(cart.subtotal + fee),
+                            formatMoney(cart.payable(fee)),
                             style: TextStyle(
                               color: scheme.onPrimary,
                               fontWeight: FontWeight.w800,

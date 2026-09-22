@@ -1502,6 +1502,48 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Δ ₸'**
   String get priceDelta;
+
+  /// No description provided for @asap.
+  ///
+  /// In en, this message translates to:
+  /// **'As soon as possible'**
+  String get asap;
+
+  /// No description provided for @schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get schedule;
+
+  /// No description provided for @scheduledFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled · {when}'**
+  String scheduledFor(String when);
+
+  /// No description provided for @promo.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo code'**
+  String get promo;
+
+  /// No description provided for @applyPromo.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get applyPromo;
+
+  /// No description provided for @discount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get discount;
+
+  /// No description provided for @kitchenLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get kitchenLater;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

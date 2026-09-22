@@ -35,6 +35,12 @@ Tiles render in Flutter (`flutter_map` + Carto Voyager / Dark Matter). Geocoding
 
 `pay_method=cash` → unpaid. `pay_method=online` without a card key → 409. Device tokens live on `device_tokens`. `app.core.push.fanout` is a no-op unless `FCM_SERVER_KEY` is set; it never fails an order.
 
+## Offers
+
+`scheduled_for` is a UTC-naive slot between 30 minutes and 48 hours. Table QR cannot be scheduled. Couriers only see a delivery once the slot is within 40 minutes (`due_for_courier` + the available-pool filter). Kitchen puts those tickets in a Later lane.
+
+Promo codes are restaurant-scoped (`promos`, unique on restaurant + code). Checkout quotes one code via `GET /restaurants/{id}/promo`. The ticket stores `promo_code` + `discount`; `used_count` increments on a successful create. Applying a code requires the `promotions` entitlement, not `if plan == "pro"`. Demo catalog: `BAO10`, `PIZZA500`, `SMASH500`.
+
 ## Cache keys
 
 `app.core.features.cache_key(restaurant_id, ...)` → `tenant:{id}:...`. No Redis yet; use this helper when one is added.

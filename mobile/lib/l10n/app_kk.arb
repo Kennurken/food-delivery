@@ -245,5 +245,13 @@
   "addGroup": "Топ қосу",
   "addOption": "Опция қосу",
   "optionName": "Опция",
-  "priceDelta": "Δ ₸"
+  "priceDelta": "Δ ₸",
+  "asap": "Қазір",
+  "schedule": "Уақыт",
+  "scheduledFor": "Уақыты · {when}",
+  "@scheduledFor": {"placeholders": {"when": {"type": "String"}}},
+  "promo": "Промокод",
+  "applyPromo": "Қолдану",
+  "discount": "Жеңілдік",
+  "kitchenLater": "Кейін"
 }

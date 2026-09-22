@@ -23,8 +23,8 @@ The public API stores data in Neon Postgres. Register a customer account there. 
 | Customer | Courier | Admin |
 |---|---|---|
 | Browse by cuisine, search, save restaurants, sort by distance | Pick up confirmed orders, live map | Confirm / advance / cancel any order |
-| Cart with sizes/extras, cash checkout, saved addresses | Advance step by step to *delivered* | Add restaurants, toggle open/closed |
-| Live order tracking, rate after delivery | Live "ready for pickup" banners | Menu editor, floor plan, table QR |
+| Cart with sizes/extras, schedule, promo, cash checkout | Advance step by step to *delivered* | Add restaurants, toggle open/closed |
+| Live order tracking, rate after delivery | Live "ready for pickup" banners | Menu editor, floor plan, table QR, promo codes |
 | Scan a table QR, or pick up without a courier | | Plans, staff, kitchen board, table QR |
 
 Every status change is pushed over WebSocket to whoever cares — the customer, the assigned courier, all staff — and surfaces as an in-app banner. If the app is paused, the same event fires a local notification. Remote FCM is a no-op until `FCM_SERVER_KEY` is set.
@@ -45,7 +45,7 @@ food-delivery/
 │   │   ├── api/v1/          # auth, me, restaurants, orders, admin, ws
 │   │   ├── core/            # config, security, events, geo, billing, push
 │   │   ├── db/              # session, seed
-│   │   ├── models/          # User, Address, Restaurant, MenuItem, Order, OrderItem, DeviceToken
+│   │   ├── models/          # User, Address, Restaurant, MenuItem, Order, OrderItem, DeviceToken, Promo
 │   │   ├── schemas/         # Pydantic I/O
 │   │   ├── services/        # order_service (pricing, status machine, rating)
 │   │   └── main.py
@@ -83,6 +83,7 @@ Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim h
 | GET | /api/v1/auth/me | user |
 | GET | /api/v1/restaurants?q=&cuisine= | – |
 | GET | /api/v1/restaurants/{id} | – |
+| GET | /api/v1/restaurants/{id}/promo?code=&subtotal= | – |
 | POST | /api/v1/orders | user |
 | GET | /api/v1/orders | user; kitchen: `?restaurant_id=` |
 | GET | /api/v1/orders/{id} | user / kitchen |
@@ -102,6 +103,8 @@ Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim h
 | POST | /api/v1/admin/restaurants/{id}/menu | admin |
 | PATCH/DELETE | /api/v1/admin/menu/{id} | admin |
 | PUT | /api/v1/admin/menu/{id}/modifiers | admin |
+| GET/POST | /api/v1/admin/restaurants/{id}/promos | admin |
+| PATCH/DELETE | /api/v1/admin/promos/{id} | admin |
 | GET/POST | /api/v1/admin/restaurants/{id}/floors | admin / member |
 | GET/PATCH/DELETE | /api/v1/admin/floors/{id} | admin / member |
 | PUT | /api/v1/admin/floors/{id}/layout | admin / member |
@@ -125,7 +128,7 @@ Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","caus
 
 Map: Flutter draws Carto/OSM tiles. Search, reverse geocode, and driving routes go through the API (Photon + Nominatim + OSRM) so one User-Agent hits OSM. Default camera is Almaty. Address picker uses a center pin (2GIS-style). Courier GPS is real; we do not fake motion.
 
-Checkout: `pay_method=cash` creates an unpaid order (pay the courier / counter). `pay_method=online` is 409 until a card provider is wired — we do not fake a charge. Menu lines can carry `option_ids`; the ticket stores a modifier snapshot and the unit price includes deltas. Empty `option_ids` apply each group's defaults.
+Checkout: `pay_method=cash` creates an unpaid order (pay the courier / counter). `pay_method=online` is 409 until a card provider is wired — we do not fake a charge. Menu lines can carry `option_ids`; the ticket stores a modifier snapshot and the unit price includes deltas. Empty `option_ids` apply each group's defaults. `scheduled_for` is 30 minutes–48 hours ahead (table QR is now-only). Couriers do not see a scheduled drop-off until 40 minutes before the slot. One restaurant promo code per order; demo venues have `BAO10`, `PIZZA500`, `SMASH500`.
 
 Login and refresh are rate-limited. Access tokens last 60 minutes; a 30-day refresh token issues a new access token. The app refuses to start in `ENV=prod` with a short/default `SECRET_KEY`, `CORS_ORIGINS=*` (unless `CORS_ORIGIN_REGEX` is set), or a sqlite `DATABASE_URL` (unless `ALLOW_EPHEMERAL_DB=1` for a throwaway demo). `/docs` is off in prod. `python -m app.db.seed` in prod (or `--catalog-only`) inserts restaurants only and mints random staff passwords — it will not create `admin123` / `user123`.
 
@@ -198,5 +201,7 @@ cd mobile && flutter test
 - [x] Item modifiers (size / extras, snapshot on the ticket)
 - [x] Cash checkout (order stays unpaid)
 - [x] Device tokens + local notifications (FCM send is a no-op without a key)
+- [x] Scheduled delivery / pickup
+- [x] Restaurant promo codes
 - [ ] Push via FCM (`FCM_SERVER_KEY`)
 - [ ] Card payments (Kaspi / Stripe)

@@ -1,13 +1,15 @@
+from datetime import timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Header, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from app.api.deps import DB, CourierUser, CurrentUser
 from app.core.access import require_restaurant
 from app.models import Order, OrderStatus, UserRole
 from app.schemas.order import OrderCreate, OrderOut, OrderRate, OrderStatusUpdate
 from app.services import order_service
+from app.services.schedule import utcnow
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -31,7 +33,9 @@ def my_orders(
     restaurant_id: int | None = None,
 ) -> list[Order]:
     """Customer: own orders. Courier: assigned. Kitchen/admin: a venue's tickets."""
-    stmt = select(Order).order_by(Order.created_at.desc(), Order.id.desc()).limit(limit).offset(offset)
+    stmt = (
+        select(Order).order_by(Order.created_at.desc(), Order.id.desc()).limit(limit).offset(offset)
+    )
     if restaurant_id is not None:
         require_restaurant(db, user, restaurant_id, "orders.read")
         stmt = stmt.where(Order.restaurant_id == restaurant_id)
@@ -51,6 +55,10 @@ def available_orders(db: DB, _: CourierUser) -> list[Order]:
             Order.courier_id.is_(None),
             Order.status.in_(order_service.COURIER_PICKABLE),
             Order.channel == order_service.DELIVERY_CHANNEL,
+            or_(
+                Order.scheduled_for.is_(None),
+                Order.scheduled_for <= utcnow() + timedelta(minutes=40),
+            ),
         )
         .order_by(Order.created_at)
     )

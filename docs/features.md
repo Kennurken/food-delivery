@@ -20,8 +20,9 @@ Status is against this repo, not the long-term product spec.
 | Item modifiers | **Shipped** (catalog + `OrderItem` snapshot) | — |
 | Cash / COD | **Shipped** (`pay_method=cash`, status `unpaid`) | — |
 | Device tokens | **Shipped** (`PUT /me/devices`; FCM send no-op without key) | `notifications` |
+| Scheduled delivery / pickup | **Shipped** (`scheduled_for`, 30 min–48 h; couriers see it 40 min out) | — |
+| Promotions | **Shipped** (one restaurant-scoped code per order) | `promotions` |
 | Reservations | Missing | `reservations` |
-| Promotions | Missing | `promotions` |
 | Online payments | Adapter only (`409` without a card key) | `payments.online` |
 | Notifications (SMS/email) | Missing | `notifications` |
 | Multi-branch | Missing | `multi_branch` |

@@ -743,4 +743,27 @@ class L10nKk extends L10n {
 
   @override
   String get priceDelta => 'Δ ₸';
+
+  @override
+  String get asap => 'Қазір';
+
+  @override
+  String get schedule => 'Уақыт';
+
+  @override
+  String scheduledFor(String when) {
+    return 'Уақыты · $when';
+  }
+
+  @override
+  String get promo => 'Промокод';
+
+  @override
+  String get applyPromo => 'Қолдану';
+
+  @override
+  String get discount => 'Жеңілдік';
+
+  @override
+  String get kitchenLater => 'Кейін';
 }

@@ -245,5 +245,13 @@
   "addGroup": "Добавить группу",
   "addOption": "Добавить опцию",
   "optionName": "Опция",
-  "priceDelta": "Δ ₸"
+  "priceDelta": "Δ ₸",
+  "asap": "Как можно скорее",
+  "schedule": "Время",
+  "scheduledFor": "Ко времени · {when}",
+  "@scheduledFor": {"placeholders": {"when": {"type": "String"}}},
+  "promo": "Промокод",
+  "applyPromo": "Применить",
+  "discount": "Скидка",
+  "kitchenLater": "Позже"
 }

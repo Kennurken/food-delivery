@@ -137,6 +137,9 @@ class Order {
     this.courierSeenAt,
     this.payMethod = 'cash',
     this.payStatus = 'unpaid',
+    this.scheduledFor,
+    this.promoCode,
+    this.discount = 0,
   });
 
   final int id;
@@ -165,9 +168,18 @@ class Order {
   final DateTime? courierSeenAt;
   final String payMethod;
   final String payStatus;
+  final DateTime? scheduledFor;
+  final String? promoCode;
+  final double discount;
 
   bool get isCash => payMethod == 'cash';
   bool get isPaid => payStatus == 'paid';
+  bool get isScheduled => scheduledFor != null;
+  bool get isLater {
+    final when = scheduledFor;
+    if (when == null) return false;
+    return when.isAfter(DateTime.now().add(const Duration(minutes: 20)));
+  }
 
   bool get isDelivery => channel == 'delivery';
   bool get isPickup => channel == 'pickup';
@@ -207,6 +219,11 @@ class Order {
         : DateTime.tryParse(json['courier_seen_at'] as String),
     payMethod: json['pay_method'] as String? ?? 'cash',
     payStatus: json['pay_status'] as String? ?? 'unpaid',
+    scheduledFor: json['scheduled_for'] == null
+        ? null
+        : DateTime.tryParse(json['scheduled_for'] as String),
+    promoCode: json['promo_code'] as String?,
+    discount: (json['discount'] as num?)?.toDouble() ?? 0,
   );
 }
 

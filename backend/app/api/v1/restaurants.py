@@ -3,7 +3,9 @@ from sqlalchemy import exists, or_, select
 
 from app.api.deps import DB
 from app.models import MenuItem, Restaurant
+from app.schemas.admin import PromoQuote
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
+from app.services.promo import quote as quote_promo
 from app.services.restaurant_view import to_detail, to_out
 
 router = APIRouter(prefix="/restaurants", tags=["restaurants"])
@@ -41,7 +43,12 @@ def list_restaurants(
 
 @router.get("/cuisines", response_model=list[str])
 def list_cuisines(db: DB) -> list[str]:
-    stmt = select(Restaurant.cuisine).where(Restaurant.is_open.is_(True)).distinct().order_by(Restaurant.cuisine)
+    stmt = (
+        select(Restaurant.cuisine)
+        .where(Restaurant.is_open.is_(True))
+        .distinct()
+        .order_by(Restaurant.cuisine)
+    )
     return list(db.scalars(stmt))
 
 
@@ -58,3 +65,23 @@ def get_menu(restaurant_id: int, db: DB) -> list[MenuItem]:
     if not db.get(Restaurant, restaurant_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
     return list(db.scalars(select(MenuItem).where(MenuItem.restaurant_id == restaurant_id)))
+
+
+@router.get("/{restaurant_id}/promo", response_model=PromoQuote)
+def preview_promo(
+    restaurant_id: int,
+    db: DB,
+    code: str = Query(min_length=3, max_length=24),
+    subtotal: float = Query(gt=0),
+) -> PromoQuote:
+    restaurant = db.get(Restaurant, restaurant_id)
+    if not restaurant:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
+    promo, discount = quote_promo(db, restaurant, code, subtotal)
+    return PromoQuote(
+        code=promo.code,
+        kind=promo.kind,
+        value=promo.value,
+        min_subtotal=promo.min_subtotal,
+        discount=discount,
+    )

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RestaurantCreate(BaseModel):
@@ -55,3 +55,41 @@ class ModifierGroupIn(BaseModel):
     max_select: int = Field(default=1, ge=1, le=10)
     options: list[ModifierOptionIn] = Field(min_length=1)
 
+
+class PromoCreate(BaseModel):
+    code: str = Field(min_length=3, max_length=24)
+    kind: str = Field(default="percent", pattern="^(percent|amount)$")
+    value: float = Field(gt=0)
+    min_subtotal: float = Field(default=0, ge=0)
+    max_uses: int | None = Field(default=None, ge=1)
+    is_active: bool = True
+
+
+class PromoUpdate(BaseModel):
+    kind: str | None = Field(default=None, pattern="^(percent|amount)$")
+    value: float | None = Field(default=None, gt=0)
+    min_subtotal: float | None = Field(default=None, ge=0)
+    max_uses: int | None = Field(default=None, ge=1)
+    is_active: bool | None = None
+
+
+class PromoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    restaurant_id: int
+    code: str
+    kind: str
+    value: float
+    min_subtotal: float
+    is_active: bool
+    max_uses: int | None
+    used_count: int
+
+
+class PromoQuote(BaseModel):
+    code: str
+    kind: str
+    value: float
+    min_subtotal: float
+    discount: float

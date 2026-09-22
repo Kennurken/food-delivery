@@ -73,6 +73,25 @@ class AdminRepository {
     );
     return r.data as Map<String, dynamic>;
   }
+
+  Future<List<Map<String, dynamic>>> promos(int restaurantId) async {
+    final r = await _dio.get('/api/v1/admin/restaurants/$restaurantId/promos');
+    return (r.data as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<void> createPromo(int restaurantId, Map<String, dynamic> data) async {
+    await _dio.post(
+      '/api/v1/admin/restaurants/$restaurantId/promos',
+      data: data,
+    );
+  }
+
+  Future<void> setPromoActive(int promoId, bool active) async {
+    await _dio.patch(
+      '/api/v1/admin/promos/$promoId',
+      data: {'is_active': active},
+    );
+  }
 }
 
 final adminRepositoryProvider = Provider(

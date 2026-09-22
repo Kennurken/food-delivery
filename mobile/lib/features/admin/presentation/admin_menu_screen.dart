@@ -11,6 +11,7 @@ import '../../../core/widgets/stretch_switch.dart';
 import '../../restaurants/domain/menu_item.dart';
 import '../data/admin_repository.dart';
 import 'admin_modifiers_sheet.dart';
+import 'admin_promos_sheet.dart';
 
 class AdminMenuScreen extends ConsumerWidget {
   const AdminMenuScreen({super.key, required this.restaurantId});
@@ -65,6 +66,11 @@ class AdminMenuScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(restaurant.value?.name ?? context.l10n.menu),
         actions: [
+          IconButton(
+            tooltip: context.l10n.promo,
+            onPressed: () => editPromos(context, ref, restaurantId),
+            icon: const Icon(Icons.local_offer_outlined),
+          ),
           IconButton(
             tooltip: context.l10n.kitchen,
             onPressed: () =>

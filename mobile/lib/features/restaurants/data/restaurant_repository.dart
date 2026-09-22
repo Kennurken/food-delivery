@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../map/presentation/map_origin.dart';
+import '../domain/promo_quote.dart';
 import '../domain/restaurant.dart';
 import '../domain/sort.dart';
 
@@ -30,6 +31,18 @@ class RestaurantRepository {
   Future<Restaurant> get(int id) async {
     final r = await _dio.get('/api/v1/restaurants/$id');
     return Restaurant.fromJson(r.data);
+  }
+
+  Future<PromoQuote> quotePromo({
+    required int restaurantId,
+    required String code,
+    required double subtotal,
+  }) async {
+    final r = await _dio.get(
+      '/api/v1/restaurants/$restaurantId/promo',
+      queryParameters: {'code': code, 'subtotal': subtotal},
+    );
+    return PromoQuote.fromJson(r.data as Map<String, dynamic>);
   }
 }
 

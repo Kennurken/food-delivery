@@ -745,4 +745,27 @@ class L10nEn extends L10n {
 
   @override
   String get priceDelta => 'Δ ₸';
+
+  @override
+  String get asap => 'As soon as possible';
+
+  @override
+  String get schedule => 'Time';
+
+  @override
+  String scheduledFor(String when) {
+    return 'Scheduled · $when';
+  }
+
+  @override
+  String get promo => 'Promo code';
+
+  @override
+  String get applyPromo => 'Apply';
+
+  @override
+  String get discount => 'Discount';
+
+  @override
+  String get kitchenLater => 'Later';
 }

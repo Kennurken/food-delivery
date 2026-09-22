@@ -12,6 +12,7 @@ import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/stagger.dart';
+import '../../cart/domain/schedule_slots.dart';
 import '../data/order_repository.dart';
 import '../domain/order.dart';
 import 'reorder_action.dart';
@@ -214,6 +215,16 @@ class OrderDetailScreen extends ConsumerWidget {
                             _Row(t.subtotal, formatMoney(o.subtotal)),
                             if (o.deliveryFee > 0)
                               _Row(t.delivery, formatMoney(o.deliveryFee)),
+                            if (o.discount > 0)
+                              _Row(
+                                '${t.discount}${o.promoCode == null ? '' : ' · ${o.promoCode}'}',
+                                '-${formatMoney(o.discount)}',
+                              ),
+                            if (o.scheduledFor != null)
+                              _Row(
+                                t.schedule,
+                                formatSlot(o.scheduledFor!.toLocal()),
+                              ),
                             _Row(
                               t.payMethod,
                               [

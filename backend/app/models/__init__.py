@@ -9,6 +9,7 @@ from app.models.member import RestaurantMember
 from app.models.message import OrderMessage
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.promo import Promo
+from app.models.reservation import Reservation
 from app.models.restaurant import MenuItem, ModifierGroup, ModifierOption, Restaurant
 from app.models.user import User, UserRole
 
@@ -31,6 +32,7 @@ __all__ = [
     "OrderMessage",
     "OrderStatus",
     "Promo",
+    "Reservation",
     "Restaurant",
     "RestaurantMember",
     "User",

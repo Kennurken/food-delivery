@@ -12,6 +12,7 @@ import '../../restaurants/domain/menu_item.dart';
 import '../data/admin_repository.dart';
 import 'admin_modifiers_sheet.dart';
 import 'admin_promos_sheet.dart';
+import 'admin_reservations_sheet.dart';
 
 class AdminMenuScreen extends ConsumerWidget {
   const AdminMenuScreen({super.key, required this.restaurantId});
@@ -66,6 +67,11 @@ class AdminMenuScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(restaurant.value?.name ?? context.l10n.menu),
         actions: [
+          IconButton(
+            tooltip: context.l10n.reservations,
+            onPressed: () => editReservations(context, ref, restaurantId),
+            icon: const Icon(Icons.event_seat_outlined),
+          ),
           IconButton(
             tooltip: context.l10n.promo,
             onPressed: () => editPromos(context, ref, restaurantId),

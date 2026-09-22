@@ -45,6 +45,10 @@ Promo codes are restaurant-scoped (`promos`, unique on restaurant + code). Check
 
 One thread per order (`order_messages`). Same people as `GET /orders/{id}`: customer, assigned courier, staff with `orders.read`, platform admin. Unassigned couriers cannot read it. Write is closed after delivered/cancelled. Frames are `{"type":"order.chat","message":{...}}` so kitchen lists do not refetch. FCM still no-ops without a key.
 
+## Reservations
+
+Entitlement `reservations` (Pro+). There is no separate Table table — bookings point at `FloorObject` rows whose `kind` is in `TABLE_KINDS`. Customer `POST /reservations` 30 min–14 days out. Picking a free table auto-confirms and sets the object `available → reserved`. No table stays `requested` until kitchen confirms. `seated` → `occupied`. Cancel/no-show only releases `reserved`, never `occupied` (QR dine-in may already be sitting there). Kitchen walk-in skips the 30-minute lead.
+
 ## Cache keys
 
 `app.core.features.cache_key(restaurant_id, ...)` → `tenant:{id}:...`. No Redis yet; use this helper when one is added.

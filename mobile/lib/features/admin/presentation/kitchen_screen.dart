@@ -14,6 +14,7 @@ import '../../cart/domain/schedule_slots.dart';
 import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
 import '../../orders/presentation/orders_screen.dart';
+import 'admin_reservations_sheet.dart';
 
 class KitchenScreen extends ConsumerWidget {
   const KitchenScreen({super.key, required this.restaurantId});
@@ -44,7 +45,16 @@ class KitchenScreen extends ConsumerWidget {
     final t = context.l10n;
     final tickets = ref.watch(kitchenOrdersProvider(restaurantId));
     return Scaffold(
-      appBar: AppBar(title: Text(t.kitchen)),
+      appBar: AppBar(
+        title: Text(t.kitchen),
+        actions: [
+          IconButton(
+            tooltip: t.reservations,
+            onPressed: () => editReservations(context, ref, restaurantId),
+            icon: const Icon(Icons.event_seat_outlined),
+          ),
+        ],
+      ),
       body: tickets.when(
         loading: () => const ListSkeleton(rowHeight: 140),
         error: (e, _) => Center(child: Text(errorMessage(e))),

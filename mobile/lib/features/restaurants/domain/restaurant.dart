@@ -15,6 +15,7 @@ class Restaurant {
     this.menu = const [],
     this.planCode,
     this.channels = const ['delivery'],
+    this.reservations = false,
     this.lat,
     this.lng,
   });
@@ -31,6 +32,7 @@ class Restaurant {
   final bool isOpen;
   final String? planCode;
   final List<String> channels;
+  final bool reservations;
   final List<MenuItem> menu;
   final double? lat;
   final double? lng;
@@ -45,6 +47,7 @@ class Restaurant {
   bool get allowsDelivery => channels.contains('delivery');
   bool get allowsPickup => channels.contains('pickup');
   bool get allowsTable => channels.contains('qr_table');
+  bool get allowsReservations => reservations;
 
   factory Restaurant.fromJson(Map<String, dynamic> json) => Restaurant(
     id: json['id'] as int,
@@ -62,6 +65,7 @@ class Restaurant {
       for (final c in json['channels'] as List<dynamic>? ?? ['delivery'])
         c as String,
     ],
+    reservations: json['reservations'] as bool? ?? false,
     menu: (json['menu_items'] as List<dynamic>? ?? [])
         .map((e) => MenuItem.fromJson(e as Map<String, dynamic>))
         .toList(),

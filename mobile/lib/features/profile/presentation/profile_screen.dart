@@ -207,6 +207,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   )
                 : const SizedBox.shrink(),
           ),
+          const SizedBox(height: 24),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.event_seat_outlined),
+              title: Text(t.reservations),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/reservations'),
+            ),
+          ).stagger(3),
           const SizedBox(height: 28),
           Text(
             t.language,

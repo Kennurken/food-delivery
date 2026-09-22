@@ -4,7 +4,9 @@ from sqlalchemy import exists, or_, select
 from app.api.deps import DB
 from app.models import MenuItem, Restaurant
 from app.schemas.admin import PromoQuote
+from app.schemas.reservation import TableOut
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
+from app.services import reservation as reserve_service
 from app.services.promo import quote as quote_promo
 from app.services.restaurant_view import to_detail, to_out
 
@@ -85,3 +87,11 @@ def preview_promo(
         min_subtotal=promo.min_subtotal,
         discount=discount,
     )
+
+
+@router.get("/{restaurant_id}/tables", response_model=list[TableOut])
+def list_tables(restaurant_id: int, db: DB) -> list[dict]:
+    restaurant = db.get(Restaurant, restaurant_id)
+    if not restaurant:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
+    return reserve_service.list_tables(db, restaurant)

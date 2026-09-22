@@ -23,8 +23,8 @@ Status is against this repo, not the long-term product spec.
 | Scheduled delivery / pickup | **Shipped** (`scheduled_for`, 30 min–48 h; couriers see it 40 min out) | — |
 | Promotions | **Shipped** (one restaurant-scoped code per order) | `promotions` |
 | Order chat | **Shipped** (one thread per ticket; kitchen/courier/customer) | — |
-| Reservations | Missing | `reservations` |
-| Online payments | Adapter only (`409` without a card key) | `payments.online` |
+| Reservations | **Shipped** (floor tables, overlap, kitchen confirm/seat) | `reservations` |
+| Online payments | **Shipped** (Stripe Checkout; pending until Stripe says paid) | `payments.online` |
 | Notifications (SMS/email) | Missing | `notifications` |
 | Multi-branch | Missing | `multi_branch` |
 | Inventory / costing | Missing | `inventory` |

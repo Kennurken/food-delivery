@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../map/presentation/map_origin.dart';
+import '../../reservations/domain/floor_table.dart';
 import '../domain/promo_quote.dart';
 import '../domain/restaurant.dart';
 import '../domain/sort.dart';
@@ -21,6 +22,14 @@ class RestaurantRepository {
       },
     );
     return (r.data as List).map((e) => Restaurant.fromJson(e)).toList();
+  }
+
+  Future<List<FloorTable>> tables(int restaurantId) async {
+    final r = await _dio.get('/api/v1/restaurants/$restaurantId/tables');
+    return [
+      for (final row in r.data as List)
+        FloorTable.fromJson(row as Map<String, dynamic>),
+    ];
   }
 
   Future<List<String>> cuisines() async {
@@ -107,4 +116,8 @@ final sortedRestaurantsProvider = Provider<AsyncValue<List<Restaurant>>>((ref) {
 
 final restaurantProvider = FutureProvider.family<Restaurant, int>(
   (ref, id) => ref.watch(restaurantRepositoryProvider).get(id),
+);
+
+final restaurantTablesProvider = FutureProvider.family<List<FloorTable>, int>(
+  (ref, id) => ref.watch(restaurantRepositoryProvider).tables(id),
 );

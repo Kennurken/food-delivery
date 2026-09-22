@@ -92,6 +92,36 @@ class AdminRepository {
       data: {'is_active': active},
     );
   }
+
+  Future<List<Map<String, dynamic>>> reservations(int restaurantId) async {
+    final r = await _dio.get(
+      '/api/v1/admin/restaurants/$restaurantId/reservations',
+    );
+    return (r.data as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<Map<String, dynamic>> createReservation(
+    int restaurantId,
+    Map<String, dynamic> data,
+  ) async {
+    final r = await _dio.post(
+      '/api/v1/admin/restaurants/$restaurantId/reservations',
+      data: data,
+    );
+    return r.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateReservation(
+    int reservationId, {
+    String? status,
+    int? tableObjectId,
+  }) async {
+    final r = await _dio.patch(
+      '/api/v1/admin/reservations/$reservationId',
+      data: {'status': ?status, 'table_object_id': ?tableObjectId},
+    );
+    return r.data as Map<String, dynamic>;
+  }
 }
 
 final adminRepositoryProvider = Provider(

@@ -16,6 +16,8 @@ class RestaurantUpdate(BaseModel):
     is_open: bool | None = None
     delivery_fee: float | None = Field(default=None, ge=0)
     delivery_time_min: int | None = Field(default=None, ge=1, le=240)
+    plan_code: str | None = None
+    billing_status: str | None = None
 
 
 class MenuItemCreate(BaseModel):

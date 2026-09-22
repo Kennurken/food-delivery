@@ -1,5 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
+from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,6 +30,7 @@ async def lifespan(_: FastAPI):
             ensure_favorites_table,
             ensure_floor_plan_tables,
             ensure_menu_images,
+            ensure_saas_schema,
             seed_catalog,
         )
 
@@ -37,6 +39,7 @@ async def lifespan(_: FastAPI):
         ensure_address_columns()
         ensure_favorites_table()
         ensure_floor_plan_tables()
+        ensure_saas_schema()
     # Sync endpoints run in a threadpool; hub needs the main loop to push WS frames.
     hub.bind_loop(asyncio.get_running_loop())
     yield
@@ -45,7 +48,7 @@ async def lifespan(_: FastAPI):
 docs = None if settings.is_prod else "/docs"
 app = FastAPI(
     title="Food Delivery API",
-    version="0.5.0",
+    version="0.6.0",
     lifespan=lifespan,
     docs_url=docs,
     redoc_url=None if settings.is_prod else "/redoc",
@@ -66,8 +69,11 @@ app.include_router(api_router)
 
 
 @app.middleware("http")
-async def security_headers(request: Request, call_next) -> Response:
+async def request_context(request: Request, call_next) -> Response:
+    rid = request.headers.get("x-request-id") or uuid4().hex[:16]
+    request.state.request_id = rid
     response = await call_next(request)
+    response.headers["X-Request-ID"] = rid
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"

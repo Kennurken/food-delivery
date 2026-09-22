@@ -27,6 +27,7 @@ class RestaurantOut(BaseModel):
     delivery_fee: float
     delivery_time_min: int
     is_open: bool
+    plan_code: str = "pro"
 
 
 class RestaurantDetail(RestaurantOut):

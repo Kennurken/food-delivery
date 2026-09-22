@@ -30,6 +30,11 @@ class Order(Base):
     delivery_fee: Mapped[float] = mapped_column(Float)
     total: Mapped[float] = mapped_column(Float)
     rating: Mapped[int | None] = mapped_column(Integer)  # 1..5, set by customer after delivery
+    # delivery | qr_table | pickup — string so we can add channels without a PG enum migrate
+    channel: Mapped[str] = mapped_column(String(20), default="delivery")
+    table_object_id: Mapped[int | None] = mapped_column(
+        ForeignKey("floor_objects.id", ondelete="SET NULL")
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="orders", foreign_keys=[user_id])  # noqa: F821

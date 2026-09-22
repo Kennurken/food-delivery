@@ -145,6 +145,56 @@ def ensure_favorites_table() -> None:
     Favorite.__table__.create(bind=engine, checkfirst=True)
 
 
+def ensure_saas_schema() -> None:
+    """Prod deploys skip alembic; add tenant columns/tables if the DB predates them."""
+    from sqlalchemy import inspect, text
+
+    from app.db.session import engine
+    from app.models.audit import AuditLog
+    from app.models.feature_flag import FeatureOverride
+    from app.models.idempotency import IdempotencyRecord
+    from app.models.member import RestaurantMember
+
+    for model in (RestaurantMember, FeatureOverride, AuditLog, IdempotencyRecord):
+        model.__table__.create(bind=engine, checkfirst=True)
+
+    insp = inspect(engine)
+    dialect = engine.dialect.name
+
+    def _add(table: str, name: str, typ: str) -> None:
+        if table not in insp.get_table_names():
+            return
+        existing = {c["name"] for c in insp.get_columns(table)}
+        if name in existing:
+            return
+        with engine.begin() as conn:
+            if dialect == "postgresql":
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {name} {typ}"))
+            else:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {typ}"))
+
+    _add("restaurants", "plan_code", "VARCHAR(20) DEFAULT 'pro'")
+    _add("restaurants", "billing_status", "VARCHAR(20) DEFAULT 'active'")
+    _add("orders", "channel", "VARCHAR(20) DEFAULT 'delivery'")
+    _add("orders", "table_object_id", "INTEGER")
+    if dialect == "postgresql":
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "UPDATE restaurants SET plan_code = 'pro' WHERE plan_code IS NULL OR plan_code = ''"
+                )
+            )
+            conn.execute(
+                text(
+                    "UPDATE restaurants SET billing_status = 'active' "
+                    "WHERE billing_status IS NULL OR billing_status = ''"
+                )
+            )
+            conn.execute(
+                text("UPDATE orders SET channel = 'delivery' WHERE channel IS NULL OR channel = ''")
+            )
+
+
 def ensure_address_columns() -> None:
     """Prod deploys skip alembic; add KZ address fields if the table predates them."""
     from sqlalchemy import inspect, text

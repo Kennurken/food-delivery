@@ -1,14 +1,18 @@
 """Admin-only management endpoints. Order status changes live in orders.py (PATCH /status)."""
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from sqlalchemy import select
 
 from app.api.deps import DB, AdminUser
+from app.core import audit
+from app.core.features import DEFAULT_PLAN, PLANS
 from app.models import MenuItem, Restaurant
 from app.schemas.admin import MenuItemCreate, MenuItemUpdate, RestaurantCreate, RestaurantUpdate
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+_BILLING = frozenset({"trial", "active", "past_due", "grace_period", "suspended", "cancelled", "expired"})
 
 
 def _restaurant_or_404(db, restaurant_id: int) -> Restaurant:
@@ -19,9 +23,20 @@ def _restaurant_or_404(db, restaurant_id: int) -> Restaurant:
 
 
 @router.post("/restaurants", response_model=RestaurantOut, status_code=status.HTTP_201_CREATED)
-def create_restaurant(data: RestaurantCreate, db: DB, _: AdminUser) -> Restaurant:
-    r = Restaurant(**data.model_dump())
+def create_restaurant(data: RestaurantCreate, db: DB, user: AdminUser, request: Request) -> Restaurant:
+    payload = data.model_dump()
+    r = Restaurant(**payload, plan_code=DEFAULT_PLAN)
     db.add(r)
+    db.flush()
+    audit.record(
+        db,
+        actor_id=user.id,
+        restaurant_id=r.id,
+        action="restaurant.create",
+        resource=f"restaurant:{r.id}",
+        payload={"name": r.name},
+        request_id=getattr(request.state, "request_id", None),
+    )
     db.commit()
     db.refresh(r)
     return r
@@ -39,9 +54,26 @@ def restaurant_detail(restaurant_id: int, db: DB, _: AdminUser) -> Restaurant:
 
 
 @router.patch("/restaurants/{restaurant_id}", response_model=RestaurantOut)
-def update_restaurant(restaurant_id: int, data: RestaurantUpdate, db: DB, _: AdminUser) -> Restaurant:
+def update_restaurant(
+    restaurant_id: int, data: RestaurantUpdate, db: DB, user: AdminUser, request: Request
+) -> Restaurant:
     r = _restaurant_or_404(db, restaurant_id)
-    for k, v in data.model_dump(exclude_unset=True).items():
+    updates = data.model_dump(exclude_unset=True)
+    if "plan_code" in updates:
+        if updates["plan_code"] not in PLANS:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unknown plan")
+        audit.record(
+            db,
+            actor_id=user.id,
+            restaurant_id=r.id,
+            action="subscription.change",
+            resource=f"restaurant:{r.id}",
+            payload={"from": r.plan_code, "to": updates["plan_code"]},
+            request_id=getattr(request.state, "request_id", None),
+        )
+    if "billing_status" in updates and updates["billing_status"] not in _BILLING:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unknown billing status")
+    for k, v in updates.items():
         setattr(r, k, v)
     db.commit()
     db.refresh(r)

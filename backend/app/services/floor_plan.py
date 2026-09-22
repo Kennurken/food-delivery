@@ -127,6 +127,6 @@ def apply_template(floor: Floor, name: str) -> None:
 def record_version(floor: Floor, label: str = "") -> FloorVersion:
     return FloorVersion(
         floor_id=floor.id,
-        label=label or datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
+        label=label or datetime.utcnow().strftime("%Y-%m-%d %H:%M"),  # noqa: DTZ003
         snapshot=snapshot_of(floor),
     )

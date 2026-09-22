@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.core.ratelimit import limiter
 from app.core.security import hash_password, verify_password
 from app.models import Address, Favorite, Restaurant, User
+from app.models.member import RestaurantMember
 from app.schemas.address import AddressCreate, AddressOut, AddressUpdate
 from app.schemas.restaurant import RestaurantOut
 from app.schemas.user import PasswordChange, UserOut, UserUpdate
@@ -123,3 +124,15 @@ def remove_favorite(restaurant_id: int, db: DB, user: CurrentUser) -> None:
         return
     db.delete(fav)
     db.commit()
+
+
+@router.get("/memberships")
+def list_memberships(db: DB, user: CurrentUser) -> list[dict]:
+    rows = db.scalars(select(RestaurantMember).where(RestaurantMember.user_id == user.id))
+    out = []
+    for m in rows:
+        r = db.get(Restaurant, m.restaurant_id)
+        if not r:
+            continue
+        out.append({"restaurant_id": r.id, "name": r.name, "role": m.role, "is_active": m.is_active})
+    return out

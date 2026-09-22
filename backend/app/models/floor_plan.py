@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, JSON, String, Text, func
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -66,7 +66,7 @@ class FloorObject(Base):
     status: Mapped[str] = mapped_column(String(20), default="available")
     mergeable: Mapped[bool] = mapped_column(default=False)
     merge_group: Mapped[str | None] = mapped_column(String(40))
-    extra: Mapped[dict] = mapped_column(JSON, default=dict)
+    extra: Mapped[dict | None] = mapped_column(JSON, default=dict)
 
     floor: Mapped[Floor] = relationship(back_populates="objects")
 

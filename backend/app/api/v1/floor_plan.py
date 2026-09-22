@@ -3,7 +3,10 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
-from app.api.deps import DB, AdminUser
+from app.api.deps import DB, CurrentUser
+from app.core.access import require_restaurant
+from app.core.features import entitlements
+from app.core.qr import table_token
 from app.models import Restaurant
 from app.models.floor_plan import Floor, FloorObject, FloorVersion, FloorZone
 from app.schemas.floor_plan import (
@@ -14,16 +17,15 @@ from app.schemas.floor_plan import (
     LayoutSave,
     VersionOut,
 )
-from app.services.floor_plan import OBJECT_KINDS, TABLE_STATUSES, apply_template, record_version
+from app.services.floor_plan import (
+    OBJECT_KINDS,
+    TABLE_KINDS,
+    TABLE_STATUSES,
+    apply_template,
+    record_version,
+)
 
 router = APIRouter(prefix="/admin", tags=["floor-plan"])
-
-
-def _restaurant(db, restaurant_id: int) -> Restaurant:
-    r = db.get(Restaurant, restaurant_id)
-    if not r:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
-    return r
 
 
 def _floor(db, floor_id: int) -> Floor:
@@ -33,16 +35,26 @@ def _floor(db, floor_id: int) -> Floor:
     return floor
 
 
+def _read(db, user, restaurant_id: int) -> Restaurant:
+    return require_restaurant(db, user, restaurant_id, "tables.read")
+
+
+def _write(db, user, restaurant_id: int) -> Restaurant:
+    return require_restaurant(db, user, restaurant_id, "tables.write")
+
+
 @router.get("/restaurants/{restaurant_id}/floors", response_model=list[FloorOut])
-def list_floors(restaurant_id: int, db: DB, _: AdminUser) -> list[Floor]:
-    _restaurant(db, restaurant_id)
+def list_floors(restaurant_id: int, db: DB, user: CurrentUser) -> list[Floor]:
+    _read(db, user, restaurant_id)
     stmt = select(Floor).where(Floor.restaurant_id == restaurant_id).order_by(Floor.sort_order, Floor.id)
     return list(db.scalars(stmt))
 
 
 @router.post("/restaurants/{restaurant_id}/floors", response_model=FloorDetail, status_code=status.HTTP_201_CREATED)
-def create_floor(restaurant_id: int, data: FloorCreate, db: DB, _: AdminUser) -> Floor:
-    _restaurant(db, restaurant_id)
+def create_floor(restaurant_id: int, data: FloorCreate, db: DB, user: CurrentUser) -> Floor:
+    restaurant = _write(db, user, restaurant_id)
+    if not entitlements(db, restaurant).enabled("floor_plan"):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Floor plans are not on this plan")
     last = db.scalar(
         select(Floor.sort_order).where(Floor.restaurant_id == restaurant_id).order_by(Floor.sort_order.desc())
     )
@@ -63,13 +75,16 @@ def create_floor(restaurant_id: int, data: FloorCreate, db: DB, _: AdminUser) ->
 
 
 @router.get("/floors/{floor_id}", response_model=FloorDetail)
-def get_floor(floor_id: int, db: DB, _: AdminUser) -> Floor:
-    return _floor(db, floor_id)
+def get_floor(floor_id: int, db: DB, user: CurrentUser) -> Floor:
+    floor = _floor(db, floor_id)
+    _read(db, user, floor.restaurant_id)
+    return floor
 
 
 @router.patch("/floors/{floor_id}", response_model=FloorOut)
-def update_floor(floor_id: int, data: FloorUpdate, db: DB, _: AdminUser) -> Floor:
+def update_floor(floor_id: int, data: FloorUpdate, db: DB, user: CurrentUser) -> Floor:
     floor = _floor(db, floor_id)
+    _write(db, user, floor.restaurant_id)
     for k, v in data.model_dump(exclude_unset=True).items():
         setattr(floor, k, v)
     db.commit()
@@ -78,15 +93,17 @@ def update_floor(floor_id: int, data: FloorUpdate, db: DB, _: AdminUser) -> Floo
 
 
 @router.delete("/floors/{floor_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_floor(floor_id: int, db: DB, _: AdminUser) -> None:
+def delete_floor(floor_id: int, db: DB, user: CurrentUser) -> None:
     floor = _floor(db, floor_id)
+    _write(db, user, floor.restaurant_id)
     db.delete(floor)
     db.commit()
 
 
 @router.post("/floors/{floor_id}/duplicate", response_model=FloorDetail, status_code=status.HTTP_201_CREATED)
-def duplicate_floor(floor_id: int, db: DB, _: AdminUser) -> Floor:
+def duplicate_floor(floor_id: int, db: DB, user: CurrentUser) -> Floor:
     src = _floor(db, floor_id)
+    _write(db, user, src.restaurant_id)
     last = db.scalar(
         select(Floor.sort_order).where(Floor.restaurant_id == src.restaurant_id).order_by(Floor.sort_order.desc())
     )
@@ -145,8 +162,17 @@ def duplicate_floor(floor_id: int, db: DB, _: AdminUser) -> Floor:
 
 
 @router.put("/floors/{floor_id}/layout", response_model=FloorDetail)
-def save_layout(floor_id: int, data: LayoutSave, db: DB, _: AdminUser) -> Floor:
+def save_layout(floor_id: int, data: LayoutSave, db: DB, user: CurrentUser) -> Floor:
     floor = _floor(db, floor_id)
+    restaurant = _write(db, user, floor.restaurant_id)
+    cap = entitlements(db, restaurant).limit("tables.max")
+    n_tables = sum(1 for o in data.objects if o.kind in TABLE_KINDS)
+    if cap is not None and n_tables > cap:
+        existing = sum(1 for o in floor.objects if o.kind in TABLE_KINDS)
+        if n_tables > existing:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, f"Plan allows at most {cap} tables"
+            )
     def _naive(dt):
         return dt.replace(tzinfo=None) if getattr(dt, "tzinfo", None) else dt
 
@@ -206,22 +232,24 @@ def save_layout(floor_id: int, data: LayoutSave, db: DB, _: AdminUser) -> Floor:
         else:
             db.add(FloorObject(floor_id=floor.id, zone_id=zone_id, **payload))
 
-    floor.updated_at = datetime.utcnow()
+    floor.updated_at = datetime.utcnow()  # noqa: DTZ003
     db.commit()
     db.refresh(floor)
     return floor
 
 
 @router.get("/floors/{floor_id}/versions", response_model=list[VersionOut])
-def list_versions(floor_id: int, db: DB, _: AdminUser) -> list[FloorVersion]:
-    _floor(db, floor_id)
+def list_versions(floor_id: int, db: DB, user: CurrentUser) -> list[FloorVersion]:
+    floor = _floor(db, floor_id)
+    _read(db, user, floor.restaurant_id)
     stmt = select(FloorVersion).where(FloorVersion.floor_id == floor_id).order_by(FloorVersion.id.desc())
     return list(db.scalars(stmt))
 
 
 @router.post("/floors/{floor_id}/versions/{version_id}/restore", response_model=FloorDetail)
-def restore_version(floor_id: int, version_id: int, db: DB, _: AdminUser) -> Floor:
+def restore_version(floor_id: int, version_id: int, db: DB, user: CurrentUser) -> Floor:
     floor = _floor(db, floor_id)
+    _write(db, user, floor.restaurant_id)
     ver = db.get(FloorVersion, version_id)
     if not ver or ver.floor_id != floor.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Version not found")
@@ -261,3 +289,14 @@ def restore_version(floor_id: int, version_id: int, db: DB, _: AdminUser) -> Flo
     db.commit()
     db.refresh(floor)
     return floor
+
+
+@router.get("/floors/{floor_id}/objects/{object_id}/qr")
+def table_qr(floor_id: int, object_id: int, db: DB, user: CurrentUser) -> dict:
+    floor = _floor(db, floor_id)
+    _read(db, user, floor.restaurant_id)
+    obj = db.get(FloorObject, object_id)
+    if not obj or obj.floor_id != floor.id or not obj.kind.startswith("table"):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Table not found")
+    token = table_token(floor.restaurant_id, obj.id)
+    return {"token": token, "path": f"/t/{token}"}

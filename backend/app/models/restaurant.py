@@ -17,6 +17,9 @@ class Restaurant(Base):
     delivery_fee: Mapped[float] = mapped_column(Float, default=0.0)
     delivery_time_min: Mapped[int] = mapped_column(Integer, default=30)
     is_open: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Restaurant is the tenant. Plan codes are keys in app.core.features.PLANS.
+    plan_code: Mapped[str] = mapped_column(String(20), default="pro")
+    billing_status: Mapped[str] = mapped_column(String(20), default="active")
 
     menu_items: Mapped[list["MenuItem"]] = relationship(
         back_populates="restaurant", cascade="all, delete-orphan"

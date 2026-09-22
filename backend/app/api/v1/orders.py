@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from typing import Annotated
+
+from fastapi import APIRouter, Header, HTTPException, Query, status
 from sqlalchemy import select
 
 from app.api.deps import DB, AdminUser, CourierUser, CurrentUser
@@ -10,8 +12,13 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 
 
 @router.post("", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
-def create_order(data: OrderCreate, db: DB, user: CurrentUser) -> Order:
-    return order_service.create_order(db, user, data)
+def create_order(
+    data: OrderCreate,
+    db: DB,
+    user: CurrentUser,
+    idempotency_key: Annotated[str | None, Header()] = None,
+) -> Order:
+    return order_service.create_order(db, user, data, idempotency_key=idempotency_key)
 
 
 @router.get("", response_model=list[OrderOut])
@@ -35,7 +42,11 @@ def available_orders(db: DB, _: CourierUser) -> list[Order]:
     """Unassigned orders a courier can pick up."""
     stmt = (
         select(Order)
-        .where(Order.courier_id.is_(None), Order.status.in_(order_service.COURIER_PICKABLE))
+        .where(
+            Order.courier_id.is_(None),
+            Order.status.in_(order_service.COURIER_PICKABLE),
+            Order.channel == order_service.DELIVERY_CHANNEL,
+        )
         .order_by(Order.created_at)
     )
     return list(db.scalars(stmt))

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.order import OrderStatus
 
@@ -12,9 +12,18 @@ class OrderItemCreate(BaseModel):
 
 class OrderCreate(BaseModel):
     restaurant_id: int
-    address: str = Field(min_length=3, max_length=300)
+    address: str | None = Field(default=None, min_length=3, max_length=300)
+    qr_token: str | None = Field(default=None, max_length=200)
     comment: str | None = Field(default=None, max_length=500)
     items: list[OrderItemCreate] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def address_or_table(self) -> "OrderCreate":
+        if (self.qr_token or "").strip():
+            return self
+        if not self.address:
+            raise ValueError("Provide a delivery address or a table QR token")
+        return self
 
 
 class OrderItemOut(BaseModel):
@@ -50,6 +59,8 @@ class OrderOut(BaseModel):
     delivery_fee: float
     total: float
     rating: int | None
+    channel: str = "delivery"
+    table_object_id: int | None = None
     created_at: datetime
     items: list[OrderItemOut]
 

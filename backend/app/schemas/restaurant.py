@@ -29,6 +29,8 @@ class RestaurantOut(BaseModel):
     is_open: bool
     plan_code: str = "pro"
     channels: list[str] = Field(default_factory=lambda: ["delivery"])
+    lat: float | None = None
+    lng: float | None = None
 
 
 class RestaurantDetail(RestaurantOut):

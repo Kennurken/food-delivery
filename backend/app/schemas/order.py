@@ -15,6 +15,8 @@ class OrderCreate(BaseModel):
     address: str | None = Field(default=None, min_length=3, max_length=300)
     qr_token: str | None = Field(default=None, max_length=200)
     channel: str | None = Field(default=None, pattern="^(delivery|pickup)$")
+    dest_lat: float | None = Field(default=None, ge=-90, le=90)
+    dest_lng: float | None = Field(default=None, ge=-180, le=180)
     comment: str | None = Field(default=None, max_length=500)
     items: list[OrderItemCreate] = Field(min_length=1)
 
@@ -64,6 +66,14 @@ class OrderOut(BaseModel):
     rating: int | None
     channel: str = "delivery"
     table_object_id: int | None = None
+    dest_lat: float | None = None
+    dest_lng: float | None = None
+    pickup_lat: float | None = None
+    pickup_lng: float | None = None
+    courier_lat: float | None = None
+    courier_lng: float | None = None
+    courier_heading: float | None = None
+    courier_seen_at: datetime | None = None
     created_at: datetime
     items: list[OrderItemOut]
 

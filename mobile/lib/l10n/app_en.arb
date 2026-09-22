@@ -222,5 +222,25 @@
   "hintCollected": "Collected. Enjoy!",
   "orderNote": "Comment",
   "tableOnly": "This restaurant takes table orders only. Scan the QR on your table.",
-  "pickupAt": "Pickup at the restaurant"
+  "pickupAt": "Pickup at the restaurant",
+  "pickAddress": "Pick on map",
+  "confirmAddress": "Deliver here",
+  "searchAddress": "Street, building, landmark",
+  "dropPin": "Move the map to drop a pin",
+  "locationDenied": "Location is off or denied. Pan the map instead.",
+  "noAddressHits": "Nothing nearby for that search",
+  "sortNear": "Near",
+  "openMap": "Map",
+  "distanceM": "{m} m",
+  "@distanceM": {
+    "placeholders": {
+      "m": {"type": "int"}
+    }
+  },
+  "distanceKm": "{km} km",
+  "@distanceKm": {
+    "placeholders": {
+      "km": {"type": "String"}
+    }
+  }
 }

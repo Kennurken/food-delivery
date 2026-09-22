@@ -25,6 +25,8 @@ class OrderRepository {
         if (cart.qrToken != null) 'qr_token': cart.qrToken,
         if (cart.qrToken == null && cart.isPickup) 'channel': 'pickup',
         if (cart.qrToken == null && !cart.isPickup) 'address': address,
+        if (cart.destLat != null) 'dest_lat': cart.destLat,
+        if (cart.destLng != null) 'dest_lng': cart.destLng,
         'comment': comment,
         'items': [
           for (final i in cart.items.values)
@@ -92,8 +94,11 @@ final orderRepositoryProvider = Provider(
 );
 
 final ordersProvider = FutureProvider<List<Order>>((ref) {
-  // Any order event may change this list (new order, status, courier assignment).
-  ref.listen(orderEventsProvider, (_, _) => ref.invalidateSelf());
+  // Status / assignment changes the list. Location pings do not.
+  ref.listen(orderEventsProvider, (_, next) {
+    if (next.value?.isLocation ?? true) return;
+    ref.invalidateSelf();
+  });
   return ref.watch(orderRepositoryProvider).list();
 });
 
@@ -119,7 +124,10 @@ final orderLiveProvider = StreamProvider.family<Order, int>((ref, id) {
 });
 
 final availableOrdersProvider = FutureProvider<List<Order>>((ref) {
-  ref.listen(orderEventsProvider, (_, _) => ref.invalidateSelf());
+  ref.listen(orderEventsProvider, (_, next) {
+    if (next.value?.isLocation ?? true) return;
+    ref.invalidateSelf();
+  });
   return ref.watch(orderRepositoryProvider).available();
 });
 
@@ -129,7 +137,8 @@ final kitchenOrdersProvider = FutureProvider.family<List<Order>, int>((
 ) {
   ref.listen(orderEventsProvider, (_, next) {
     final evt = next.value;
-    if (evt != null && evt.order['restaurant_id'] == restaurantId) {
+    if (evt == null || evt.isLocation) return;
+    if (evt.order['restaurant_id'] == restaurantId) {
       ref.invalidateSelf();
     }
   });

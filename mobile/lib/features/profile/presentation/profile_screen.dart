@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/l10n/locale_controller.dart';
@@ -11,6 +13,7 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../map/domain/place.dart';
 import '../data/profile_repository.dart';
 import '../domain/address.dart';
 
@@ -95,6 +98,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             entrance: result.entrance,
             floor: result.floor,
             intercom: result.intercom,
+            lat: result.lat,
+            lng: result.lng,
           );
       Haptics.add();
       ref.invalidate(addressesProvider);
@@ -518,6 +523,8 @@ class _AddressSheetState extends State<_AddressSheet> {
   final _entrance = TextEditingController();
   final _floor = TextEditingController();
   final _intercom = TextEditingController();
+  double? _lat;
+  double? _lng;
 
   @override
   void dispose() {
@@ -543,6 +550,8 @@ class _AddressSheetState extends State<_AddressSheet> {
         entrance: _blank(_entrance.text),
         floor: _blank(_floor.text),
         intercom: _blank(_intercom.text),
+        lat: _lat,
+        lng: _lng,
       ),
     );
   }
@@ -588,6 +597,29 @@ class _AddressSheetState extends State<_AddressSheet> {
                 labelText: t.addressLine,
                 prefixIcon: const Icon(Icons.place_outlined),
               ),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final q = <String, String>{
+                  if (_lat != null) 'lat': '$_lat',
+                  if (_lng != null) 'lng': '$_lng',
+                  if (_line.text.trim().isNotEmpty) 'line': _line.text.trim(),
+                };
+                final uri = Uri(
+                  path: '/map/pick',
+                  queryParameters: q.isEmpty ? null : q,
+                );
+                final place = await context.push<MapPlace>(uri.toString());
+                if (place == null || !mounted) return;
+                setState(() {
+                  _line.text = place.line;
+                  _lat = place.lat;
+                  _lng = place.lng;
+                });
+              },
+              icon: const Icon(Icons.map_outlined),
+              label: Text(t.pickAddress),
             ),
             const SizedBox(height: 12),
             Row(

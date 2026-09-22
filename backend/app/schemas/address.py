@@ -16,6 +16,8 @@ class AddressCreate(BaseModel):
     floor: str | None = Field(default=None, max_length=20)
     intercom: str | None = Field(default=None, max_length=40)
     is_default: bool = False
+    lat: float | None = Field(default=None, ge=-90, le=90)
+    lng: float | None = Field(default=None, ge=-180, le=180)
 
     @field_validator("apt", "entrance", "floor", "intercom", mode="before")
     @classmethod
@@ -31,6 +33,8 @@ class AddressUpdate(BaseModel):
     floor: str | None = Field(default=None, max_length=20)
     intercom: str | None = Field(default=None, max_length=40)
     is_default: bool | None = None
+    lat: float | None = Field(default=None, ge=-90, le=90)
+    lng: float | None = Field(default=None, ge=-180, le=180)
 
     @field_validator("apt", "entrance", "floor", "intercom", mode="before")
     @classmethod
@@ -49,3 +53,5 @@ class AddressOut(BaseModel):
     floor: str | None = None
     intercom: str | None = None
     is_default: bool
+    lat: float | None = None
+    lng: float | None = None

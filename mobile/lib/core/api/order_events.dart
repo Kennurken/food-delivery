@@ -10,11 +10,13 @@ import 'api_config.dart';
 
 /// One `order.updated` frame from the server.
 class OrderEvent {
-  const OrderEvent(this.order);
+  const OrderEvent(this.order, {this.cause = 'status'});
 
   final Map<String, dynamic> order;
+  final String cause;
 
   int get id => order['id'] as int;
+  bool get isLocation => cause == 'location';
 }
 
 /// Long-lived WebSocket to /api/v1/ws. Reconnects with backoff; ends when
@@ -39,7 +41,12 @@ final orderEventsProvider = StreamProvider.autoDispose<OrderEvent>((ref) {
         await for (final frame in channel!.stream) {
           final msg = jsonDecode(frame as String) as Map<String, dynamic>;
           if (msg['type'] == 'order.updated') {
-            controller.add(OrderEvent(msg['order'] as Map<String, dynamic>));
+            controller.add(
+              OrderEvent(
+                msg['order'] as Map<String, dynamic>,
+                cause: msg['cause'] as String? ?? 'status',
+              ),
+            );
           }
         }
       } catch (e) {

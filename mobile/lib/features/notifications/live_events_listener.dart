@@ -22,6 +22,7 @@ class LiveEventsListener extends ConsumerWidget {
       ref.listen(orderEventsProvider, (prev, next) {
         final evt = next.value;
         if (evt == null || evt == prev?.value) return;
+        if (evt.isLocation) return;
         final order = Order.fromJson(evt.order);
         final router = ref.read(routerProvider);
         final t = context.l10n;

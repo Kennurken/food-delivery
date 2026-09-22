@@ -671,4 +671,38 @@ class L10nRu extends L10n {
 
   @override
   String get pickupAt => 'Забрать в ресторане';
+
+  @override
+  String get pickAddress => 'Указать на карте';
+
+  @override
+  String get confirmAddress => 'Сюда';
+
+  @override
+  String get searchAddress => 'Улица, дом, ориентир';
+
+  @override
+  String get dropPin => 'Двиньте карту, чтобы поставить метку';
+
+  @override
+  String get locationDenied => 'Геолокация выключена. Двигайте карту сами.';
+
+  @override
+  String get noAddressHits => 'По этому запросу ничего нет';
+
+  @override
+  String get sortNear => 'Рядом';
+
+  @override
+  String get openMap => 'Карта';
+
+  @override
+  String distanceM(int m) {
+    return '$m м';
+  }
+
+  @override
+  String distanceKm(String km) {
+    return '$km км';
+  }
 }

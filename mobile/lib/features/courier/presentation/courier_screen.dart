@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
@@ -13,6 +14,7 @@ import '../../../core/widgets/pill_tab_bar.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../map/presentation/courier_locator.dart';
 import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
 import '../../orders/presentation/orders_screen.dart';
@@ -25,22 +27,24 @@ class CourierScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).value;
     final t = context.l10n;
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(user?.name ?? t.courier),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: t.logOut,
-              onPressed: () =>
-                  ref.read(authControllerProvider.notifier).logout(),
-            ),
-          ],
-          bottom: PillTabBar(tabs: [t.available, t.myDeliveries]),
+    return CourierLocator(
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(user?.name ?? t.courier),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.logout),
+                tooltip: t.logOut,
+                onPressed: () =>
+                    ref.read(authControllerProvider.notifier).logout(),
+              ),
+            ],
+            bottom: PillTabBar(tabs: [t.available, t.myDeliveries]),
+          ),
+          body: const TabBarView(children: [_AvailableTab(), _MineTab()]),
         ),
-        body: const TabBarView(children: [_AvailableTab(), _MineTab()]),
       ),
     );
   }
@@ -208,6 +212,18 @@ class _OrderList extends StatelessWidget {
                             ),
                             if (o.comment != null)
                               _Line(Icons.chat_bubble_outline, o.comment!),
+                            if (o.hasMap) ...[
+                              const SizedBox(height: 4),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: TextButton.icon(
+                                  onPressed: () =>
+                                      context.push('/map/track/${o.id}'),
+                                  icon: const Icon(Icons.map_outlined),
+                                  label: Text(context.l10n.openMap),
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 12),
                             Row(
                               children: [

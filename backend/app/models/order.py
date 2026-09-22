@@ -35,6 +35,10 @@ class Order(Base):
     table_object_id: Mapped[int | None] = mapped_column(
         ForeignKey("floor_objects.id", ondelete="SET NULL")
     )
+    dest_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    dest_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
+    pickup_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    pickup_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="orders", foreign_keys=[user_id])  # noqa: F821
@@ -51,6 +55,22 @@ class Order(Base):
     @property
     def restaurant_name(self) -> str:
         return self.restaurant.name
+
+    @property
+    def courier_lat(self) -> float | None:
+        return self.courier.last_lat if self.courier else None
+
+    @property
+    def courier_lng(self) -> float | None:
+        return self.courier.last_lng if self.courier else None
+
+    @property
+    def courier_heading(self) -> float | None:
+        return self.courier.last_heading if self.courier else None
+
+    @property
+    def courier_seen_at(self) -> datetime | None:
+        return self.courier.last_seen_at if self.courier else None
 
 
 class OrderItem(Base):

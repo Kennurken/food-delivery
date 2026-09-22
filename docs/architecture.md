@@ -23,7 +23,11 @@ Every response includes `X-Request-ID`. The backend never trusts client-supplied
 
 ## Events
 
-`OrderHub` is still in-process WebSocket. Payloads include `restaurant_id` and `channel`. Swap for Redis when there is more than one API instance.
+`OrderHub` is still in-process WebSocket. Payloads include `restaurant_id`, `channel`, and `cause` (`status` or `location`). Location pings must not toast or refetch kitchen lists. Swap for Redis when there is more than one API instance.
+
+## Maps
+
+Tiles render in Flutter (`flutter_map` + Carto Voyager / Dark Matter). Geocoding and routing never leave the API (`app.core.geo`): Photon, then Nominatim; OSRM, then a straight line. `GEO_PROVIDER=fixture` keeps tests offline. Default camera is Republic Square, Almaty. Courier GPS lives on `User.last_*` and is snapshotted onto assigned orders over the socket.
 
 ## Cache keys
 

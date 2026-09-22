@@ -212,5 +212,25 @@
   "hintCollected": "Забрали. Приятного аппетита!",
   "orderNote": "Комментарий",
   "tableOnly": "Этот ресторан принимает заказы только со стола. Сканируйте QR на столе.",
-  "pickupAt": "Забрать в ресторане"
+  "pickupAt": "Забрать в ресторане",
+  "pickAddress": "Указать на карте",
+  "confirmAddress": "Сюда",
+  "searchAddress": "Улица, дом, ориентир",
+  "dropPin": "Двиньте карту, чтобы поставить метку",
+  "locationDenied": "Геолокация выключена. Двигайте карту сами.",
+  "noAddressHits": "По этому запросу ничего нет",
+  "sortNear": "Рядом",
+  "openMap": "Карта",
+  "distanceM": "{m} м",
+  "@distanceM": {
+    "placeholders": {
+      "m": {"type": "int"}
+    }
+  },
+  "distanceKm": "{km} км",
+  "@distanceKm": {
+    "placeholders": {
+      "km": {"type": "String"}
+    }
+  }
 }

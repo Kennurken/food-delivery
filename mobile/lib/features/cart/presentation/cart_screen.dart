@@ -15,8 +15,11 @@ import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/sliding_number.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../../core/widgets/success_check.dart';
+import '../../map/domain/place.dart';
+import '../../map/presentation/map_origin.dart';
 import '../../orders/data/order_repository.dart';
 import '../../profile/data/profile_repository.dart';
+import '../../profile/domain/address.dart';
 import '../../restaurants/data/restaurant_repository.dart';
 import '../../restaurants/domain/restaurant.dart';
 import '../../restaurants/presentation/restaurant_screen.dart'
@@ -35,6 +38,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   final _comment = TextEditingController();
   bool _submitting = false;
   int? _placedOrderId;
+
+  @override
+  void initState() {
+    super.initState();
+    final dest = ref.read(cartProvider).destLine;
+    if (dest != null && dest.isNotEmpty) _address.text = dest;
+  }
 
   @override
   void dispose() {
@@ -105,6 +115,35 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     }
   }
 
+  Future<void> _pickMap() async {
+    final cart = ref.read(cartProvider);
+    final line = _address.text.trim().isNotEmpty
+        ? _address.text.trim()
+        : cart.destLine;
+    final q = <String, String>{
+      if (cart.destLat != null) 'lat': '${cart.destLat}',
+      if (cart.destLng != null) 'lng': '${cart.destLng}',
+      if (line != null && line.isNotEmpty) 'line': line,
+    };
+    final uri = Uri(path: '/map/pick', queryParameters: q.isEmpty ? null : q);
+    final place = await context.push<MapPlace>(uri.toString());
+    if (place == null || !mounted) return;
+    setState(() => _address.text = place.line);
+    ref
+        .read(cartProvider.notifier)
+        .setDestination(lat: place.lat, lng: place.lng, line: place.line);
+    ref.read(mapOriginProvider.notifier).set(place.point);
+  }
+
+  void _useSaved(Address a, L10n t) {
+    setState(() => _address.text = a.display(t));
+    if (a.hasPin) {
+      ref
+          .read(cartProvider.notifier)
+          .setDestination(lat: a.lat!, lng: a.lng!, line: a.line);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
@@ -112,7 +151,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     ref.listen(addressesProvider, (_, next) {
       final def = next.value?.where((a) => a.isDefault).firstOrNull;
       if (def != null && _address.text.isEmpty) {
-        _address.text = def.display(context.l10n);
+        _useSaved(def, context.l10n);
       }
     });
     final restaurant = cart.restaurantId == null
@@ -281,8 +320,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           size: 18,
                         ),
                         label: Text(a.label),
-                        onPressed: () =>
-                            setState(() => _address.text = a.display(t)),
+                        onPressed: () => _useSaved(a, t),
                       ),
                   ],
                 ).stagger(idx++),
@@ -294,6 +332,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                   labelText: t.deliveryAddress,
                   prefixIcon: Icon(Icons.place_outlined),
                 ),
+              ).stagger(idx++),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _pickMap,
+                icon: const Icon(Icons.map_outlined),
+                label: Text(t.pickAddress),
               ).stagger(idx++),
             ],
           ],

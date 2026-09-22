@@ -22,7 +22,7 @@ The public API stores data in Neon Postgres. Register a customer account there. 
 
 | Customer | Courier | Admin |
 |---|---|---|
-| Browse by cuisine, search, save restaurants | Pick up confirmed orders | Confirm / advance / cancel any order |
+| Browse by cuisine, search, save restaurants, sort by distance | Pick up confirmed orders, live map | Confirm / advance / cancel any order |
 | Cart with morphing stepper, saved addresses | Advance step by step to *delivered* | Add restaurants, toggle open/closed |
 | Live order tracking, rate after delivery | Live "ready for pickup" banners | Menu editor, floor plan, table QR |
 | Scan a table QR, or pick up without a courier | | Plans, staff, kitchen board, table QR |
@@ -43,7 +43,7 @@ food-delivery/
 ├── backend/                 # Python 3.12+, FastAPI, SQLAlchemy 2, Alembic, JWT
 │   ├── app/
 │   │   ├── api/v1/          # auth, me, restaurants, orders, admin, ws
-│   │   ├── core/            # config, security (bcrypt + JWT), events (WS hub)
+│   │   ├── core/            # config, security, events, geo (Photon/OSM/OSRM)
 │   │   ├── db/              # session, seed
 │   │   ├── models/          # User, Address, Restaurant, MenuItem, Order, OrderItem
 │   │   ├── schemas/         # Pydantic I/O
@@ -112,10 +112,16 @@ Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim h
 | GET/POST/DELETE | /api/v1/admin/restaurants/{id}/staff[/{user_id}] | admin / member |
 | GET | /api/v1/me/memberships | user |
 | GET | /api/v1/platform/audit | admin |
+| GET | /api/v1/geo/search?q=&lat=&lng= | user |
+| GET | /api/v1/geo/reverse?lat=&lng= | user |
+| GET | /api/v1/geo/route?from_lat=&from_lng=&to_lat=&to_lng= | user |
+| POST | /api/v1/courier/location | courier |
 
 Order status machine (every channel): `pending → confirmed → preparing → on_the_way → delivered`; cancel from `pending`/`confirmed`. `on_the_way` means out with the courier for **delivery**, ready at the pass for **pickup** / **qr_table**. Couriers only see delivery. `GET /orders?restaurant_id=` is the kitchen ticket list.
 
-Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","order":{...}}` to the customer, restaurant staff with `orders.read`, assigned courier, and platform admins. Couriers also get unassigned **delivery** pickable orders. Hub is in-process — one instance; swap for Redis pub/sub to scale out.
+Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","cause":"status"|"location","order":{...}}`. Location pings do not toast. Couriers also get unassigned **delivery** pickable orders. Hub is in-process — one instance; swap for Redis pub/sub to scale out.
+
+Map: Flutter draws Carto/OSM tiles. Search, reverse geocode, and driving routes go through the API (Photon + Nominatim + OSRM) so one User-Agent hits OSM. Default camera is Almaty. Address picker uses a center pin (2GIS-style). Courier GPS is real; we do not fake motion.
 
 Login and refresh are rate-limited. Access tokens last 60 minutes; a 30-day refresh token issues a new access token. The app refuses to start in `ENV=prod` with a short/default `SECRET_KEY`, `CORS_ORIGINS=*` (unless `CORS_ORIGIN_REGEX` is set), or a sqlite `DATABASE_URL` (unless `ALLOW_EPHEMERAL_DB=1` for a throwaway demo). `/docs` is off in prod. `python -m app.db.seed` in prod (or `--catalog-only`) inserts restaurants only and mints random staff passwords — it will not create `admin123` / `user123`.
 
@@ -183,6 +189,7 @@ cd mobile && flutter test
 - [x] Refresh tokens, login rate limits, prod secret/CORS/sqlite guards
 - [x] en / ru / kk UI
 - [x] Vercel + Neon (persistent orders, no public `admin123`)
+- [x] Pickup + kitchen board (same status machine)
+- [x] Map (OSM tiles, geocode/route proxy, live courier pin)
 - [ ] Push notifications when app is in background (FCM)
-- [ ] Map/geocoding for address
 - [ ] Payments (Kaspi / Stripe)

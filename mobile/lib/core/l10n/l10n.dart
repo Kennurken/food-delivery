@@ -87,3 +87,9 @@ extension AddressL10n on Address {
     intercomLabel: t.intercom,
   );
 }
+
+String formatDistance(L10n t, double meters) {
+  if (meters < 1000) return t.distanceM(meters.round());
+  final km = meters / 1000;
+  return t.distanceKm(km >= 10 ? '${km.round()}' : km.toStringAsFixed(1));
+}

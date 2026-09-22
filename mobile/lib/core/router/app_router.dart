@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../features/admin/floor_plan/presentation/floor_plan_screen.dart';
 import '../../features/admin/presentation/admin_menu_screen.dart';
@@ -11,6 +12,9 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/cart/presentation/cart_screen.dart';
 import '../../features/courier/presentation/courier_screen.dart';
+import '../../features/map/domain/geo.dart';
+import '../../features/map/presentation/address_picker_screen.dart';
+import '../../features/map/presentation/tracking_map.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -67,8 +71,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
       final onCourier = loc.startsWith('/courier');
       final onAdmin = loc.startsWith('/admin');
-      if (user.isAdmin && !onAdmin) return home;
-      if (user.isCourier && !onCourier) return home;
+      final onMap = loc.startsWith('/map');
+      if (user.isAdmin && !onAdmin && !onMap) return home;
+      if (user.isCourier && !onCourier && !onMap) return home;
       final isCustomer = !user.isAdmin && !user.isCourier;
       if (isCustomer && (onAdmin || onCourier)) return home;
       return null;
@@ -86,6 +91,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, s) => QrTableScreen(token: s.pathParameters['token']!),
       ),
       GoRoute(path: '/courier', builder: (_, _) => const CourierScreen()),
+      GoRoute(
+        path: '/map/pick',
+        builder: (_, s) {
+          final lat = double.tryParse(s.uri.queryParameters['lat'] ?? '');
+          final lng = double.tryParse(s.uri.queryParameters['lng'] ?? '');
+          final line = s.uri.queryParameters['line'];
+          return AddressPickerScreen(
+            initial: hasPin(lat, lng) ? LatLng(lat!, lng!) : null,
+            initialLine: line,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/map/track/:id',
+        builder: (_, s) =>
+            TrackingMapScreen(orderId: int.parse(s.pathParameters['id']!)),
+      ),
       GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
       GoRoute(
         path: '/admin/restaurants/:id',

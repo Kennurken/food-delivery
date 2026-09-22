@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_delivery/features/restaurants/domain/restaurant.dart';
 import 'package:food_delivery/features/restaurants/domain/sort.dart';
+import 'package:latlong2/latlong.dart';
 
 Restaurant r({
   required int id,
@@ -8,6 +9,8 @@ Restaurant r({
   double rating = 4,
   int eta = 30,
   double fee = 500,
+  double? lat,
+  double? lng,
 }) => Restaurant(
   id: id,
   name: name,
@@ -18,6 +21,8 @@ Restaurant r({
   deliveryFee: fee,
   deliveryTimeMin: eta,
   isOpen: true,
+  lat: lat,
+  lng: lng,
 );
 
 void main() {
@@ -48,6 +53,20 @@ void main() {
       'Burger',
       'Pizza',
     ]);
+  });
+
+  test('near is closest first when origin is set', () {
+    final origin = const LatLng(43.25654, 76.92812);
+    final nearby = r(id: 1, name: 'Bao', lat: 43.25654, lng: 76.92812);
+    final far = r(id: 2, name: 'Pizza', lat: 43.21670, lng: 76.88280);
+    expect(
+      sortRestaurants(
+        [far, nearby],
+        RestaurantSort.near,
+        origin: origin,
+      ).map((e) => e.name),
+      ['Bao', 'Pizza'],
+    );
   });
 
   test('spotlight is the top-rated slice', () {

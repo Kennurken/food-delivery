@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
@@ -17,6 +18,10 @@ import '../../../core/widgets/sliding_number.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../cart/presentation/cart_controller.dart';
+import '../../map/domain/geo.dart';
+import '../../map/presentation/device_location.dart';
+import '../../map/presentation/map_origin.dart';
+import '../../map/domain/place.dart';
 import '../data/favorite_repository.dart';
 import '../data/restaurant_repository.dart';
 import '../domain/restaurant.dart';
@@ -70,11 +75,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  Future<void> _locate() async {
+    final here = await currentLatLng();
+    if (!mounted) return;
+    if (here != null) {
+      ref.read(mapOriginProvider.notifier).set(here);
+      return;
+    }
+    final place = await context.push<MapPlace>('/map/pick');
+    if (place != null && mounted) {
+      ref.read(mapOriginProvider.notifier).set(place.point);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final restaurants = ref.watch(sortedRestaurantsProvider);
     final query = ref.watch(restaurantSearchProvider);
     final user = ref.watch(authControllerProvider).value;
+    final origin = ref.watch(mapOriginProvider);
     final t = context.l10n;
 
     return Scaffold(
@@ -125,6 +144,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         actions: [
           IconButton(
+            icon: Icon(
+              ref.watch(mapOriginProvider) == null
+                  ? Icons.location_searching
+                  : Icons.my_location,
+            ),
+            tooltip: t.sortNear,
+            onPressed: _locate,
+          ),
+          IconButton(
             icon: AnimatedSwitcher(
               duration: Motion.fast,
               transitionBuilder: (c, a) => RotationTransition(
@@ -144,7 +172,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: Column(
         children: [
           const _CuisineChips(),
-          const _SortChips(),
+          _SortChips(onNear: _locate),
           Expanded(
             child: restaurants.when(
               loading: () => const _Skeleton(),
@@ -189,7 +217,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           children: [
                             for (final (i, r) in list.indexed) ...[
                               if (i > 0) const SizedBox(height: 14),
-                              _RestaurantCard(r).stagger(i),
+                              _RestaurantCard(r, origin: origin).stagger(i),
                             ],
                           ],
                         ),
@@ -296,7 +324,9 @@ class _CuisineChips extends ConsumerWidget {
 }
 
 class _SortChips extends ConsumerWidget {
-  const _SortChips();
+  const _SortChips({this.onNear});
+
+  final VoidCallback? onNear;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -306,6 +336,7 @@ class _SortChips extends ConsumerWidget {
       (RestaurantSort.rating, t.sortRating),
       (RestaurantSort.eta, t.sortEta),
       (RestaurantSort.fee, t.sortFee),
+      (RestaurantSort.near, t.sortNear),
     ];
     return SizedBox(
       height: 48,
@@ -320,8 +351,13 @@ class _SortChips extends ConsumerWidget {
             label: Text(label),
             selected: selected == sort,
             showCheckmark: false,
-            onSelected: (_) =>
-                ref.read(restaurantSortProvider.notifier).set(sort),
+            onSelected: (_) {
+              ref.read(restaurantSortProvider.notifier).set(sort);
+              if (sort == RestaurantSort.near &&
+                  ref.read(mapOriginProvider) == null) {
+                onNear?.call();
+              }
+            },
           );
         },
       ),
@@ -446,9 +482,10 @@ class _SpotlightCard extends StatelessWidget {
 }
 
 class _RestaurantCard extends StatelessWidget {
-  const _RestaurantCard(this.r);
+  const _RestaurantCard(this.r, {this.origin});
 
   final Restaurant r;
+  final LatLng? origin;
 
   @override
   Widget build(BuildContext context) {
@@ -543,7 +580,15 @@ class _RestaurantCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${r.cuisine} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))}',
+                        [
+                          r.cuisine,
+                          context.l10n.deliveryFee(formatMoney(r.deliveryFee)),
+                          if (origin != null && r.hasPin)
+                            formatDistance(
+                              context.l10n,
+                              metersBetween(origin!, LatLng(r.lat!, r.lng!)),
+                            ),
+                        ].join(' · '),
                         style: text.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),

@@ -2,6 +2,7 @@ import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")  # CI/PG can override
 os.environ["LOGIN_RATE_LIMIT"] = "1000/minute"  # every fixture logs in from 127.0.0.1
+os.environ["GEO_PROVIDER"] = "fixture"
 
 import pytest
 from fastapi.testclient import TestClient

@@ -19,6 +19,8 @@ RESTAURANTS = [
         "rating": 4.7,
         "delivery_fee": 500,
         "delivery_time_min": 25,
+        "lat": 43.25654,
+        "lng": 76.92812,
         "image_url": "https://images.unsplash.com/photo-1555126634-323283e090fa?w=800",
         "menu": [
             (
@@ -51,6 +53,8 @@ RESTAURANTS = [
         "rating": 4.5,
         "delivery_fee": 700,
         "delivery_time_min": 35,
+        "lat": 43.23800,
+        "lng": 76.94547,
         "image_url": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
         "menu": [
             (
@@ -83,6 +87,8 @@ RESTAURANTS = [
         "rating": 4.3,
         "delivery_fee": 600,
         "delivery_time_min": 20,
+        "lat": 43.21670,
+        "lng": 76.88280,
         "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800",
         "menu": [
             (
@@ -223,6 +229,63 @@ def ensure_address_columns() -> None:
                 conn.execute(text(f"ALTER TABLE addresses ADD COLUMN {name} {typ}"))
 
 
+COORDS = {
+    "Bao Bar": (43.25654, 76.92812),
+    "Pizza Roma": (43.23800, 76.94547),
+    "Burger Lab": (43.21670, 76.88280),
+}
+
+
+def ensure_geo_schema() -> None:
+    """Prod deploys skip alembic; pin restaurants and orders to the map."""
+    from sqlalchemy import inspect, text
+
+    from app.db.session import engine
+
+    insp = inspect(engine)
+    dialect = engine.dialect.name
+
+    def _add(table: str, name: str, typ: str) -> None:
+        if table not in insp.get_table_names():
+            return
+        existing = {c["name"] for c in insp.get_columns(table)}
+        if name in existing:
+            return
+        with engine.begin() as conn:
+            if dialect == "postgresql":
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {name} {typ}"))
+            else:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {typ}"))
+
+    _add("restaurants", "lat", "FLOAT")
+    _add("restaurants", "lng", "FLOAT")
+    _add("addresses", "lat", "FLOAT")
+    _add("addresses", "lng", "FLOAT")
+    _add("orders", "dest_lat", "FLOAT")
+    _add("orders", "dest_lng", "FLOAT")
+    _add("orders", "pickup_lat", "FLOAT")
+    _add("orders", "pickup_lng", "FLOAT")
+    _add("users", "last_lat", "FLOAT")
+    _add("users", "last_lng", "FLOAT")
+    _add("users", "last_heading", "FLOAT")
+    _add("users", "last_seen_at", "TIMESTAMP")
+
+
+def ensure_restaurant_coords() -> int:
+    """Backfill demo venue pins if a catalog row was seeded without them."""
+    updated = 0
+    with SessionLocal() as db:
+        for r in db.scalars(select(Restaurant)).all():
+            pin = COORDS.get(r.name)
+            if not pin or r.lat is not None:
+                continue
+            r.lat, r.lng = pin
+            updated += 1
+        if updated:
+            db.commit()
+    return updated
+
+
 def ensure_menu_images() -> int:
     """Backfill dish photos on existing demo rows that were seeded without them."""
     wanted = {(r["name"], n): img for r in RESTAURANTS for n, _d, _p, _c, img in r["menu"]}
@@ -315,6 +378,7 @@ def seed() -> None:
     seed_demo_users()
     added = seed_catalog()
     ensure_menu_images()
+    ensure_restaurant_coords()
     print("Already seeded" if added == 0 else "Seeded: 3 users, 3 restaurants, 9 menu items")
 
 

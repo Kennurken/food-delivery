@@ -212,5 +212,25 @@
   "hintCollected": "Алынды. Дәмді болсын!",
   "orderNote": "Пікір",
   "tableOnly": "Бұл мейрамхана тек үстел QR арқылы қабылдайды.",
-  "pickupAt": "Мейрамханадан алу"
+  "pickupAt": "Мейрамханадан алу",
+  "pickAddress": "Картадан таңдау",
+  "confirmAddress": "Осы жерге",
+  "searchAddress": "Көше, үй, бағдар",
+  "dropPin": "Картаны жылжытып, нүкте қойыңыз",
+  "locationDenied": "Геолокация жабық. Картаны өзіңіз жылжытыңыз.",
+  "noAddressHits": "Бұл іздеуге ештеңе жоқ",
+  "sortNear": "Жақын",
+  "openMap": "Карта",
+  "distanceM": "{m} м",
+  "@distanceM": {
+    "placeholders": {
+      "m": {"type": "int"}
+    }
+  },
+  "distanceKm": "{km} км",
+  "@distanceKm": {
+    "placeholders": {
+      "km": {"type": "String"}
+    }
+  }
 }

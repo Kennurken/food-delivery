@@ -1370,6 +1370,66 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Pickup at the restaurant'**
   String get pickupAt;
+
+  /// No description provided for @pickAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick on map'**
+  String get pickAddress;
+
+  /// No description provided for @confirmAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Deliver here'**
+  String get confirmAddress;
+
+  /// No description provided for @searchAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Street, building, landmark'**
+  String get searchAddress;
+
+  /// No description provided for @dropPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Move the map to drop a pin'**
+  String get dropPin;
+
+  /// No description provided for @locationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is off or denied. Pan the map instead.'**
+  String get locationDenied;
+
+  /// No description provided for @noAddressHits.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing nearby for that search'**
+  String get noAddressHits;
+
+  /// No description provided for @sortNear.
+  ///
+  /// In en, this message translates to:
+  /// **'Near'**
+  String get sortNear;
+
+  /// No description provided for @openMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get openMap;
+
+  /// No description provided for @distanceM.
+  ///
+  /// In en, this message translates to:
+  /// **'{m} m'**
+  String distanceM(int m);
+
+  /// No description provided for @distanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String distanceKm(String km);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

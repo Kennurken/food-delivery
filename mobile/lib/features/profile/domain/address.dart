@@ -30,6 +30,8 @@ class AddressDraft {
     this.entrance,
     this.floor,
     this.intercom,
+    this.lat,
+    this.lng,
   });
 
   final String label;
@@ -38,6 +40,8 @@ class AddressDraft {
   final String? entrance;
   final String? floor;
   final String? intercom;
+  final double? lat;
+  final double? lng;
 }
 
 class Address {
@@ -49,6 +53,8 @@ class Address {
     this.entrance,
     this.floor,
     this.intercom,
+    this.lat,
+    this.lng,
     required this.isDefault,
   });
 
@@ -59,7 +65,16 @@ class Address {
   final String? entrance;
   final String? floor;
   final String? intercom;
+  final double? lat;
+  final double? lng;
   final bool isDefault;
+
+  bool get hasPin =>
+      lat != null &&
+      lng != null &&
+      lat!.abs() <= 90 &&
+      lng!.abs() <= 180 &&
+      !(lat == 0 && lng == 0);
 
   factory Address.fromJson(Map<String, dynamic> json) {
     String? opt(String key) {
@@ -77,6 +92,8 @@ class Address {
       entrance: opt('entrance'),
       floor: opt('floor'),
       intercom: opt('intercom'),
+      lat: json['lat'] is num ? (json['lat'] as num).toDouble() : null,
+      lng: json['lng'] is num ? (json['lng'] as num).toDouble() : null,
       isDefault: json['is_default'] as bool,
     );
   }

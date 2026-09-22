@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/api_client.dart';
@@ -130,6 +131,18 @@ class OrderDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ).stagger(idx++),
+                if (o.hasMap) ...[
+                  const SizedBox(height: 12),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.map_outlined),
+                      title: Text(t.openMap),
+                      subtitle: Text(o.address),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push('/map/track/${o.id}'),
+                    ),
+                  ).stagger(idx++),
+                ],
                 if (o.courier != null) ...[
                   const SizedBox(height: 12),
                   Card(

@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy import Boolean, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -15,6 +15,8 @@ class Address(Base):
     entrance: Mapped[str | None] = mapped_column(String(40))
     floor: Mapped[str | None] = mapped_column(String(20))
     intercom: Mapped[str | None] = mapped_column(String(40))
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_default: Mapped[bool] = mapped_column(Boolean, default=False)
 
     user: Mapped["User"] = relationship(back_populates="addresses")  # noqa: F821

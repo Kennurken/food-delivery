@@ -15,6 +15,8 @@ class Restaurant {
     this.menu = const [],
     this.planCode,
     this.channels = const ['delivery'],
+    this.lat,
+    this.lng,
   });
 
   final int id;
@@ -30,6 +32,15 @@ class Restaurant {
   final String? planCode;
   final List<String> channels;
   final List<MenuItem> menu;
+  final double? lat;
+  final double? lng;
+
+  bool get hasPin =>
+      lat != null &&
+      lng != null &&
+      lat!.abs() <= 90 &&
+      lng!.abs() <= 180 &&
+      !(lat == 0 && lng == 0);
 
   bool get allowsDelivery => channels.contains('delivery');
   bool get allowsPickup => channels.contains('pickup');
@@ -54,5 +65,7 @@ class Restaurant {
     menu: (json['menu_items'] as List<dynamic>? ?? [])
         .map((e) => MenuItem.fromJson(e as Map<String, dynamic>))
         .toList(),
+    lat: json['lat'] is num ? (json['lat'] as num).toDouble() : null,
+    lng: json['lng'] is num ? (json['lng'] as num).toDouble() : null,
   );
 }

@@ -11,6 +11,7 @@ from app.models.member import RestaurantMember
 from app.schemas.address import AddressCreate, AddressOut, AddressUpdate
 from app.schemas.restaurant import RestaurantOut
 from app.schemas.user import PasswordChange, UserOut, UserUpdate
+from app.services.restaurant_view import to_out
 
 router = APIRouter(prefix="/me", tags=["me"])
 
@@ -55,6 +56,8 @@ def add_address(data: AddressCreate, db: DB, user: CurrentUser) -> Address:
         floor=data.floor,
         intercom=data.intercom,
         is_default=make_default,
+        lat=data.lat,
+        lng=data.lng,
     )
     db.add(addr)
     db.commit()
@@ -94,14 +97,14 @@ def delete_address(address_id: int, db: DB, user: CurrentUser) -> None:
 
 
 @router.get("/favorites", response_model=list[RestaurantOut])
-def list_favorites(db: DB, user: CurrentUser) -> list[Restaurant]:
+def list_favorites(db: DB, user: CurrentUser) -> list[RestaurantOut]:
     stmt = (
         select(Restaurant)
         .join(Favorite, Favorite.restaurant_id == Restaurant.id)
         .where(Favorite.user_id == user.id)
         .order_by(Favorite.created_at.desc())
     )
-    return list(db.scalars(stmt))
+    return [to_out(db, r) for r in db.scalars(stmt)]
 
 
 @router.put("/favorites/{restaurant_id}", status_code=status.HTTP_204_NO_CONTENT)

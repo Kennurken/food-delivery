@@ -15,6 +15,7 @@ import '../../../core/widgets/shimmer.dart';
 import '../../../core/widgets/sliding_number.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../cart/presentation/cart_controller.dart';
+import '../../map/presentation/restaurant_map_preview.dart';
 import '../data/restaurant_repository.dart';
 import '../domain/menu_item.dart';
 import 'favorite_button.dart';
@@ -193,6 +194,13 @@ class RestaurantScreen extends ConsumerWidget {
                         ),
                       ],
                     ).stagger(idx++),
+                    if (r.hasPin) ...[
+                      const SizedBox(height: 16),
+                      RestaurantMapPreview(
+                        lat: r.lat!,
+                        lng: r.lng!,
+                      ).stagger(idx++),
+                    ],
                     const SizedBox(height: 20),
                     for (final entry in byCategory.entries) ...[
                       Text(

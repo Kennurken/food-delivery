@@ -14,7 +14,9 @@ Do **not** rebuild as a Firebase clone. The stack (Flutter + FastAPI + Neon, thr
 
 **Shipped 22 Sep 2026 (later):** pickup channel + kitchen board. Same status machine for delivery / pickup / table QR.
 
-**Next slice (no keys):** item modifiers (size / extras) — needs an `OrderItem` snapshot migrate. Skip COD/maps/FCM/Kaspi unless asked.
+**Shipped 22 Sep 2026 (maps):** OSM tiles, center-pin address picker, restaurant pins, driving polyline, live courier GPS. No Google/Yandex/2GIS SDK.
+
+**Next slice (no keys):** item modifiers (size / extras) — needs an `OrderItem` snapshot migrate. Skip COD/FCM/Kaspi unless asked.
 
 ## What we already have
 

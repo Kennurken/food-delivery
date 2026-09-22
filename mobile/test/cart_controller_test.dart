@@ -103,4 +103,13 @@ void main() {
     ], fulfillment: 'pickup');
     expect(container.read(cartProvider).isPickup, isTrue);
   });
+
+  test('destination pin persists', () async {
+    final cart = container.read(cartProvider.notifier);
+    cart.add(item(1, 10, 100));
+    cart.setDestination(lat: 43.24, lng: 76.94, line: 'Abay 10');
+    await Future<void>.delayed(Duration.zero);
+    expect(store.value?.destLat, 43.24);
+    expect(store.value?.destLine, 'Abay 10');
+  });
 }

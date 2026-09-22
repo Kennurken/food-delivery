@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     login_rate_limit: str = "10/minute"
     env: str = "dev"  # "prod" enables safety checks
     allow_ephemeral_db: bool = False  # sqlite in /tmp on Vercel — data dies on cold start
+    geo_provider: str = "photon"  # photon (OSM) | fixture (tests, offline)
 
     @field_validator("allow_ephemeral_db", mode="before")
     @classmethod

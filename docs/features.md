@@ -16,6 +16,7 @@ Status is against this repo, not the long-term product spec.
 | Order idempotency | **Shipped** | header |
 | Pickup | **Shipped** | `pickup.enabled` |
 | KDS | **Shipped** (same order machine) | `kds` |
+| Maps (address + live courier) | **Shipped** (OSM / Photon / OSRM, no Google key) | — |
 | Reservations | Missing | `reservations` |
 | Promotions | Missing | `promotions` |
 | Online payments | Missing (adapter only) | `payments.online` |

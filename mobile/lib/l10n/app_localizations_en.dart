@@ -671,4 +671,39 @@ class L10nEn extends L10n {
 
   @override
   String get pickupAt => 'Pickup at the restaurant';
+
+  @override
+  String get pickAddress => 'Pick on map';
+
+  @override
+  String get confirmAddress => 'Deliver here';
+
+  @override
+  String get searchAddress => 'Street, building, landmark';
+
+  @override
+  String get dropPin => 'Move the map to drop a pin';
+
+  @override
+  String get locationDenied =>
+      'Location is off or denied. Pan the map instead.';
+
+  @override
+  String get noAddressHits => 'Nothing nearby for that search';
+
+  @override
+  String get sortNear => 'Near';
+
+  @override
+  String get openMap => 'Map';
+
+  @override
+  String distanceM(int m) {
+    return '$m m';
+  }
+
+  @override
+  String distanceKm(String km) {
+    return '$km km';
+  }
 }

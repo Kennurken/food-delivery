@@ -14,6 +14,9 @@ class CartState {
     this.items = const {},
     this.qrToken,
     this.fulfillment = 'delivery',
+    this.destLat,
+    this.destLng,
+    this.destLine,
   });
 
   final int? restaurantId;
@@ -24,12 +27,16 @@ class CartState {
 
   /// `delivery` or `pickup`. Ignored when [isDineIn].
   final String fulfillment;
+  final double? destLat;
+  final double? destLng;
+  final String? destLine;
 
   int get count => items.values.fold(0, (s, i) => s + i.quantity);
   double get subtotal => items.values.fold(0.0, (s, i) => s + i.lineTotal);
   bool get isEmpty => items.isEmpty;
   bool get isDineIn => qrToken != null;
   bool get isPickup => !isDineIn && fulfillment == 'pickup';
+  bool get hasDest => destLat != null && destLng != null;
 
   CartState copyWith({
     int? restaurantId,
@@ -37,19 +44,30 @@ class CartState {
     String? qrToken,
     bool clearQr = false,
     String? fulfillment,
+    double? destLat,
+    double? destLng,
+    String? destLine,
+    bool clearDest = false,
   }) => CartState(
     restaurantId: restaurantId ?? this.restaurantId,
     items: items ?? this.items,
     qrToken: clearQr ? null : (qrToken ?? this.qrToken),
     fulfillment: fulfillment ?? this.fulfillment,
+    destLat: clearDest ? null : (destLat ?? this.destLat),
+    destLng: clearDest ? null : (destLng ?? this.destLng),
+    destLine: clearDest ? null : (destLine ?? this.destLine),
   );
 
   factory CartState.fromJson(Map<String, dynamic> json) {
     final raw = json['items'] as Map<String, dynamic>? ?? {};
+    double? coord(dynamic v) => v is num ? v.toDouble() : null;
     return CartState(
       restaurantId: json['restaurant_id'] as int?,
       qrToken: json['qr_token'] as String?,
       fulfillment: json['fulfillment'] as String? ?? 'delivery',
+      destLat: coord(json['dest_lat']),
+      destLng: coord(json['dest_lng']),
+      destLine: json['dest_line'] as String?,
       items: {
         for (final e in raw.entries)
           int.parse(e.key): CartItem.fromJson(e.value as Map<String, dynamic>),
@@ -61,6 +79,9 @@ class CartState {
     'restaurant_id': restaurantId,
     'qr_token': qrToken,
     'fulfillment': fulfillment,
+    'dest_lat': destLat,
+    'dest_lng': destLng,
+    'dest_line': destLine,
     'items': {for (final e in items.entries) '${e.key}': e.value.toJson()},
   };
 }
@@ -170,6 +191,9 @@ class CartController extends Notifier<CartState> {
       items: state.items,
       qrToken: token,
       fulfillment: state.fulfillment,
+      destLat: state.destLat,
+      destLng: state.destLng,
+      destLine: state.destLine,
     );
     _save();
   }
@@ -178,6 +202,15 @@ class CartController extends Notifier<CartState> {
     if (channel != 'pickup' && channel != 'delivery') return;
     if (state.fulfillment == channel) return;
     state = state.copyWith(fulfillment: channel);
+    _save();
+  }
+
+  void setDestination({
+    required double lat,
+    required double lng,
+    required String line,
+  }) {
+    state = state.copyWith(destLat: lat, destLng: lng, destLine: line);
     _save();
   }
 
@@ -193,6 +226,9 @@ class CartController extends Notifier<CartState> {
       restaurantId: items.first.item.restaurantId,
       items: {for (final i in items) i.item.id: i},
       fulfillment: fulfillment == 'pickup' ? 'pickup' : 'delivery',
+      destLat: state.destLat,
+      destLng: state.destLng,
+      destLine: state.destLine,
     );
     Haptics.add();
     _save();

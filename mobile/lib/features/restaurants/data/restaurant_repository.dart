@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../map/presentation/map_origin.dart';
 import '../domain/restaurant.dart';
 import '../domain/sort.dart';
 
@@ -85,9 +86,10 @@ final restaurantsProvider = FutureProvider<List<Restaurant>>((ref) {
 
 final sortedRestaurantsProvider = Provider<AsyncValue<List<Restaurant>>>((ref) {
   final sort = ref.watch(restaurantSortProvider);
+  final origin = ref.watch(mapOriginProvider);
   return ref
       .watch(restaurantsProvider)
-      .whenData((list) => sortRestaurants(list, sort));
+      .whenData((list) => sortRestaurants(list, sort, origin: origin));
 });
 
 final restaurantProvider = FutureProvider.family<Restaurant, int>(

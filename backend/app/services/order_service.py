@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.access import has_permission
 from app.core.events import hub
 from app.core.features import INACTIVE_BILLING, entitlements
+from app.core.geo import resolve_point, valid_coord
 from app.core.qr import parse_table_token
 from app.models import MenuItem, Order, OrderItem, OrderStatus, Restaurant, User, UserRole
 from app.models.floor_plan import FloorObject
@@ -23,7 +24,7 @@ def _is_delivery(order: Order) -> bool:
     return (order.channel or DELIVERY_CHANNEL) == DELIVERY_CHANNEL
 
 
-def notify(db: Session, order: Order) -> None:
+def notify(db: Session, order: Order, *, cause: str = "status") -> None:
     """Push the order snapshot to whoever is watching it.
 
     Customer, restaurant staff with orders.read, platform admins, assigned
@@ -46,7 +47,11 @@ def notify(db: Session, order: Order) -> None:
         targets.add(order.courier_id)
     elif _is_delivery(order) and order.status in COURIER_PICKABLE:
         targets.update(db.scalars(select(User.id).where(User.role == UserRole.courier)))
-    payload = {"type": "order.updated", "order": OrderOut.model_validate(order).model_dump(mode="json")}
+    payload = {
+        "type": "order.updated",
+        "cause": cause,
+        "order": OrderOut.model_validate(order).model_dump(mode="json"),
+    }
     hub.publish_threadsafe(targets, payload)
 
 
@@ -145,6 +150,15 @@ def create_order(
         subtotal += m.price * line.quantity
         items.append(OrderItem(menu_item_id=m.id, name=m.name, price=m.price, quantity=line.quantity))
 
+    pickup_lat, pickup_lng = restaurant.lat, restaurant.lng
+    dest_lat, dest_lng = pickup_lat, pickup_lng
+    if channel == DELIVERY_CHANNEL:
+        dest_lat, dest_lng = data.dest_lat, data.dest_lng
+        if not valid_coord(dest_lat, dest_lng) and address:
+            hit = resolve_point(address, lat=pickup_lat, lng=pickup_lng)
+            if hit:
+                dest_lat, dest_lng = hit.lat, hit.lng
+
     order = Order(
         user_id=user.id,
         restaurant_id=restaurant.id,
@@ -156,6 +170,10 @@ def create_order(
         items=items,
         channel=channel,
         table_object_id=table_object_id,
+        dest_lat=dest_lat,
+        dest_lng=dest_lng,
+        pickup_lat=pickup_lat,
+        pickup_lng=pickup_lng,
     )
     db.add(order)
     db.flush()

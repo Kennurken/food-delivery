@@ -40,6 +40,8 @@ class ProfileRepository {
     String? entrance,
     String? floor,
     String? intercom,
+    double? lat,
+    double? lng,
     bool isDefault = false,
   }) async {
     final r = await _dio.post(
@@ -52,6 +54,8 @@ class ProfileRepository {
         'entrance': ?entrance,
         'floor': ?floor,
         'intercom': ?intercom,
+        'lat': ?lat,
+        'lng': ?lng,
       },
     );
     return Address.fromJson(r.data);

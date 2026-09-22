@@ -45,4 +45,31 @@ void main() {
     expect(o.isDelivery, isTrue);
     expect(o.channel, 'delivery');
   });
+
+  test('dest and courier pins come from json', () {
+    final o = Order.fromJson({
+      'id': 1,
+      'restaurant_id': 1,
+      'restaurant_name': 'Bao',
+      'status': 'on_the_way',
+      'address': 'Abay 1',
+      'subtotal': 1,
+      'delivery_fee': 0,
+      'total': 1,
+      'created_at': '2026-01-01T00:00:00',
+      'items': <dynamic>[],
+      'rating': null,
+      'customer': {'id': 1, 'name': 'A', 'phone': null},
+      'courier': {'id': 2, 'name': 'C', 'phone': null},
+      'dest_lat': 43.24,
+      'dest_lng': 76.94,
+      'pickup_lat': 43.25,
+      'pickup_lng': 76.92,
+      'courier_lat': 43.245,
+      'courier_lng': 76.93,
+    });
+    expect(o.hasMap, isTrue);
+    expect(o.destLat, 43.24);
+    expect(o.courierLat, 43.245);
+  });
 }

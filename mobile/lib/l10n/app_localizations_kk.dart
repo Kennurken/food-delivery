@@ -670,4 +670,38 @@ class L10nKk extends L10n {
 
   @override
   String get pickupAt => 'Мейрамханадан алу';
+
+  @override
+  String get pickAddress => 'Картадан таңдау';
+
+  @override
+  String get confirmAddress => 'Осы жерге';
+
+  @override
+  String get searchAddress => 'Көше, үй, бағдар';
+
+  @override
+  String get dropPin => 'Картаны жылжытып, нүкте қойыңыз';
+
+  @override
+  String get locationDenied => 'Геолокация жабық. Картаны өзіңіз жылжытыңыз.';
+
+  @override
+  String get noAddressHits => 'Бұл іздеуге ештеңе жоқ';
+
+  @override
+  String get sortNear => 'Жақын';
+
+  @override
+  String get openMap => 'Карта';
+
+  @override
+  String distanceM(int m) {
+    return '$m м';
+  }
+
+  @override
+  String distanceKm(String km) {
+    return '$km км';
+  }
 }

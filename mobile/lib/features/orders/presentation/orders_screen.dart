@@ -167,6 +167,15 @@ class _OrderCard extends ConsumerWidget {
                                   color: scheme.outline,
                                 ),
                               ),
+                              if (o.hasMap && !o.status.isFinal) ...[
+                                const Spacer(),
+                                IconButton(
+                                  tooltip: context.l10n.openMap,
+                                  onPressed: () =>
+                                      context.push('/map/track/${o.id}'),
+                                  icon: const Icon(Icons.map_outlined),
+                                ),
+                              ],
                             ],
                           ),
                         ],

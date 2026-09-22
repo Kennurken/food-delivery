@@ -31,7 +31,10 @@ class FoodDeliveryApp extends ConsumerWidget {
           builder: (context, _) {
             final path = router.routerDelegate.currentConfiguration.uri.path;
             return AppShell(
-              fullBleed: path.contains('/floor') || path.contains('/kitchen'),
+              fullBleed:
+                  path.contains('/floor') ||
+                  path.contains('/kitchen') ||
+                  path.contains('/map'),
               child: LiveEventsListener(child: child!),
             );
           },

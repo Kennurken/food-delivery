@@ -90,6 +90,14 @@ class Order {
     this.rating,
     this.channel = 'delivery',
     this.tableObjectId,
+    this.destLat,
+    this.destLng,
+    this.pickupLat,
+    this.pickupLng,
+    this.courierLat,
+    this.courierLng,
+    this.courierHeading,
+    this.courierSeenAt,
   });
 
   final int id;
@@ -108,10 +116,19 @@ class Order {
   final List<OrderItem> items;
   final String channel;
   final int? tableObjectId;
+  final double? destLat;
+  final double? destLng;
+  final double? pickupLat;
+  final double? pickupLng;
+  final double? courierLat;
+  final double? courierLng;
+  final double? courierHeading;
+  final DateTime? courierSeenAt;
 
   bool get isDelivery => channel == 'delivery';
   bool get isPickup => channel == 'pickup';
   bool get isDineIn => channel == 'qr_table';
+  bool get hasMap => destLat != null || pickupLat != null || courierLat != null;
 
   List<OrderStatus> get kitchenNext => status.adminNext;
 
@@ -134,5 +151,17 @@ class Order {
     rating: json['rating'] as int?,
     channel: json['channel'] as String? ?? 'delivery',
     tableObjectId: json['table_object_id'] as int?,
+    destLat: _coord(json['dest_lat']),
+    destLng: _coord(json['dest_lng']),
+    pickupLat: _coord(json['pickup_lat']),
+    pickupLng: _coord(json['pickup_lng']),
+    courierLat: _coord(json['courier_lat']),
+    courierLng: _coord(json['courier_lng']),
+    courierHeading: _coord(json['courier_heading']),
+    courierSeenAt: json['courier_seen_at'] == null
+        ? null
+        : DateTime.tryParse(json['courier_seen_at'] as String),
   );
 }
+
+double? _coord(dynamic value) => value is num ? value.toDouble() : null;

@@ -8,6 +8,8 @@ class RestaurantCreate(BaseModel):
     image_url: str | None = None
     delivery_fee: float = Field(default=0, ge=0)
     delivery_time_min: int = Field(default=30, ge=1, le=240)
+    lat: float | None = Field(default=None, ge=-90, le=90)
+    lng: float | None = Field(default=None, ge=-180, le=180)
 
 
 class RestaurantUpdate(BaseModel):
@@ -18,6 +20,8 @@ class RestaurantUpdate(BaseModel):
     delivery_time_min: int | None = Field(default=None, ge=1, le=240)
     plan_code: str | None = None
     billing_status: str | None = None
+    lat: float | None = Field(default=None, ge=-90, le=90)
+    lng: float | None = Field(default=None, ge=-180, le=180)
 
 
 class MenuItemCreate(BaseModel):

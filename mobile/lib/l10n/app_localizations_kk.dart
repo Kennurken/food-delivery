@@ -383,7 +383,19 @@ class L10nKk extends L10n {
   String get labelOther => 'Басқа';
 
   @override
-  String get addressLine => 'Көше, үй, пәтер';
+  String get addressLine => 'Көше, үй';
+
+  @override
+  String get apt => 'Пәтер';
+
+  @override
+  String get entrance => 'Кіреберіс';
+
+  @override
+  String get floor => 'Қабат';
+
+  @override
+  String get intercom => 'Домофон';
 
   @override
   String get saveAddress => 'Мекенжайды сақтау';

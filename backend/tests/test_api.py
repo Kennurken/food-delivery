@@ -323,6 +323,35 @@ def test_set_default_address(client, auth):
 
 
 
+def test_address_details_roundtrip(client, auth):
+    r = client.post(
+        "/api/v1/me/addresses",
+        json={
+            "label": "Home",
+            "line": "Abay 10",
+            "apt": "12",
+            "entrance": "2",
+            "floor": "4",
+            "intercom": "12#",
+        },
+        headers=auth,
+    )
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["line"] == "Abay 10"
+    assert body["apt"] == "12"
+    assert body["entrance"] == "2"
+    assert body["floor"] == "4"
+    assert body["intercom"] == "12#"
+    blank = client.post(
+        "/api/v1/me/addresses",
+        json={"label": "Work", "line": "Dostyk 1", "apt": "  "},
+        headers=auth,
+    )
+    assert blank.status_code == 201, blank.text
+    assert blank.json()["apt"] is None
+
+
 def test_login_rate_limited(client, monkeypatch):
     from app.core.config import settings
     from app.core.ratelimit import limiter

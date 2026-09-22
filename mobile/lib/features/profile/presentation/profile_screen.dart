@@ -12,6 +12,7 @@ import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/profile_repository.dart';
+import '../domain/address.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -78,7 +79,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _addAddress() async {
-    final result = await showModalBottomSheet<(String, String)>(
+    final result = await showModalBottomSheet<AddressDraft>(
       context: context,
       isScrollControlled: true,
       builder: (_) => const _AddressSheet(),
@@ -87,7 +88,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       await ref
           .read(profileRepositoryProvider)
-          .addAddress(result.$1, result.$2);
+          .addAddress(
+            result.label,
+            result.line,
+            apt: result.apt,
+            entrance: result.entrance,
+            floor: result.floor,
+            intercom: result.intercom,
+          );
       Haptics.add();
       ref.invalidate(addressesProvider);
     } catch (e) {
@@ -282,7 +290,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                subtitle: Text(a.line),
+                                subtitle: Text(a.display(t)),
                                 trailing: a.isDefault
                                     ? Text(
                                         t.default_,
@@ -506,21 +514,42 @@ class _AddressSheet extends StatefulWidget {
 class _AddressSheetState extends State<_AddressSheet> {
   late final _label = TextEditingController(text: context.l10n.labelHome);
   final _line = TextEditingController();
+  final _apt = TextEditingController();
+  final _entrance = TextEditingController();
+  final _floor = TextEditingController();
+  final _intercom = TextEditingController();
 
   @override
   void dispose() {
-    _label.dispose();
-    _line.dispose();
+    for (final c in [_label, _line, _apt, _entrance, _floor, _intercom]) {
+      c.dispose();
+    }
     super.dispose();
+  }
+
+  String? _blank(String s) {
+    final t = s.trim();
+    return t.isEmpty ? null : t;
   }
 
   void _save() {
     if (_line.text.trim().length < 3) return;
-    Navigator.pop(context, (_label.text.trim(), _line.text.trim()));
+    Navigator.pop(
+      context,
+      AddressDraft(
+        label: _label.text.trim(),
+        line: _line.text.trim(),
+        apt: _blank(_apt.text),
+        entrance: _blank(_entrance.text),
+        floor: _blank(_floor.text),
+        intercom: _blank(_intercom.text),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = context.l10n;
     final text = Theme.of(context).textTheme;
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -529,44 +558,82 @@ class _AddressSheetState extends State<_AddressSheet> {
         24,
         24 + MediaQuery.viewInsetsOf(context).bottom,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            context.l10n.newAddress,
-            style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            children: [
-              for (final l in [
-                context.l10n.labelHome,
-                context.l10n.labelWork,
-                context.l10n.labelOther,
-              ])
-                ChoiceChip(
-                  label: Text(l),
-                  selected: _label.text == l,
-                  onSelected: (_) => setState(() => _label.text = l),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _line,
-            autofocus: true,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _save(),
-            decoration: InputDecoration(
-              labelText: context.l10n.addressLine,
-              prefixIcon: Icon(Icons.place_outlined),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              t.newAddress,
+              style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
-          ),
-          const SizedBox(height: 16),
-          FilledButton(onPressed: _save, child: Text(context.l10n.saveAddress)),
-        ],
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final l in [t.labelHome, t.labelWork, t.labelOther])
+                  ChoiceChip(
+                    label: Text(l),
+                    selected: _label.text == l,
+                    onSelected: (_) => setState(() => _label.text = l),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _line,
+              autofocus: true,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: t.addressLine,
+                prefixIcon: const Icon(Icons.place_outlined),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _apt,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(labelText: t.apt),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _entrance,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(labelText: t.entrance),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _floor,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(labelText: t.floor),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _intercom,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _save(),
+                    decoration: InputDecoration(labelText: t.intercom),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: _save, child: Text(t.saveAddress)),
+          ],
+        ),
       ),
     );
   }

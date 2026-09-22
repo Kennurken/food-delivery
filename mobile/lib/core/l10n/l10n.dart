@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../../features/orders/domain/order.dart';
+import '../../features/profile/domain/address.dart';
 import '../../l10n/app_localizations.dart';
 
 export '../../l10n/app_localizations.dart';
@@ -38,4 +39,18 @@ extension OrderStatusL10n on OrderStatus {
     OrderStatus.cancelled => t.actionCancel,
     OrderStatus.pending => t.statusPending,
   };
+}
+
+extension AddressL10n on Address {
+  String display(L10n t) => formatAddress(
+    line,
+    apt: apt,
+    entrance: entrance,
+    floor: floor,
+    intercom: intercom,
+    aptLabel: t.apt,
+    entranceLabel: t.entrance,
+    floorLabel: t.floor,
+    intercomLabel: t.intercom,
+  );
 }

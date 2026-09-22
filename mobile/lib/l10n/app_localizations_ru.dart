@@ -382,7 +382,19 @@ class L10nRu extends L10n {
   String get labelOther => 'Другое';
 
   @override
-  String get addressLine => 'Улица, дом, квартира';
+  String get addressLine => 'Улица, дом';
+
+  @override
+  String get apt => 'Кв.';
+
+  @override
+  String get entrance => 'Подъезд';
+
+  @override
+  String get floor => 'Этаж';
+
+  @override
+  String get intercom => 'Домофон';
 
   @override
   String get saveAddress => 'Сохранить адрес';

@@ -382,7 +382,19 @@ class L10nEn extends L10n {
   String get labelOther => 'Other';
 
   @override
-  String get addressLine => 'Street, building, apt';
+  String get addressLine => 'Street, building';
+
+  @override
+  String get apt => 'Apt';
+
+  @override
+  String get entrance => 'Entrance';
+
+  @override
+  String get floor => 'Floor';
+
+  @override
+  String get intercom => 'Intercom';
 
   @override
   String get saveAddress => 'Save address';

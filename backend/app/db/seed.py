@@ -129,6 +129,34 @@ def seed_catalog() -> int:
         return 3
 
 
+def ensure_address_columns() -> None:
+    """Prod deploys skip alembic; add KZ address fields if the table predates them."""
+    from sqlalchemy import inspect, text
+
+    from app.db.session import engine
+
+    insp = inspect(engine)
+    if "addresses" not in insp.get_table_names():
+        return
+    existing = {c["name"] for c in insp.get_columns("addresses")}
+    extras = (
+        ("apt", "VARCHAR(40)"),
+        ("entrance", "VARCHAR(40)"),
+        ("floor", "VARCHAR(20)"),
+        ("intercom", "VARCHAR(40)"),
+    )
+    missing = [(name, typ) for name, typ in extras if name not in existing]
+    if not missing:
+        return
+    dialect = engine.dialect.name
+    with engine.begin() as conn:
+        for name, typ in missing:
+            if dialect == "postgresql":
+                conn.execute(text(f"ALTER TABLE addresses ADD COLUMN IF NOT EXISTS {name} {typ}"))
+            else:
+                conn.execute(text(f"ALTER TABLE addresses ADD COLUMN {name} {typ}"))
+
+
 def ensure_menu_images() -> int:
     """Backfill dish photos on existing demo rows that were seeded without them."""
     wanted = {(r["name"], n): img for r in RESTAURANTS for n, _d, _p, _c, img in r["menu"]}

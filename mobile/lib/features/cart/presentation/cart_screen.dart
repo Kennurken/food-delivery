@@ -85,7 +85,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final saved = ref.watch(addressesProvider).value ?? const [];
     ref.listen(addressesProvider, (_, next) {
       final def = next.value?.where((a) => a.isDefault).firstOrNull;
-      if (def != null && _address.text.isEmpty) _address.text = def.line;
+      if (def != null && _address.text.isEmpty) {
+        _address.text = def.display(context.l10n);
+      }
     });
     final restaurant = cart.restaurantId == null
         ? null
@@ -192,7 +194,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       size: 18,
                     ),
                     label: Text(a.label),
-                    onPressed: () => setState(() => _address.text = a.line),
+                    onPressed: () =>
+                        setState(() => _address.text = a.display(t)),
                   ),
               ],
             ).stagger(idx++),

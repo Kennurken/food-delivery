@@ -816,8 +816,32 @@ abstract class L10n {
   /// No description provided for @addressLine.
   ///
   /// In en, this message translates to:
-  /// **'Street, building, apt'**
+  /// **'Street, building'**
   String get addressLine;
+
+  /// No description provided for @apt.
+  ///
+  /// In en, this message translates to:
+  /// **'Apt'**
+  String get apt;
+
+  /// No description provided for @entrance.
+  ///
+  /// In en, this message translates to:
+  /// **'Entrance'**
+  String get entrance;
+
+  /// No description provided for @floor.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor'**
+  String get floor;
+
+  /// No description provided for @intercom.
+  ///
+  /// In en, this message translates to:
+  /// **'Intercom'**
+  String get intercom;
 
   /// No description provided for @saveAddress.
   ///

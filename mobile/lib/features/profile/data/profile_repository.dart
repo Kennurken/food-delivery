@@ -36,11 +36,23 @@ class ProfileRepository {
   Future<Address> addAddress(
     String label,
     String line, {
+    String? apt,
+    String? entrance,
+    String? floor,
+    String? intercom,
     bool isDefault = false,
   }) async {
     final r = await _dio.post(
       '/api/v1/me/addresses',
-      data: {'label': label, 'line': line, 'is_default': isDefault},
+      data: {
+        'label': label,
+        'line': line,
+        'is_default': isDefault,
+        'apt': ?apt,
+        'entrance': ?entrance,
+        'floor': ?floor,
+        'intercom': ?intercom,
+      },
     );
     return Address.fromJson(r.data);
   }

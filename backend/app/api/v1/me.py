@@ -42,7 +42,16 @@ def add_address(data: AddressCreate, db: DB, user: CurrentUser) -> Address:
     if make_default:
         for a in user.addresses:
             a.is_default = False
-    addr = Address(user_id=user.id, label=data.label, line=data.line, is_default=make_default)
+    addr = Address(
+        user_id=user.id,
+        label=data.label,
+        line=data.line,
+        apt=data.apt,
+        entrance=data.entrance,
+        floor=data.floor,
+        intercom=data.intercom,
+        is_default=make_default,
+    )
     db.add(addr)
     db.commit()
     db.refresh(addr)

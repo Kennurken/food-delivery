@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
 
+import '../../../core/theme/buttons.dart';
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
@@ -60,8 +61,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     super.dispose();
   }
 
-  bool _blocked(CartState cart, Restaurant? restaurant) {
+  bool _blocked(
+    CartState cart,
+    Restaurant? restaurant, {
+    bool outOfRange = false,
+  }) {
     if (cart.isDineIn) return false;
+    // The server refuses an address outside the radius; don't let the button
+    // promise an order it is going to bounce.
+    if (outOfRange) return true;
     if (restaurant == null) return false;
     return !restaurant.allowsDelivery && !restaurant.allowsPickup;
   }
@@ -239,9 +247,26 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         });
       }
     }
+    // Delivery is priced by the ride, so the cart asks the server rather than
+    // showing the restaurant's base fee and surprising the customer at checkout.
+    final target = DeliveryTarget(
+      restaurantId: cart.restaurantId ?? 0,
+      lat: cart.destLat,
+      lng: cart.destLng,
+      address: _address.text.trim(),
+    );
+    final wantsQuote =
+        !cart.isDineIn &&
+        !cart.isPickup &&
+        cart.restaurantId != null &&
+        target.hasTarget;
+    final quote = wantsQuote
+        ? ref.watch(deliveryQuoteProvider(target)).value
+        : null;
     final fee = (cart.isDineIn || cart.isPickup)
         ? 0.0
-        : (restaurant?.deliveryFee ?? 0);
+        : (quote?.fee ?? restaurant?.deliveryFee ?? 0);
+    final outOfRange = quote?.outOfRange ?? false;
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
@@ -459,6 +484,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: FilledButton.tonal(
+                  // Theme CTAs stretch full width; inside a Row that is infinite.
+                  style: AppButtons.inline,
                   onPressed: _quoting ? null : _applyPromo,
                   child: Text(t.applyPromo),
                 ),
@@ -526,6 +553,48 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 children: [
                   _Row(t.subtotal, formatMoney(cart.subtotal)),
                   if (fee > 0) _Row(t.delivery, formatMoney(fee)),
+                  if (quote != null && quote.isMetered)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2, bottom: 2),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              t.deliveryDistance(
+                                quote.distanceKm!.toStringAsFixed(1),
+                              ),
+                              style: text.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (outOfRange)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 16,
+                            color: scheme.error,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              t.outOfDeliveryRange(
+                                (quote?.maxKm ?? 0).toStringAsFixed(0),
+                              ),
+                              style: text.bodySmall?.copyWith(
+                                color: scheme.error,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   if (cart.promoDiscount > 0)
                     _Row(t.discount, '-${formatMoney(cart.promoDiscount)}'),
                   const Divider(height: 20),
@@ -540,9 +609,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Pressable(
-            onTap: _submitting || _blocked(cart, restaurant) ? null : _checkout,
+            onTap:
+                _submitting ||
+                    _blocked(cart, restaurant, outOfRange: outOfRange)
+                ? null
+                : _checkout,
             child: FilledButton(
-              onPressed: _submitting || _blocked(cart, restaurant)
+              onPressed:
+                  _submitting ||
+                      _blocked(cart, restaurant, outOfRange: outOfRange)
                   ? null
                   : _checkout,
               child: AnimatedSwitcher(

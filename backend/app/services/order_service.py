@@ -24,6 +24,7 @@ from app.models.floor_plan import FloorObject
 from app.models.idempotency import IdempotencyRecord
 from app.models.member import RestaurantMember
 from app.schemas.order import OrderCreate, OrderOut
+from app.services import delivery_pricing
 from app.services import promo as promo_service
 from app.services.schedule import due_for_courier, parse_slot
 
@@ -281,6 +282,15 @@ def create_order(
             hit = resolve_point(address, lat=pickup_lat, lng=pickup_lng)
             if hit:
                 dest_lat, dest_lng = hit.lat, hit.lng
+        # The server prices the ride; the cart only ever quotes it.
+        priced = delivery_pricing.quote(restaurant, dest_lat, dest_lng)
+        if priced.out_of_range:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                f"This address is {priced.distance_km} km out; "
+                f"{restaurant.name} delivers up to {priced.max_km} km.",
+            )
+        delivery_fee = priced.fee
 
     total = round(max(subtotal + delivery_fee - discount, 0), 2)
     pay_status = "unpaid"

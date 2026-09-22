@@ -355,5 +355,7 @@
   "overview": "Обзор",
   "staff": "Сотрудники",
   "rating": "Рейтинг",
-  "billingConnected": "Оплата картой через {provider}"
+  "billingConnected": "Оплата картой через {provider}",
+  "deliveryDistance": "{km} км от кухни",
+  "outOfDeliveryRange": "Слишком далеко — ресторан возит до {km} км."
 }

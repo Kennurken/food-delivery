@@ -446,5 +446,21 @@
         "type": "String"
       }
     }
+  },
+  "deliveryDistance": "{km} km from the kitchen",
+  "@deliveryDistance": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "outOfDeliveryRange": "Too far — this restaurant delivers up to {km} km.",
+  "@outOfDeliveryRange": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
   }
 }

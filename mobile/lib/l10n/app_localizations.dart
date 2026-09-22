@@ -1838,6 +1838,18 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Card payments via {provider}'**
   String billingConnected(String provider);
+
+  /// No description provided for @deliveryDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km from the kitchen'**
+  String deliveryDistance(String km);
+
+  /// No description provided for @outOfDeliveryRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Too far — this restaurant delivers up to {km} km.'**
+  String outOfDeliveryRange(String km);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

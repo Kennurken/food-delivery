@@ -930,4 +930,14 @@ class L10nEn extends L10n {
   String billingConnected(String provider) {
     return 'Card payments via $provider';
   }
+
+  @override
+  String deliveryDistance(String km) {
+    return '$km km from the kitchen';
+  }
+
+  @override
+  String outOfDeliveryRange(String km) {
+    return 'Too far — this restaurant delivers up to $km km.';
+  }
 }

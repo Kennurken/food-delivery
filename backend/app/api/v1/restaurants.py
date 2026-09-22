@@ -2,10 +2,12 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import exists, or_, select
 
 from app.api.deps import DB
+from app.core.geo import resolve_point, valid_coord
 from app.models import MenuItem, Restaurant
 from app.schemas.admin import PromoQuote
 from app.schemas.reservation import TableOut
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
+from app.services import delivery_pricing
 from app.services import reservation as reserve_service
 from app.services.promo import quote as quote_promo
 from app.services.restaurant_view import to_detail, to_out
@@ -95,3 +97,22 @@ def list_tables(restaurant_id: int, db: DB) -> list[dict]:
     if not restaurant:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
     return reserve_service.list_tables(db, restaurant)
+
+
+@router.get("/{restaurant_id}/delivery-quote")
+def delivery_quote(
+    restaurant_id: int,
+    db: DB,
+    lat: float | None = Query(default=None, ge=-90, le=90),
+    lng: float | None = Query(default=None, ge=-180, le=180),
+    address: str | None = Query(default=None, max_length=300),
+) -> dict:
+    """What this door costs to reach. The cart shows it before the customer pays."""
+    restaurant = db.get(Restaurant, restaurant_id)
+    if not restaurant:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
+    if not valid_coord(lat, lng) and address:
+        hit = resolve_point(address, lat=restaurant.lat, lng=restaurant.lng)
+        if hit:
+            lat, lng = hit.lat, hit.lng
+    return delivery_pricing.quote(restaurant, lat, lng).as_dict()

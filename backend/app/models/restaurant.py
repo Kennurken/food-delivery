@@ -14,7 +14,11 @@ class Restaurant(Base):
     image_url: Mapped[str | None] = mapped_column(String(500))
     rating: Mapped[float] = mapped_column(Float, default=0.0)
     rating_count: Mapped[int] = mapped_column(Integer, default=0)
+    # Delivery pricing. per_km = 0 keeps the flat fee this column always meant.
     delivery_fee: Mapped[float] = mapped_column(Float, default=0.0)
+    delivery_fee_per_km: Mapped[float] = mapped_column(Float, default=0.0)
+    delivery_free_km: Mapped[float] = mapped_column(Float, default=0.0)
+    delivery_max_km: Mapped[float | None] = mapped_column(Float, nullable=True)
     delivery_time_min: Mapped[int] = mapped_column(Integer, default=30)
     is_open: Mapped[bool] = mapped_column(Boolean, default=True)
     # Restaurant is the tenant. Plan codes are keys in app.core.features.PLANS.

@@ -930,4 +930,14 @@ class L10nRu extends L10n {
   String billingConnected(String provider) {
     return 'Оплата картой через $provider';
   }
+
+  @override
+  String deliveryDistance(String km) {
+    return '$km км от кухни';
+  }
+
+  @override
+  String outOfDeliveryRange(String km) {
+    return 'Слишком далеко — ресторан возит до $km км.';
+  }
 }

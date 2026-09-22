@@ -47,6 +47,9 @@ class RestaurantOut(BaseModel):
     rating: float
     rating_count: int
     delivery_fee: float
+    delivery_fee_per_km: float = 0
+    delivery_free_km: float = 0
+    delivery_max_km: float | None = None
     delivery_time_min: int
     is_open: bool
     plan_code: str = "pro"

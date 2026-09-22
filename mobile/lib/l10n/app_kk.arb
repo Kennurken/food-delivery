@@ -355,5 +355,7 @@
   "overview": "Шолу",
   "staff": "Қызметкерлер",
   "rating": "Рейтинг",
-  "billingConnected": "Картамен төлеу — {provider}"
+  "billingConnected": "Картамен төлеу — {provider}",
+  "deliveryDistance": "Асханадан {km} км",
+  "outOfDeliveryRange": "Тым алыс — мейрамхана {km} км дейін жеткізеді."
 }

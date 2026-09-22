@@ -273,6 +273,60 @@ def ensure_demo_owners() -> int:
     return made
 
 
+def ensure_delivery_pricing_schema() -> None:
+    """Per-km delivery columns for hosts that boot without alembic."""
+    from sqlalchemy import text
+
+    from app.db.session import engine
+
+    wanted = (
+        ("delivery_fee_per_km", "FLOAT DEFAULT 0"),
+        ("delivery_free_km", "FLOAT DEFAULT 0"),
+        ("delivery_max_km", "FLOAT"),
+    )
+    with engine.begin() as conn:
+        have = {r[1] for r in conn.execute(text("PRAGMA table_info(restaurants)"))} if engine.dialect.name == "sqlite" else set()
+        if engine.dialect.name != "sqlite":
+            rows = conn.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name = 'restaurants'"
+                )
+            )
+            have = {r[0] for r in rows}
+        for name, kind in wanted:
+            if name not in have:
+                conn.execute(text(f"ALTER TABLE restaurants ADD COLUMN {name} {kind}"))
+
+
+# Demo pricing: a base fee plus per-km past the first couple of kilometres.
+_DEMO_DELIVERY_PRICING: dict[str, tuple[float, float, float]] = {
+    # restaurant name -> (per_km, free_km, max_km)
+    "Bao Bar": (120, 2, 15),
+    "Pizza Roma": (100, 3, 20),
+    "Burger Lab": (140, 1.5, 12),
+}
+
+
+def ensure_demo_delivery_pricing() -> int:
+    """Give the demo venues a distance-based tariff so the quote is visible."""
+    from app.models.restaurant import Restaurant
+
+    ensure_delivery_pricing_schema()
+    changed = 0
+    with SessionLocal() as db:
+        for name, (per_km, free_km, max_km) in _DEMO_DELIVERY_PRICING.items():
+            restaurant = db.scalar(select(Restaurant).where(Restaurant.name == name))
+            if restaurant is None or (restaurant.delivery_fee_per_km or 0) > 0:
+                continue
+            restaurant.delivery_fee_per_km = per_km
+            restaurant.delivery_free_km = free_km
+            restaurant.delivery_max_km = max_km
+            changed += 1
+        db.commit()
+    return changed
+
+
 def ensure_favorites_table() -> None:
     """Prod deploys skip alembic; create the favorites table if missing."""
     from app.db.session import engine
@@ -707,6 +761,9 @@ def seed() -> None:
     owners = ensure_demo_owners()
     if owners:
         print(f"Restaurant owners: linked {owners}")
+    tariffs = ensure_demo_delivery_pricing()
+    if tariffs:
+        print(f"Delivery tariffs: set {tariffs}")
     print("Already seeded" if added == 0 else "Seeded: 3 users, 3 restaurants, 9 menu items")
 
 
@@ -733,6 +790,7 @@ if __name__ == "__main__":
         ensure_chat_schema()
         ensure_reservations_schema()
         floors = ensure_demo_floor_plan()
+        ensure_delivery_pricing_schema()
         print(f"Catalog: {'seeded' if n else 'already present'}")
         if floors:
             print(f"Floor plans: seeded {floors}")

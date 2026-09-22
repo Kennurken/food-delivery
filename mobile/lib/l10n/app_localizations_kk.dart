@@ -929,4 +929,14 @@ class L10nKk extends L10n {
   String billingConnected(String provider) {
     return 'Картамен төлеу — $provider';
   }
+
+  @override
+  String deliveryDistance(String km) {
+    return 'Асханадан $km км';
+  }
+
+  @override
+  String outOfDeliveryRange(String km) {
+    return 'Тым алыс — мейрамхана $km км дейін жеткізеді.';
+  }
 }

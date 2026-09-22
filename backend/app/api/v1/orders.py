@@ -3,7 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Header, HTTPException, Query, status
 from sqlalchemy import select
 
-from app.api.deps import DB, AdminUser, CourierUser, CurrentUser
+from app.api.deps import DB, CourierUser, CurrentUser
+from app.core.access import require_restaurant
 from app.models import Order, OrderStatus, UserRole
 from app.schemas.order import OrderCreate, OrderOut, OrderRate, OrderStatusUpdate
 from app.services import order_service
@@ -27,10 +28,14 @@ def my_orders(
     user: CurrentUser,
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    restaurant_id: int | None = None,
 ) -> list[Order]:
-    """Customer: own orders. Courier: assigned orders. Admin: everything. Newest first."""
+    """Customer: own orders. Courier: assigned. Kitchen/admin: a venue's tickets."""
     stmt = select(Order).order_by(Order.created_at.desc(), Order.id.desc()).limit(limit).offset(offset)
-    if user.role == UserRole.customer:
+    if restaurant_id is not None:
+        require_restaurant(db, user, restaurant_id, "orders.read")
+        stmt = stmt.where(Order.restaurant_id == restaurant_id)
+    elif user.role == UserRole.customer:
         stmt = stmt.where(Order.user_id == user.id)
     elif user.role == UserRole.courier:
         stmt = stmt.where(Order.courier_id == user.id)
@@ -75,6 +80,12 @@ def get_order(order_id: int, db: DB, user: CurrentUser) -> Order:
     visible = order and (
         user.role == UserRole.admin or order.user_id == user.id or order.courier_id == user.id
     )
+    if order and not visible:
+        try:
+            require_restaurant(db, user, order.restaurant_id, "orders.read")
+            visible = True
+        except HTTPException:
+            visible = False
     if not visible:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")
     return order
@@ -94,5 +105,7 @@ def rate_order(order_id: int, data: OrderRate, db: DB, user: CurrentUser) -> Ord
 
 
 @router.patch("/{order_id}/status", response_model=OrderOut)
-def set_status(order_id: int, data: OrderStatusUpdate, db: DB, _: AdminUser) -> Order:
-    return order_service.update_status(db, _get_or_404(db, order_id), data.status)
+def set_status(order_id: int, data: OrderStatusUpdate, db: DB, user: CurrentUser) -> Order:
+    order = _get_or_404(db, order_id)
+    require_restaurant(db, user, order.restaurant_id, "orders.manage")
+    return order_service.update_status(db, order, data.status)

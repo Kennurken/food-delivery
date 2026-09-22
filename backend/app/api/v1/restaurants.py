@@ -4,6 +4,7 @@ from sqlalchemy import exists, or_, select
 from app.api.deps import DB
 from app.models import MenuItem, Restaurant
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
+from app.services.restaurant_view import to_detail, to_out
 
 router = APIRouter(prefix="/restaurants", tags=["restaurants"])
 
@@ -22,7 +23,7 @@ def list_restaurants(
     cuisine: str | None = None,
     q: str | None = Query(default=None, min_length=1),
     sort: str = Query(default="rating", pattern="^(rating|eta|fee)$"),
-) -> list[Restaurant]:
+) -> list[RestaurantOut]:
     stmt = select(Restaurant).where(Restaurant.is_open.is_(True))
     if cuisine:
         stmt = stmt.where(Restaurant.cuisine == cuisine)
@@ -35,7 +36,7 @@ def list_restaurants(
                 exists().where(MenuItem.restaurant_id == Restaurant.id, MenuItem.name.ilike(like)),
             )
         )
-    return list(db.scalars(stmt.order_by(_order(sort), Restaurant.id)))
+    return [to_out(db, r) for r in db.scalars(stmt.order_by(_order(sort), Restaurant.id))]
 
 
 @router.get("/cuisines", response_model=list[str])
@@ -45,11 +46,11 @@ def list_cuisines(db: DB) -> list[str]:
 
 
 @router.get("/{restaurant_id}", response_model=RestaurantDetail)
-def get_restaurant(restaurant_id: int, db: DB) -> Restaurant:
+def get_restaurant(restaurant_id: int, db: DB) -> RestaurantDetail:
     r = db.get(Restaurant, restaurant_id)
     if not r:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
-    return r
+    return to_detail(db, r)
 
 
 @router.get("/{restaurant_id}/menu", response_model=list[MenuItemOut])

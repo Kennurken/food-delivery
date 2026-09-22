@@ -73,6 +73,7 @@ def require_restaurant(db: Session, user: User, restaurant_id: int, permission: 
         select(RestaurantMember).where(
             RestaurantMember.user_id == user.id,
             RestaurantMember.restaurant_id == restaurant_id,
+            RestaurantMember.is_active.is_(True),
         )
     )
     if not member:

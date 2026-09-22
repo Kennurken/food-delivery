@@ -131,11 +131,79 @@ def test_qr_table_order(client, auth, admin, courier):
     assert oid not in [o["id"] for o in client.get("/api/v1/orders/available", headers=courier).json()]
     assert client.patch(f"/api/v1/orders/{oid}/status", json={"status": "confirmed"}, headers=admin).status_code == 200
     assert client.patch(f"/api/v1/orders/{oid}/status", json={"status": "preparing"}, headers=admin).status_code == 200
-    skip = client.patch(f"/api/v1/orders/{oid}/status", json={"status": "on_the_way"}, headers=admin)
-    assert skip.status_code == 409
+    ready = client.patch(f"/api/v1/orders/{oid}/status", json={"status": "on_the_way"}, headers=admin)
+    assert ready.status_code == 200, ready.text
+    assert ready.json()["status"] == "on_the_way"
     done = client.patch(f"/api/v1/orders/{oid}/status", json={"status": "delivered"}, headers=admin)
     assert done.status_code == 200, done.text
     assert done.json()["status"] == "delivered"
+
+
+def test_pickup_and_kitchen_board(client, auth, admin, courier):
+    listed = client.get("/api/v1/restaurants/1").json()
+    assert listed["channels"] == ["delivery", "pickup", "qr_table"]
+
+    menu = client.get("/api/v1/restaurants/1/menu").json()
+    r = client.post(
+        "/api/v1/orders",
+        json={
+            "restaurant_id": 1,
+            "channel": "pickup",
+            "items": [{"menu_item_id": menu[0]["id"], "quantity": 1}],
+        },
+        headers=auth,
+    )
+    assert r.status_code == 201, r.text
+    order = r.json()
+    assert order["channel"] == "pickup"
+    assert order["delivery_fee"] == 0
+    assert order["total"] == order["subtotal"]
+    assert order["address"].startswith("Pickup")
+    oid = order["id"]
+    assert oid not in [o["id"] for o in client.get("/api/v1/orders/available", headers=courier).json()]
+    assert client.post(f"/api/v1/orders/{oid}/accept", headers=courier).status_code == 409
+    assert client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=auth).status_code == 403
+
+    board = client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=admin)
+    assert board.status_code == 200
+    assert oid in [o["id"] for o in board.json()]
+
+    cook = client.post(
+        "/api/v1/auth/register",
+        json={"email": "cook-kds@x.com", "name": "Cook", "password": "secret1"},
+    )
+    assert cook.status_code == 201
+    kitchen = {"Authorization": f"Bearer {cook.json()['access_token']}"}
+    assert client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=kitchen).status_code == 403
+    added = client.post(
+        "/api/v1/admin/restaurants/1/staff",
+        json={"email": "cook-kds@x.com", "role": "kitchen"},
+        headers=admin,
+    )
+    assert added.status_code == 201, added.text
+    tickets = client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=kitchen)
+    assert tickets.status_code == 200
+    assert oid in [o["id"] for o in tickets.json()]
+    assert oid not in [o["id"] for o in client.get("/api/v1/orders", headers=kitchen).json()]
+
+    other_menu = client.get("/api/v1/restaurants/2/menu").json()
+    other = client.post(
+        "/api/v1/orders",
+        json={
+            "restaurant_id": 2,
+            "address": "Dostyk 1",
+            "items": [{"menu_item_id": other_menu[0]["id"], "quantity": 1}],
+        },
+        headers=auth,
+    ).json()
+    assert client.patch(
+        f"/api/v1/orders/{other['id']}/status", json={"status": "confirmed"}, headers=kitchen
+    ).status_code == 403
+
+    for expected in ("confirmed", "preparing", "on_the_way", "delivered"):
+        step = client.patch(f"/api/v1/orders/{oid}/status", json={"status": expected}, headers=kitchen)
+        assert step.status_code == 200, step.text
+        assert step.json()["status"] == expected
 
 
 def test_basic_plan_blocks_delivery(client, auth, admin):
@@ -158,6 +226,18 @@ def test_basic_plan_blocks_delivery(client, auth, admin):
         headers=auth,
     )
     assert blocked.status_code == 403
+    pickup = client.post(
+        "/api/v1/orders",
+        json={
+            "restaurant_id": rid,
+            "channel": "pickup",
+            "items": [{"menu_item_id": item["id"], "quantity": 1}],
+        },
+        headers=auth,
+    )
+    assert pickup.status_code == 403
+    pub = client.get(f"/api/v1/restaurants/{rid}").json()
+    assert pub["channels"] == ["qr_table"]
 
     client.put(
         f"/api/v1/admin/restaurants/{rid}/features",

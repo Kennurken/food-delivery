@@ -9,6 +9,7 @@ from app.core.features import DEFAULT_PLAN, PLANS
 from app.models import MenuItem, Restaurant
 from app.schemas.admin import MenuItemCreate, MenuItemUpdate, RestaurantCreate, RestaurantUpdate
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
+from app.services.restaurant_view import to_detail, to_out
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -23,7 +24,7 @@ def _restaurant_or_404(db, restaurant_id: int) -> Restaurant:
 
 
 @router.post("/restaurants", response_model=RestaurantOut, status_code=status.HTTP_201_CREATED)
-def create_restaurant(data: RestaurantCreate, db: DB, user: AdminUser, request: Request) -> Restaurant:
+def create_restaurant(data: RestaurantCreate, db: DB, user: AdminUser, request: Request) -> RestaurantOut:
     payload = data.model_dump()
     r = Restaurant(**payload, plan_code=DEFAULT_PLAN)
     db.add(r)
@@ -39,24 +40,24 @@ def create_restaurant(data: RestaurantCreate, db: DB, user: AdminUser, request: 
     )
     db.commit()
     db.refresh(r)
-    return r
+    return to_out(db, r)
 
 
 @router.get("/restaurants", response_model=list[RestaurantOut])
-def all_restaurants(db: DB, _: AdminUser) -> list[Restaurant]:
+def all_restaurants(db: DB, _: AdminUser) -> list[RestaurantOut]:
     """Includes closed restaurants (public listing hides them)."""
-    return list(db.scalars(select(Restaurant).order_by(Restaurant.name)))
+    return [to_out(db, r) for r in db.scalars(select(Restaurant).order_by(Restaurant.name))]
 
 
 @router.get("/restaurants/{restaurant_id}", response_model=RestaurantDetail)
-def restaurant_detail(restaurant_id: int, db: DB, _: AdminUser) -> Restaurant:
-    return _restaurant_or_404(db, restaurant_id)
+def restaurant_detail(restaurant_id: int, db: DB, _: AdminUser) -> RestaurantDetail:
+    return to_detail(db, _restaurant_or_404(db, restaurant_id))
 
 
 @router.patch("/restaurants/{restaurant_id}", response_model=RestaurantOut)
 def update_restaurant(
     restaurant_id: int, data: RestaurantUpdate, db: DB, user: AdminUser, request: Request
-) -> Restaurant:
+) -> RestaurantOut:
     r = _restaurant_or_404(db, restaurant_id)
     updates = data.model_dump(exclude_unset=True)
     if "plan_code" in updates:
@@ -77,7 +78,7 @@ def update_restaurant(
         setattr(r, k, v)
     db.commit()
     db.refresh(r)
-    return r
+    return to_out(db, r)
 
 
 @router.post(

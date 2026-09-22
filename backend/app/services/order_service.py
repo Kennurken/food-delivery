@@ -4,12 +4,14 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.access import has_permission
 from app.core.events import hub
 from app.core.features import INACTIVE_BILLING, entitlements
 from app.core.qr import parse_table_token
 from app.models import MenuItem, Order, OrderItem, OrderStatus, Restaurant, User, UserRole
 from app.models.floor_plan import FloorObject
 from app.models.idempotency import IdempotencyRecord
+from app.models.member import RestaurantMember
 from app.schemas.order import OrderCreate, OrderOut
 
 # Statuses a courier can pick up from
@@ -22,14 +24,24 @@ def _is_delivery(order: Order) -> bool:
 
 
 def notify(db: Session, order: Order) -> None:
-    """Push the order snapshot to the customer, assigned courier, and admins.
+    """Push the order snapshot to whoever is watching it.
 
-    Unassigned pickable orders also go to every courier so the available-pool
-    banner still fires — they do not see other couriers' in-flight deliveries.
-    Dine-in / pickup never hits the courier pool.
+    Customer, restaurant staff with orders.read, platform admins, assigned
+    courier. Unassigned delivery tickets also go to every courier so the
+    available-pool banner still fires. Pickup / table never hit that pool.
     """
     admins = set(db.scalars(select(User.id).where(User.role == UserRole.admin)))
-    targets = admins | {order.user_id}
+    staff = {
+        m.user_id
+        for m in db.scalars(
+            select(RestaurantMember).where(
+                RestaurantMember.restaurant_id == order.restaurant_id,
+                RestaurantMember.is_active.is_(True),
+            )
+        )
+        if has_permission(m.role, "orders.read")
+    }
+    targets = admins | staff | {order.user_id}
     if order.courier_id:
         targets.add(order.courier_id)
     elif _is_delivery(order) and order.status in COURIER_PICKABLE:
@@ -50,10 +62,7 @@ _TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
 
 
 def _allowed(order: Order, new_status: OrderStatus) -> bool:
-    allowed = set(_TRANSITIONS[order.status])
-    if not _is_delivery(order) and order.status == OrderStatus.preparing:
-        allowed = {OrderStatus.delivered, OrderStatus.cancelled}
-    return new_status in allowed
+    return new_status in _TRANSITIONS[order.status]
 
 
 def _resolve_table(db: Session, token: str, restaurant_id: int) -> FloorObject:
@@ -108,6 +117,12 @@ def create_order(
         channel = "qr_table"
         table_object_id = obj.id
         address = obj.name or f"Table {obj.id}"
+        delivery_fee = 0
+    elif data.channel == "pickup":
+        if not flags.enabled("pickup.enabled"):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Pickup is not on this plan")
+        channel = "pickup"
+        address = f"Pickup · {restaurant.name}"
         delivery_fee = 0
     else:
         if not flags.enabled("delivery.enabled"):

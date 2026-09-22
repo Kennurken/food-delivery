@@ -155,3 +155,15 @@ def entitlements(db: Session, restaurant: Restaurant) -> Entitlements:
 def cache_key(restaurant_id: int, *parts: object) -> str:
     """Tenant-aware cache key. Use this even before Redis exists."""
     return "tenant:" + ":".join(str(p) for p in (restaurant_id, *parts))
+
+
+def channels_of(ent: Entitlements) -> list[str]:
+    """How customers may place an order here. Empty means catalog-only."""
+    out: list[str] = []
+    if ent.enabled("delivery.enabled"):
+        out.append("delivery")
+    if ent.enabled("pickup.enabled"):
+        out.append("pickup")
+    if ent.enabled("table.ordering"):
+        out.append("qr_table")
+    return out

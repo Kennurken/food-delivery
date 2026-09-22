@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MenuItemOut(BaseModel):
@@ -28,6 +28,7 @@ class RestaurantOut(BaseModel):
     delivery_time_min: int
     is_open: bool
     plan_code: str = "pro"
+    channels: list[str] = Field(default_factory=lambda: ["delivery"])
 
 
 class RestaurantDetail(RestaurantOut):

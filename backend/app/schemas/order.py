@@ -14,15 +14,18 @@ class OrderCreate(BaseModel):
     restaurant_id: int
     address: str | None = Field(default=None, min_length=3, max_length=300)
     qr_token: str | None = Field(default=None, max_length=200)
+    channel: str | None = Field(default=None, pattern="^(delivery|pickup)$")
     comment: str | None = Field(default=None, max_length=500)
     items: list[OrderItemCreate] = Field(min_length=1)
 
     @model_validator(mode="after")
-    def address_or_table(self) -> "OrderCreate":
+    def destination(self) -> "OrderCreate":
         if (self.qr_token or "").strip():
             return self
+        if self.channel == "pickup":
+            return self
         if not self.address:
-            raise ValueError("Provide a delivery address or a table QR token")
+            raise ValueError("Provide a delivery address, pickup, or a table QR token")
         return self
 
 

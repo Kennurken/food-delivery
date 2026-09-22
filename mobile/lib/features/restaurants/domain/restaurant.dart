@@ -13,6 +13,7 @@ class Restaurant {
     required this.isOpen,
     this.imageUrl,
     this.menu = const [],
+    this.planCode,
   });
 
   final int id;
@@ -25,6 +26,7 @@ class Restaurant {
   final double deliveryFee;
   final int deliveryTimeMin;
   final bool isOpen;
+  final String? planCode;
   final List<MenuItem> menu;
 
   factory Restaurant.fromJson(Map<String, dynamic> json) => Restaurant(
@@ -38,6 +40,7 @@ class Restaurant {
     deliveryFee: (json['delivery_fee'] as num).toDouble(),
     deliveryTimeMin: json['delivery_time_min'] as int,
     isOpen: json['is_open'] as bool,
+    planCode: json['plan_code'] as String?,
     menu: (json['menu_items'] as List<dynamic>? ?? [])
         .map((e) => MenuItem.fromJson(e as Map<String, dynamic>))
         .toList(),

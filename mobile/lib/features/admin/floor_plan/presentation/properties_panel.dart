@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/api/api_client.dart';
+import '../data/floor_plan_repository.dart';
 import '../domain/geometry.dart';
 import '../domain/models.dart';
 import 'editor_controller.dart';
@@ -281,6 +284,8 @@ class _ObjectProps extends StatelessWidget {
               value: n.mergeable,
               onChanged: (v) => editor.patchPrimary((o) => o.mergeable = v),
             ),
+            if (n.id > 0 && editor.doc != null)
+              _TableQrButton(floorId: editor.doc!.id, objectId: n.id),
           ],
           if (editor.selected.length > 1) ...[
             const SizedBox(height: 8),
@@ -426,4 +431,52 @@ Widget _intField(
       if (n != null) on(n);
     },
   );
+}
+
+class _TableQrButton extends ConsumerStatefulWidget {
+  const _TableQrButton({required this.floorId, required this.objectId});
+
+  final int floorId;
+  final int objectId;
+
+  @override
+  ConsumerState<_TableQrButton> createState() => _TableQrButtonState();
+}
+
+class _TableQrButtonState extends ConsumerState<_TableQrButton> {
+  var _busy = false;
+
+  Future<void> _copy() async {
+    setState(() => _busy = true);
+    try {
+      final token = await FloorPlanRepository(ref.read(dioProvider))
+          .tableQr(widget.floorId, widget.objectId);
+      final uri = Uri.base;
+      final link = uri.hasScheme ? '${uri.origin}/#/t/$token' : '/t/$token';
+      await Clipboard.setData(ClipboardData(text: link));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Copied')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: OutlinedButton.icon(
+        onPressed: _busy ? null : _copy,
+        icon: const Icon(Icons.qr_code_2, size: 18),
+        label: Text(_busy ? '…' : 'Copy table QR'),
+      ),
+    );
+  }
 }

@@ -10,6 +10,8 @@ Do **not** rebuild as a Firebase clone. The stack (Flutter + FastAPI + Neon, thr
 
 **Shipped 21 Sep 2026:** web column ~560px, customer sliding-pill bottom nav, dish photos + dish search, persist cart, reduced motion, empty-cart CTA, login password visibility, reorder, home sort + Popular, KZ address extras, admin add-restaurant, favorite restaurants, admin floor-plan editor.
 
+**Shipped 22 Sep 2026:** tenant = restaurant, plan entitlements, table QR (`/t/:token`), dine-in orders, membership isolation, platform counts (no fake MRR).
+
 **Next slice (no keys):** item modifiers (size / extras) — needs an `OrderItem` snapshot migrate. Skip COD/maps/FCM/Kaspi unless asked.
 
 ## What we already have
@@ -68,6 +70,7 @@ Clones almost never implement: Uber One / Glovo Prime / Wolt+; scheduled slots; 
 | KZ address | `Address.line` plus apt / entrance / floor / intercom | Yes | Done |
 | Admin create restaurant | `POST /admin/restaurants` + FAB | Yes | Done |
 | Floor plan editor | Admin canvas: floors, zones, tables, save/undo | Medium | Done |
+| Tenant / plans / QR table order | Restaurant membership + entitlements + `/t/:token` | Medium | Done |
 | COD | Place order = done | Yes | Open |
 | Maps / FCM / Kaspi | Blocked until keys | No | Wait |
 
@@ -83,6 +86,7 @@ UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.c
 6. ~~Structured address; admin “add restaurant” dialog (API exists).~~
 7. ~~Favorites.~~
 8. ~~Admin floor-plan editor.~~
-9. Item options when we are willing to migrate. Medusa workflow steps stay our status machine — keep WebSocket.
-10. Map, FCM, Kaspi/Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
-11. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.
+9. ~~QR table ordering + plan entitlements.~~
+10. Item options when we are willing to migrate. Medusa workflow steps stay our status machine — keep WebSocket.
+11. Map, FCM, Kaspi/Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
+12. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.

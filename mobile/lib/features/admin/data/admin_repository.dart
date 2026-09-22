@@ -50,6 +50,18 @@ class AdminRepository {
   }
 
   Future<void> deleteMenuItem(int id) => _dio.delete('/api/v1/admin/menu/$id');
+
+  Future<Map<String, dynamic>> overview() async {
+    final r = await _dio.get('/api/v1/platform/overview');
+    return r.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> workspace(int restaurantId) async {
+    final r = await _dio.get(
+      '/api/v1/admin/restaurants/$restaurantId/workspace',
+    );
+    return r.data as Map<String, dynamic>;
+  }
 }
 
 final adminRepositoryProvider = Provider(
@@ -63,3 +75,12 @@ final adminRestaurantsProvider = FutureProvider<List<Restaurant>>(
 final adminRestaurantProvider = FutureProvider.family<Restaurant, int>(
   (ref, id) => ref.watch(adminRepositoryProvider).restaurant(id),
 );
+
+final platformOverviewProvider = FutureProvider<Map<String, dynamic>>(
+  (ref) => ref.watch(adminRepositoryProvider).overview(),
+);
+
+final restaurantWorkspaceProvider =
+    FutureProvider.family<Map<String, dynamic>, int>(
+      (ref, id) => ref.watch(adminRepositoryProvider).workspace(id),
+    );

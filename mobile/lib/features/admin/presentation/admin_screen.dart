@@ -26,7 +26,7 @@ class AdminScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.l10n;
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(t.admin),
@@ -37,9 +37,11 @@ class AdminScreen extends ConsumerWidget {
                   ref.read(authControllerProvider.notifier).logout(),
             ),
           ],
-          bottom: PillTabBar(tabs: [t.orders, t.restaurants]),
+          bottom: PillTabBar(tabs: [t.orders, t.restaurants, t.platform]),
         ),
-        body: const TabBarView(children: [_OrdersTab(), _RestaurantsTab()]),
+        body: const TabBarView(
+          children: [_OrdersTab(), _RestaurantsTab(), _PlatformTab()],
+        ),
       ),
     );
   }
@@ -111,7 +113,9 @@ class _OrdersTab extends ConsumerWidget {
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text('${o.customer.name} · ${o.address}'),
+                            Text(
+                              '${o.customer.name} · ${o.address}${o.isDelivery ? '' : ' · ${o.channel}'}',
+                            ),
                             Text(
                               o.items
                                   .map((i) => '${i.quantity}× ${i.name}')
@@ -123,11 +127,11 @@ class _OrdersTab extends ConsumerWidget {
                                 '${context.l10n.courier}: ${o.courier!.name}',
                                 style: text.bodySmall,
                               ),
-                            if (o.status.adminNext.isNotEmpty) ...[
+                            if (o.kitchenNext.isNotEmpty) ...[
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  for (final s in o.status.adminNext) ...[
+                                  for (final s in o.kitchenNext) ...[
                                     if (s == OrderStatus.cancelled)
                                       OutlinedButton(
                                         style: AppButtons.inline,
@@ -148,7 +152,7 @@ class _OrdersTab extends ConsumerWidget {
                                           ),
                                         ),
                                       ),
-                                    if (s != o.status.adminNext.last)
+                                    if (s != o.kitchenNext.last)
                                       const SizedBox(width: 8),
                                   ],
                                 ],
@@ -218,7 +222,7 @@ class _RestaurantsTab extends ConsumerWidget {
                         leading: const Icon(Icons.restaurant_menu),
                         title: Text(r.name),
                         subtitle: Text(
-                          '${r.cuisine} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))} · ${r.isOpen ? context.l10n.open : context.l10n.closed}',
+                          '${r.cuisine} · ${r.planCode ?? 'pro'} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))} · ${r.isOpen ? context.l10n.open : context.l10n.closed}',
                         ),
                         onTap: () => context.push('/admin/restaurants/${r.id}'),
                         trailing: StretchSwitch(
@@ -345,6 +349,82 @@ class _RestaurantDialogState extends State<_RestaurantDialog> {
           child: Text(t.save),
         ),
       ],
+    );
+  }
+}
+
+class _PlatformTab extends ConsumerWidget {
+  const _PlatformTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final overview = ref.watch(platformOverviewProvider);
+    final t = context.l10n;
+    return overview.when(
+      loading: () => const ListSkeleton(),
+      error: (e, _) => Center(child: Text(errorMessage(e))),
+      data: (d) {
+        final plans = Map<String, dynamic>.from(d['plans'] as Map? ?? {});
+        return RefreshIndicator(
+          onRefresh: () => ref.refresh(platformOverviewProvider.future),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _Stat(t.venues, '${d['restaurants'] ?? 0}'),
+              _Stat(t.ordersToday, '${d['orders_today'] ?? 0}'),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.workspace_premium_outlined),
+                  title: Text(t.plan),
+                  subtitle: Text(
+                    plans.isEmpty
+                        ? '—'
+                        : plans.entries
+                              .map((e) => '${e.key} ${e.value}')
+                              .join(' · '),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                t.billingUnconfigured,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat(this.label, this.value);
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(child: Text(label, style: text.titleMedium)),
+              Text(
+                value,
+                style: text.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

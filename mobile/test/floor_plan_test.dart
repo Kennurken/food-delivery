@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_delivery/features/admin/floor_plan/domain/geometry.dart';
 import 'package:food_delivery/features/admin/floor_plan/domain/history.dart';
-import 'package:food_delivery/features/admin/floor_plan/domain/kinds.dart';
 import 'package:food_delivery/features/admin/floor_plan/domain/models.dart';
 
 LayoutNode node(

@@ -69,4 +69,11 @@ class FloorPlanRepository {
     );
     return FloorDoc.fromJson(r.data as Map<String, dynamic>);
   }
+
+  Future<String> tableQr(int floorId, int objectId) async {
+    final r = await _dio.get(
+      '/api/v1/admin/floors/$floorId/objects/$objectId/qr',
+    );
+    return r.data['token'] as String;
+  }
 }

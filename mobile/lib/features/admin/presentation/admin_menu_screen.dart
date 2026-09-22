@@ -18,6 +18,7 @@ class AdminMenuScreen extends ConsumerWidget {
 
   void _refresh(WidgetRef ref) {
     ref.invalidate(adminRestaurantProvider(restaurantId));
+    ref.invalidate(restaurantWorkspaceProvider(restaurantId));
   }
 
   Future<void> _run(
@@ -78,71 +79,144 @@ class AdminMenuScreen extends ConsumerWidget {
       body: restaurant.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(errorMessage(e))),
-        data: (r) => ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
-          itemCount: r.menu.length,
-          itemBuilder: (_, i) {
-            final m = r.menu[i];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Card(
-                child: ListTile(
-                  title: Text(m.name),
-                  subtitle: Text('${m.category} · ${formatMoney(m.price)}'),
-                  onTap: () => _edit(context, ref, item: m),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      StretchSwitch(
-                        value: m.isAvailable,
-                        onChanged: (v) => _run(
-                          context,
-                          ref,
-                          () => ref
-                              .read(adminRepositoryProvider)
-                              .updateMenuItem(m.id, {'is_available': v}),
+        data: (r) {
+          final setup = ref.watch(restaurantWorkspaceProvider(restaurantId));
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+            itemCount: r.menu.length + 1,
+            itemBuilder: (_, i) {
+              if (i == 0) {
+                return setup.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                  data: (ws) => _SetupCard(ws),
+                );
+              }
+              final m = r.menu[i - 1];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Card(
+                  child: ListTile(
+                    title: Text(m.name),
+                    subtitle: Text('${m.category} · ${formatMoney(m.price)}'),
+                    onTap: () => _edit(context, ref, item: m),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        StretchSwitch(
+                          value: m.isAvailable,
+                          onChanged: (v) => _run(
+                            context,
+                            ref,
+                            () => ref
+                                .read(adminRepositoryProvider)
+                                .updateMenuItem(m.id, {'is_available': v}),
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () async {
-                          final t = context.l10n;
-                          final ok = await showDialog<bool>(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: Text(t.deleteItemTitle(m.name)),
-                              content: Text(t.deleteItemBody),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: Text(t.cancel),
-                                ),
-                                FilledButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: Text(t.delete),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (ok == true && context.mounted) {
-                            await _run(
-                              context,
-                              ref,
-                              () => ref
-                                  .read(adminRepositoryProvider)
-                                  .deleteMenuItem(m.id),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () async {
+                            final t = context.l10n;
+                            final ok = await showDialog<bool>(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: Text(t.deleteItemTitle(m.name)),
+                                content: Text(t.deleteItemBody),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: Text(t.cancel),
+                                  ),
+                                  FilledButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    child: Text(t.delete),
+                                  ),
+                                ],
+                              ),
                             );
-                          }
-                        },
-                      ),
-                    ],
+                            if (ok == true && context.mounted) {
+                              await _run(
+                                context,
+                                ref,
+                                () => ref
+                                    .read(adminRepositoryProvider)
+                                    .deleteMenuItem(m.id),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
+              ).stagger(i);
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SetupCard extends StatelessWidget {
+  const _SetupCard(this.ws);
+
+  final Map<String, dynamic> ws;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    final setup = Map<String, dynamic>.from(ws['setup'] as Map? ?? {});
+    final plan = ws['plan'] as String? ?? 'pro';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${t.setup} · ${t.plan} $plan',
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800),
               ),
-            ).stagger(i);
-          },
+              const SizedBox(height: 8),
+              _Step(t.setupMenu, setup['has_menu'] == true),
+              _Step(t.setupFloor, setup['has_floor'] == true),
+              _Step(t.setupOpen, setup['is_open'] == true),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _Step extends StatelessWidget {
+  const _Step(this.label, this.done);
+
+  final String label;
+  final bool done;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Icon(
+            done ? Icons.check_circle : Icons.radio_button_unchecked,
+            size: 18,
+            color: done
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outline,
+          ),
+          const SizedBox(width: 8),
+          Text(label),
+        ],
       ),
     );
   }

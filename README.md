@@ -24,7 +24,8 @@ The public API stores data in Neon Postgres. Register a customer account there. 
 |---|---|---|
 | Browse by cuisine, search, save restaurants | Pick up confirmed orders | Confirm / advance / cancel any order |
 | Cart with morphing stepper, saved addresses | Advance step by step to *delivered* | Add restaurants, toggle open/closed |
-| Live order tracking, rate after delivery | Live "ready for pickup" banners | Menu editor + floor plan |
+| Live order tracking, rate after delivery | Live "ready for pickup" banners | Menu editor, floor plan, table QR |
+| Scan a table QR and order without delivery | | Plans, staff, real platform counts |
 
 Every status change is pushed over WebSocket to whoever cares — the customer, the assigned courier, all staff — and surfaces as an in-app banner.
 
@@ -99,13 +100,21 @@ Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim h
 | GET/POST/PATCH | /api/v1/admin/restaurants[/{id}] | admin |
 | POST | /api/v1/admin/restaurants/{id}/menu | admin |
 | PATCH/DELETE | /api/v1/admin/menu/{id} | admin |
-| GET/POST | /api/v1/admin/restaurants/{id}/floors | admin |
-| GET/PATCH/DELETE | /api/v1/admin/floors/{id} | admin |
-| PUT | /api/v1/admin/floors/{id}/layout | admin |
-| GET/POST | /api/v1/admin/floors/{id}/versions[/{vid}/restore] | admin |
+| GET/POST | /api/v1/admin/restaurants/{id}/floors | admin / member |
+| GET/PATCH/DELETE | /api/v1/admin/floors/{id} | admin / member |
+| PUT | /api/v1/admin/floors/{id}/layout | admin / member |
+| GET/POST | /api/v1/admin/floors/{id}/versions[/{vid}/restore] | admin / member |
+| GET | /api/v1/admin/floors/{id}/objects/{oid}/qr | admin / member |
+| GET | /api/v1/qr/{token} | – |
+| GET | /api/v1/billing/plans | – |
+| GET | /api/v1/platform/overview | admin |
+| GET | /api/v1/admin/restaurants/{id}/workspace | admin / member |
+| GET/POST/DELETE | /api/v1/admin/restaurants/{id}/staff[/{user_id}] | admin / member |
+| GET | /api/v1/me/memberships | user |
+| GET | /api/v1/platform/audit | admin |
 
-Order status machine: `pending → confirmed → preparing → on_the_way → delivered`; cancel allowed from `pending`/`confirmed`.
-Admin confirms; courier picks up from `confirmed`/`preparing` and advances step by step.
+Order status machine: `pending → confirmed → preparing → on_the_way → delivered`; cancel allowed from `pending`/`confirmed`. Table (`qr_table`) orders skip courier and go `preparing → delivered`.
+Admin confirms; courier picks up **delivery** orders from `confirmed`/`preparing` and advances step by step.
 
 Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","order":{...}}` to the customer, the assigned courier, and admins. Couriers also get unassigned pickable orders (the available pool). Hub is in-process — one instance; swap for Redis pub/sub to scale out.
 

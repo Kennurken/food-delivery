@@ -14,6 +14,7 @@ import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/restaurants/presentation/home_screen.dart';
+import '../../features/restaurants/presentation/qr_table_screen.dart';
 import '../../features/restaurants/presentation/restaurant_screen.dart';
 import '../../features/shell/customer_shell.dart';
 
@@ -38,8 +39,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       final user = auth.value;
       final loc = state.matchedLocation;
       final onAuthPage = loc == '/login' || loc == '/register';
+      final onQr = loc.startsWith('/t/');
 
-      if (user == null) return onAuthPage ? null : '/login';
+      if (user == null) {
+        if (onAuthPage || onQr) return null;
+        final next = Uri.encodeComponent(state.uri.toString());
+        return '/login?next=$next';
+      }
 
       // Each role has its own surface; keep them there.
       final home = user.isAdmin
@@ -47,7 +53,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           : user.isCourier
           ? '/courier'
           : '/';
-      if (onAuthPage || loc == '/splash') return home;
+      if (onAuthPage || loc == '/splash') {
+        final next = state.uri.queryParameters['next'];
+        if (next != null &&
+            next.startsWith('/') &&
+            !next.startsWith('/admin') &&
+            !next.startsWith('/courier') &&
+            !next.startsWith('/login')) {
+          return next;
+        }
+        return home;
+      }
       final onCourier = loc.startsWith('/courier');
       final onAdmin = loc.startsWith('/admin');
       if (user.isAdmin && !onAdmin) return home;
@@ -64,6 +80,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
+      GoRoute(
+        path: '/t/:token',
+        builder: (_, s) => QrTableScreen(token: s.pathParameters['token']!),
+      ),
       GoRoute(path: '/courier', builder: (_, _) => const CourierScreen()),
       GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
       GoRoute(

@@ -176,5 +176,21 @@
   "layoutSaveFailedBody": "Локальные правки на месте. Повторите или продолжите.",
   "continueEditing": "Продолжить",
   "snapOn": "Привязка вкл",
-  "snapOff": "Привязка выкл"
+  "snapOff": "Привязка выкл",
+  "platform": "Платформа",
+  "tableQr": "QR стола",
+  "copyLink": "Скопировать ссылку",
+  "copied": "Скопировано",
+  "dineIn": "В зале",
+  "atTable": "Стол {name}",
+  "@atTable": {"placeholders": {"name": {"type": "String"}}},
+  "signInToOrder": "Войдите, чтобы заказать",
+  "setup": "Запуск",
+  "setupMenu": "Меню",
+  "setupFloor": "План зала",
+  "setupOpen": "Открыт для заказов",
+  "ordersToday": "Заказов сегодня",
+  "venues": "Рестораны",
+  "billingUnconfigured": "Оплата подписки ещё не подключена",
+  "plan": "Тариф"
 }

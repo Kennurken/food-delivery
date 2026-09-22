@@ -22,7 +22,8 @@ class OrderRepository {
       '/api/v1/orders',
       data: {
         'restaurant_id': cart.restaurantId,
-        'address': address,
+        if (cart.qrToken != null) 'qr_token': cart.qrToken,
+        if (cart.qrToken == null) 'address': address,
         'comment': comment,
         'items': [
           for (final i in cart.items.values)

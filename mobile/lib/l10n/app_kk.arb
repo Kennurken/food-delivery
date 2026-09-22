@@ -176,5 +176,21 @@
   "layoutSaveFailedBody": "Жергілікті өзгерістер қалды. Қайталаңыз немесе жалғастырыңыз.",
   "continueEditing": "Жалғастыру",
   "snapOn": "Жабысу қосулы",
-  "snapOff": "Жабысу өшірулі"
+  "snapOff": "Жабысу өшірулі",
+  "platform": "Платформа",
+  "tableQr": "Үстел QR",
+  "copyLink": "Сілтемені көшіру",
+  "copied": "Көшірілді",
+  "dineIn": "Залда",
+  "atTable": "Үстел {name}",
+  "@atTable": {"placeholders": {"name": {"type": "String"}}},
+  "signInToOrder": "Тапсырыс үшін кіріңіз",
+  "setup": "Бастау",
+  "setupMenu": "Мәзір",
+  "setupFloor": "Зал жоспары",
+  "setupOpen": "Тапсырысқа ашық",
+  "ordersToday": "Бүгінгі тапсырыс",
+  "venues": "Мейрамханалар",
+  "billingUnconfigured": "Жазылым төлемі әлі қосылмаған",
+  "plan": "Тариф"
 }

@@ -186,5 +186,21 @@
   "layoutSaveFailedBody": "Your local changes are still here. Retry or keep editing.",
   "continueEditing": "Continue editing",
   "snapOn": "Snap on",
-  "snapOff": "Snap off"
+  "snapOff": "Snap off",
+  "platform": "Platform",
+  "tableQr": "Table QR",
+  "copyLink": "Copy link",
+  "copied": "Copied",
+  "dineIn": "Dine in",
+  "atTable": "Table {name}",
+  "@atTable": {"placeholders": {"name": {"type": "String"}}},
+  "signInToOrder": "Sign in to order",
+  "setup": "Setup",
+  "setupMenu": "Menu",
+  "setupFloor": "Floor plan",
+  "setupOpen": "Open for orders",
+  "ordersToday": "Orders today",
+  "venues": "Restaurants",
+  "billingUnconfigured": "Billing is not connected yet",
+  "plan": "Plan"
 }

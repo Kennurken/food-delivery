@@ -9,27 +9,35 @@ import '../../restaurants/domain/menu_item.dart';
 import '../domain/cart_item.dart';
 
 class CartState {
-  const CartState({this.restaurantId, this.items = const {}});
+  const CartState({this.restaurantId, this.items = const {}, this.qrToken});
 
   final int? restaurantId;
 
   /// keyed by menu item id
   final Map<int, CartItem> items;
+  final String? qrToken;
 
   int get count => items.values.fold(0, (s, i) => s + i.quantity);
   double get subtotal => items.values.fold(0.0, (s, i) => s + i.lineTotal);
   bool get isEmpty => items.isEmpty;
+  bool get isDineIn => qrToken != null;
 
-  CartState copyWith({int? restaurantId, Map<int, CartItem>? items}) =>
-      CartState(
-        restaurantId: restaurantId ?? this.restaurantId,
-        items: items ?? this.items,
-      );
+  CartState copyWith({
+    int? restaurantId,
+    Map<int, CartItem>? items,
+    String? qrToken,
+    bool clearQr = false,
+  }) => CartState(
+    restaurantId: restaurantId ?? this.restaurantId,
+    items: items ?? this.items,
+    qrToken: clearQr ? null : (qrToken ?? this.qrToken),
+  );
 
   factory CartState.fromJson(Map<String, dynamic> json) {
     final raw = json['items'] as Map<String, dynamic>? ?? {};
     return CartState(
       restaurantId: json['restaurant_id'] as int?,
+      qrToken: json['qr_token'] as String?,
       items: {
         for (final e in raw.entries)
           int.parse(e.key): CartItem.fromJson(e.value as Map<String, dynamic>),
@@ -39,6 +47,7 @@ class CartState {
 
   Map<String, dynamic> toJson() => {
     'restaurant_id': restaurantId,
+    'qr_token': qrToken,
     'items': {for (final e in items.entries) '${e.key}': e.value.toJson()},
   };
 }
@@ -139,6 +148,15 @@ class CartController extends Notifier<CartState> {
 
   void clear() {
     state = const CartState();
+    _save();
+  }
+
+  void setQrToken(String? token) {
+    state = CartState(
+      restaurantId: state.restaurantId,
+      items: state.items,
+      qrToken: token,
+    );
     _save();
   }
 

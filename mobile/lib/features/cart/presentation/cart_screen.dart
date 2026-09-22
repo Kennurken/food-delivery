@@ -44,7 +44,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
   Future<void> _checkout() async {
     final cart = ref.read(cartProvider);
-    if (_address.text.trim().length < 3) {
+    if (!cart.isDineIn && _address.text.trim().length < 3) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(context.l10n.enterAddress)));
       return;
@@ -92,7 +92,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final restaurant = cart.restaurantId == null
         ? null
         : ref.watch(restaurantProvider(cart.restaurantId!)).value;
-    final fee = restaurant?.deliveryFee ?? 0;
+    final fee = cart.isDineIn ? 0.0 : (restaurant?.deliveryFee ?? 0);
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
@@ -183,31 +183,41 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               ),
             ).stagger(idx++),
           const SizedBox(height: 8),
-          if (saved.isNotEmpty) ...[
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final a in saved)
-                  ActionChip(
-                    avatar: Icon(
-                      a.isDefault ? Icons.home : Icons.place_outlined,
-                      size: 18,
+          if (cart.isDineIn)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.table_bar_outlined),
+                title: Text(t.dineIn),
+                subtitle: Text(t.tableQr),
+              ),
+            ).stagger(idx++)
+          else ...[
+            if (saved.isNotEmpty) ...[
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final a in saved)
+                    ActionChip(
+                      avatar: Icon(
+                        a.isDefault ? Icons.home : Icons.place_outlined,
+                        size: 18,
+                      ),
+                      label: Text(a.label),
+                      onPressed: () =>
+                          setState(() => _address.text = a.display(t)),
                     ),
-                    label: Text(a.label),
-                    onPressed: () =>
-                        setState(() => _address.text = a.display(t)),
-                  ),
-              ],
+                ],
+              ).stagger(idx++),
+              const SizedBox(height: 10),
+            ],
+            TextField(
+              controller: _address,
+              decoration: InputDecoration(
+                labelText: t.deliveryAddress,
+                prefixIcon: Icon(Icons.place_outlined),
+              ),
             ).stagger(idx++),
-            const SizedBox(height: 10),
           ],
-          TextField(
-            controller: _address,
-            decoration: InputDecoration(
-              labelText: t.deliveryAddress,
-              prefixIcon: Icon(Icons.place_outlined),
-            ),
-          ).stagger(idx++),
           const SizedBox(height: 12),
           TextField(
             controller: _comment,

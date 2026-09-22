@@ -20,9 +20,16 @@ import '../domain/menu_item.dart';
 import 'favorite_button.dart';
 
 class RestaurantScreen extends ConsumerWidget {
-  const RestaurantScreen({super.key, required this.id});
+  const RestaurantScreen({
+    super.key,
+    required this.id,
+    this.tableToken,
+    this.tableLabel,
+  });
 
   final int id;
+  final String? tableToken;
+  final String? tableLabel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -138,6 +145,34 @@ class RestaurantScreen extends ConsumerWidget {
                       ).stagger(idx++),
                     ],
                     const SizedBox(height: 8),
+                    if (tableLabel != null) ...[
+                      Material(
+                        color: scheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.table_bar_outlined,
+                                color: scheme.onPrimaryContainer,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  t.atTable(tableLabel!),
+                                  style: text.bodyMedium?.copyWith(
+                                    color: scheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ).stagger(idx++),
+                      const SizedBox(height: 12),
+                    ],
                     Wrap(
                       spacing: 8,
                       children: [
@@ -168,7 +203,11 @@ class RestaurantScreen extends ConsumerWidget {
                       ).stagger(idx++),
                       const SizedBox(height: 10),
                       for (final m in entry.value)
-                        _MenuTile(m, restaurantOpen: r.isOpen).stagger(idx++),
+                        _MenuTile(
+                          m,
+                          restaurantOpen: r.isOpen,
+                          tableToken: tableToken,
+                        ).stagger(idx++),
                       const SizedBox(height: 16),
                     ],
                     const SizedBox(height: 80),
@@ -271,18 +310,23 @@ class _InfoChip extends StatelessWidget {
 }
 
 class _MenuTile extends ConsumerWidget {
-  const _MenuTile(this.item, {this.restaurantOpen = true});
+  const _MenuTile(this.item, {this.restaurantOpen = true, this.tableToken});
 
   final MenuItem item;
   final bool restaurantOpen;
+  final String? tableToken;
 
   static Future<void> add(
     BuildContext context,
     WidgetRef ref,
-    MenuItem item,
-  ) async {
+    MenuItem item, {
+    String? tableToken,
+  }) async {
     final cart = ref.read(cartProvider.notifier);
-    if (cart.add(item)) return;
+    if (cart.add(item)) {
+      if (tableToken != null) cart.setQrToken(tableToken);
+      return;
+    }
 
     final replace = await showDialog<bool>(
       context: context,
@@ -304,6 +348,7 @@ class _MenuTile extends ConsumerWidget {
     if (replace == true) {
       cart.clear();
       cart.add(item);
+      if (tableToken != null) cart.setQrToken(tableToken);
     }
   }
 
@@ -315,7 +360,7 @@ class _MenuTile extends ConsumerWidget {
         duration: Motion.slow,
         curve: Motion.emphasized,
       ),
-      builder: (_) => _ItemSheet(item),
+      builder: (_) => _ItemSheet(item, tableToken: tableToken),
     );
   }
 
@@ -377,7 +422,7 @@ class _MenuTile extends ConsumerWidget {
                 QuantityStepper(
                   qty: qty,
                   enabled: canAdd,
-                  onAdd: () => add(context, ref, item),
+                  onAdd: () => add(context, ref, item, tableToken: tableToken),
                   onRemove: () => ref.read(cartProvider.notifier).remove(item),
                 ),
               ],
@@ -480,9 +525,10 @@ class _StepBtn extends StatelessWidget {
 
 /// animate-ui Sheet: item detail with big price and stepper.
 class _ItemSheet extends ConsumerWidget {
-  const _ItemSheet(this.item);
+  const _ItemSheet(this.item, {this.tableToken});
 
   final MenuItem item;
+  final String? tableToken;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -538,7 +584,8 @@ class _ItemSheet extends ConsumerWidget {
               ),
               QuantityStepper(
                 qty: qty,
-                onAdd: () => _MenuTile.add(context, ref, item),
+                onAdd: () =>
+                    _MenuTile.add(context, ref, item, tableToken: tableToken),
                 onRemove: () => ref.read(cartProvider.notifier).remove(item),
               ),
             ],
@@ -546,7 +593,9 @@ class _ItemSheet extends ConsumerWidget {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () {
-              if (qty == 0) _MenuTile.add(context, ref, item);
+              if (qty == 0) {
+                _MenuTile.add(context, ref, item, tableToken: tableToken);
+              }
               Navigator.pop(context);
             },
             child: Text(qty == 0 ? context.l10n.addToCart : context.l10n.done),

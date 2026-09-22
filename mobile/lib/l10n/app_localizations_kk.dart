@@ -563,4 +563,51 @@ class L10nKk extends L10n {
 
   @override
   String get snapOff => 'Жабысу өшірулі';
+
+  @override
+  String get platform => 'Платформа';
+
+  @override
+  String get tableQr => 'Үстел QR';
+
+  @override
+  String get copyLink => 'Сілтемені көшіру';
+
+  @override
+  String get copied => 'Көшірілді';
+
+  @override
+  String get dineIn => 'Залда';
+
+  @override
+  String atTable(String name) {
+    return 'Үстел $name';
+  }
+
+  @override
+  String get signInToOrder => 'Тапсырыс үшін кіріңіз';
+
+  @override
+  String get setup => 'Бастау';
+
+  @override
+  String get setupMenu => 'Мәзір';
+
+  @override
+  String get setupFloor => 'Зал жоспары';
+
+  @override
+  String get setupOpen => 'Тапсырысқа ашық';
+
+  @override
+  String get ordersToday => 'Бүгінгі тапсырыс';
+
+  @override
+  String get venues => 'Мейрамханалар';
+
+  @override
+  String get billingUnconfigured => 'Жазылым төлемі әлі қосылмаған';
+
+  @override
+  String get plan => 'Тариф';
 }

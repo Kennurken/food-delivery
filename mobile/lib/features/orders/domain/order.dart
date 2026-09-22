@@ -88,6 +88,8 @@ class Order {
     this.comment,
     this.courier,
     this.rating,
+    this.channel = 'delivery',
+    this.tableObjectId,
   });
 
   final int id;
@@ -104,6 +106,20 @@ class Order {
   final double total;
   final DateTime createdAt;
   final List<OrderItem> items;
+  final String channel;
+  final int? tableObjectId;
+
+  bool get isDelivery => channel == 'delivery';
+
+  List<OrderStatus> get kitchenNext {
+    if (isDelivery) return status.adminNext;
+    return switch (status) {
+      OrderStatus.pending => [OrderStatus.confirmed, OrderStatus.cancelled],
+      OrderStatus.confirmed => [OrderStatus.preparing, OrderStatus.cancelled],
+      OrderStatus.preparing => [OrderStatus.delivered],
+      _ => [],
+    };
+  }
 
   factory Order.fromJson(Map<String, dynamic> json) => Order(
     id: json['id'] as int,
@@ -122,5 +138,7 @@ class Order {
     createdAt: DateTime.parse(json['created_at'] as String),
     items: (json['items'] as List).map((e) => OrderItem.fromJson(e)).toList(),
     rating: json['rating'] as int?,
+    channel: json['channel'] as String? ?? 'delivery',
+    tableObjectId: json['table_object_id'] as int?,
   );
 }

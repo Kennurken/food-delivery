@@ -563,4 +563,51 @@ class L10nRu extends L10n {
 
   @override
   String get snapOff => 'Привязка выкл';
+
+  @override
+  String get platform => 'Платформа';
+
+  @override
+  String get tableQr => 'QR стола';
+
+  @override
+  String get copyLink => 'Скопировать ссылку';
+
+  @override
+  String get copied => 'Скопировано';
+
+  @override
+  String get dineIn => 'В зале';
+
+  @override
+  String atTable(String name) {
+    return 'Стол $name';
+  }
+
+  @override
+  String get signInToOrder => 'Войдите, чтобы заказать';
+
+  @override
+  String get setup => 'Запуск';
+
+  @override
+  String get setupMenu => 'Меню';
+
+  @override
+  String get setupFloor => 'План зала';
+
+  @override
+  String get setupOpen => 'Открыт для заказов';
+
+  @override
+  String get ordersToday => 'Заказов сегодня';
+
+  @override
+  String get venues => 'Рестораны';
+
+  @override
+  String get billingUnconfigured => 'Оплата подписки ещё не подключена';
+
+  @override
+  String get plan => 'Тариф';
 }

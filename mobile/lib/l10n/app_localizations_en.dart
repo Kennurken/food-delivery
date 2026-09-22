@@ -563,4 +563,51 @@ class L10nEn extends L10n {
 
   @override
   String get snapOff => 'Snap off';
+
+  @override
+  String get platform => 'Platform';
+
+  @override
+  String get tableQr => 'Table QR';
+
+  @override
+  String get copyLink => 'Copy link';
+
+  @override
+  String get copied => 'Copied';
+
+  @override
+  String get dineIn => 'Dine in';
+
+  @override
+  String atTable(String name) {
+    return 'Table $name';
+  }
+
+  @override
+  String get signInToOrder => 'Sign in to order';
+
+  @override
+  String get setup => 'Setup';
+
+  @override
+  String get setupMenu => 'Menu';
+
+  @override
+  String get setupFloor => 'Floor plan';
+
+  @override
+  String get setupOpen => 'Open for orders';
+
+  @override
+  String get ordersToday => 'Orders today';
+
+  @override
+  String get venues => 'Restaurants';
+
+  @override
+  String get billingUnconfigured => 'Billing is not connected yet';
+
+  @override
+  String get plan => 'Plan';
 }

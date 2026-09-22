@@ -1160,6 +1160,96 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Snap off'**
   String get snapOff;
+
+  /// No description provided for @platform.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform'**
+  String get platform;
+
+  /// No description provided for @tableQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Table QR'**
+  String get tableQr;
+
+  /// No description provided for @copyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get copyLink;
+
+  /// No description provided for @copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get copied;
+
+  /// No description provided for @dineIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Dine in'**
+  String get dineIn;
+
+  /// No description provided for @atTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table {name}'**
+  String atTable(String name);
+
+  /// No description provided for @signInToOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to order'**
+  String get signInToOrder;
+
+  /// No description provided for @setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get setup;
+
+  /// No description provided for @setupMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get setupMenu;
+
+  /// No description provided for @setupFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor plan'**
+  String get setupFloor;
+
+  /// No description provided for @setupOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open for orders'**
+  String get setupOpen;
+
+  /// No description provided for @ordersToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders today'**
+  String get ordersToday;
+
+  /// No description provided for @venues.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurants'**
+  String get venues;
+
+  /// No description provided for @billingUnconfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing is not connected yet'**
+  String get billingUnconfigured;
+
+  /// No description provided for @plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get plan;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

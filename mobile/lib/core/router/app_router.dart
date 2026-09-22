@@ -15,6 +15,7 @@ import '../../features/courier/presentation/courier_screen.dart';
 import '../../features/map/domain/geo.dart';
 import '../../features/map/presentation/address_picker_screen.dart';
 import '../../features/map/presentation/tracking_map.dart';
+import '../../features/orders/presentation/order_chat_screen.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -72,8 +73,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       final onCourier = loc.startsWith('/courier');
       final onAdmin = loc.startsWith('/admin');
       final onMap = loc.startsWith('/map');
-      if (user.isAdmin && !onAdmin && !onMap) return home;
-      if (user.isCourier && !onCourier && !onMap) return home;
+      final onChat = loc.startsWith('/chat/');
+      if (user.isAdmin && !onAdmin && !onMap && !onChat) return home;
+      if (user.isCourier && !onCourier && !onMap && !onChat) return home;
       final isCustomer = !user.isAdmin && !user.isCourier;
       if (isCustomer && (onAdmin || onCourier)) return home;
       return null;
@@ -107,6 +109,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/map/track/:id',
         builder: (_, s) =>
             TrackingMapScreen(orderId: int.parse(s.pathParameters['id']!)),
+      ),
+      GoRoute(
+        path: '/chat/:id',
+        builder: (_, s) =>
+            OrderChatScreen(orderId: int.parse(s.pathParameters['id']!)),
       ),
       GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
       GoRoute(

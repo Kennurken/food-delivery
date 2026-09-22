@@ -25,10 +25,33 @@ class LiveEventsListener extends ConsumerWidget {
       ref.listen(orderEventsProvider, (prev, next) {
         final evt = next.value;
         if (evt == null || evt == prev?.value) return;
-        if (evt.isLocation) return;
-        final order = Order.fromJson(evt.order);
         final router = ref.read(routerProvider);
         final t = context.l10n;
+        if (evt.isChat) {
+          final chat = evt.chat;
+          if (chat == null) return;
+          final uid = chat['user_id'] as int?;
+          if (uid == user.id) return;
+          final path = router.routeInformationProvider.value.uri.path;
+          if (path == '/chat/${evt.id}') return;
+          final who = chat['sender_name'] as String? ?? '';
+          final body = chat['body'] as String? ?? '';
+          LiveToast.show(
+            icon: Icons.chat_bubble_outline,
+            title: t.orderN(evt.id),
+            body: t.chatPreview(who, body),
+            onTap: () => router.push('/chat/${evt.id}'),
+          );
+          unawaited(
+            LocalPush.show(
+              title: t.orderN(evt.id),
+              body: t.chatPreview(who, body),
+            ),
+          );
+          return;
+        }
+        if (evt.isLocation) return;
+        final order = Order.fromJson(evt.order!);
 
         if (user.isAdmin) {
           if (order.status == OrderStatus.pending) {

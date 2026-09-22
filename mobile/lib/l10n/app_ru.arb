@@ -253,5 +253,20 @@
   "promo": "Промокод",
   "applyPromo": "Применить",
   "discount": "Скидка",
-  "kitchenLater": "Позже"
+  "kitchenLater": "Позже",
+  "chat": "Чат",
+  "orderChat": "Чат · №{id}",
+  "@orderChat": {"placeholders": {"id": {"type": "int"}}},
+  "chatHint": "Сообщение",
+  "chatSend": "Отправить",
+  "chatEmpty": "Пока нет сообщений",
+  "chatEmptyHint": "Кухня, курьер и вы пишете в одной ветке.",
+  "chatClosed": "Заказ завершён. Чат только для чтения.",
+  "chatPreview": "{who}: {body}",
+  "@chatPreview": {
+    "placeholders": {
+      "who": {"type": "String"},
+      "body": {"type": "String"}
+    }
+  }
 }

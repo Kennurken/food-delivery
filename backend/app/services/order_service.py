@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.access import has_permission
+from app.core.access import has_permission, require_restaurant
 from app.core.billing import get_payment_provider
 from app.core.events import hub
 from app.core.features import INACTIVE_BILLING, entitlements
@@ -28,13 +28,8 @@ def _is_delivery(order: Order) -> bool:
     return (order.channel or DELIVERY_CHANNEL) == DELIVERY_CHANNEL
 
 
-def notify(db: Session, order: Order, *, cause: str = "status") -> None:
-    """Push the order snapshot to whoever is watching it.
-
-    Customer, restaurant staff with orders.read, platform admins, assigned
-    courier. Unassigned delivery tickets also go to every courier so the
-    available-pool banner still fires. Pickup / table never hit that pool.
-    """
+def audience(db: Session, order: Order, *, pool: bool = False) -> set[int]:
+    """Who may see this ticket. `pool` adds every courier for grab-order banners."""
     admins = set(db.scalars(select(User.id).where(User.role == UserRole.admin)))
     staff = {
         m.user_id
@@ -50,11 +45,39 @@ def notify(db: Session, order: Order, *, cause: str = "status") -> None:
     if order.courier_id:
         targets.add(order.courier_id)
     elif (
-        _is_delivery(order)
+        pool
+        and _is_delivery(order)
         and order.status in COURIER_PICKABLE
         and due_for_courier(order.scheduled_for)
     ):
         targets.update(db.scalars(select(User.id).where(User.role == UserRole.courier)))
+    return targets
+
+
+def get_visible_order(db: Session, user: User, order_id: int) -> Order:
+    """Same people as GET /orders/{id}. Unknown tickets look like 404."""
+    order = db.get(Order, order_id)
+    if not order:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")
+    if user.role == UserRole.admin or order.user_id == user.id or order.courier_id == user.id:
+        return order
+    try:
+        require_restaurant(db, user, order.restaurant_id, "orders.read")
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_404_NOT_FOUND:
+            raise
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found") from exc
+    return order
+
+
+def notify(db: Session, order: Order, *, cause: str = "status") -> None:
+    """Push the order snapshot to whoever is watching it.
+
+    Customer, restaurant staff with orders.read, platform admins, assigned
+    courier. Unassigned delivery tickets also go to every courier so the
+    available-pool banner still fires. Pickup / table never hit that pool.
+    """
+    targets = audience(db, order, pool=True)
     payload = {
         "type": "order.updated",
         "cause": cause,

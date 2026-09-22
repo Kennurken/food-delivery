@@ -766,4 +766,32 @@ class L10nKk extends L10n {
 
   @override
   String get kitchenLater => 'Кейін';
+
+  @override
+  String get chat => 'Чат';
+
+  @override
+  String orderChat(int id) {
+    return 'Чат · №$id';
+  }
+
+  @override
+  String get chatHint => 'Хабар';
+
+  @override
+  String get chatSend => 'Жіберу';
+
+  @override
+  String get chatEmpty => 'Хабар жоқ';
+
+  @override
+  String get chatEmptyHint => 'Ас үй, курьер және сіз бір жіпте жазасыз.';
+
+  @override
+  String get chatClosed => 'Тапсырыс аяқталды. Чат тек оқуға.';
+
+  @override
+  String chatPreview(String who, String body) {
+    return '$who: $body';
+  }
 }

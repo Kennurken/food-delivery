@@ -263,5 +263,20 @@
   "promo": "Promo code",
   "applyPromo": "Apply",
   "discount": "Discount",
-  "kitchenLater": "Later"
+  "kitchenLater": "Later",
+  "chat": "Chat",
+  "orderChat": "Chat · #{id}",
+  "@orderChat": {"placeholders": {"id": {"type": "int"}}},
+  "chatHint": "Message",
+  "chatSend": "Send",
+  "chatEmpty": "No messages yet",
+  "chatEmptyHint": "Kitchen, courier, and you share this thread.",
+  "chatClosed": "This order is finished. Chat is read-only.",
+  "chatPreview": "{who}: {body}",
+  "@chatPreview": {
+    "placeholders": {
+      "who": {"type": "String"},
+      "body": {"type": "String"}
+    }
+  }
 }

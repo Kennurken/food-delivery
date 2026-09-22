@@ -7,7 +7,9 @@ from sqlalchemy import or_, select
 from app.api.deps import DB, CourierUser, CurrentUser
 from app.core.access import require_restaurant
 from app.models import Order, OrderStatus, UserRole
+from app.schemas.chat import ChatMessageCreate, ChatMessageOut
 from app.schemas.order import OrderCreate, OrderOut, OrderRate, OrderStatusUpdate
+from app.services import chat as chat_service
 from app.services import order_service
 from app.services.schedule import utcnow
 
@@ -84,24 +86,26 @@ def advance_order(order_id: int, db: DB, courier: CourierUser) -> Order:
 
 @router.get("/{order_id}", response_model=OrderOut)
 def get_order(order_id: int, db: DB, user: CurrentUser) -> Order:
-    order = db.get(Order, order_id)
-    visible = order and (
-        user.role == UserRole.admin or order.user_id == user.id or order.courier_id == user.id
-    )
-    if order and not visible:
-        try:
-            require_restaurant(db, user, order.restaurant_id, "orders.read")
-            visible = True
-        except HTTPException:
-            visible = False
-    if not visible:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")
-    return order
+    return order_service.get_visible_order(db, user, order_id)
+
+
+@router.get("/{order_id}/messages", response_model=list[ChatMessageOut])
+def list_messages(order_id: int, db: DB, user: CurrentUser) -> list:
+    return chat_service.list_messages(db, user, order_id)
+
+
+@router.post(
+    "/{order_id}/messages",
+    response_model=ChatMessageOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def post_message(order_id: int, data: ChatMessageCreate, db: DB, user: CurrentUser):
+    return chat_service.post_message(db, user, order_id, data.body)
 
 
 @router.post("/{order_id}/cancel", response_model=OrderOut)
 def cancel_order(order_id: int, db: DB, user: CurrentUser) -> Order:
-    order = get_order(order_id, db, user)
+    order = order_service.get_visible_order(db, user, order_id)
     if order.user_id != user.id and user.role != UserRole.admin:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the customer can cancel")
     return order_service.update_status(db, order, OrderStatus.cancelled)
@@ -109,7 +113,9 @@ def cancel_order(order_id: int, db: DB, user: CurrentUser) -> Order:
 
 @router.post("/{order_id}/rate", response_model=OrderOut)
 def rate_order(order_id: int, data: OrderRate, db: DB, user: CurrentUser) -> Order:
-    return order_service.rate_order(db, user, get_order(order_id, db, user), data.rating)
+    return order_service.rate_order(
+        db, user, order_service.get_visible_order(db, user, order_id), data.rating
+    )
 
 
 @router.patch("/{order_id}/status", response_model=OrderOut)

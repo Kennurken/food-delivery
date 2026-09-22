@@ -767,4 +767,32 @@ class L10nRu extends L10n {
 
   @override
   String get kitchenLater => 'Позже';
+
+  @override
+  String get chat => 'Чат';
+
+  @override
+  String orderChat(int id) {
+    return 'Чат · №$id';
+  }
+
+  @override
+  String get chatHint => 'Сообщение';
+
+  @override
+  String get chatSend => 'Отправить';
+
+  @override
+  String get chatEmpty => 'Пока нет сообщений';
+
+  @override
+  String get chatEmptyHint => 'Кухня, курьер и вы пишете в одной ветке.';
+
+  @override
+  String get chatClosed => 'Заказ завершён. Чат только для чтения.';
+
+  @override
+  String chatPreview(String who, String body) {
+    return '$who: $body';
+  }
 }

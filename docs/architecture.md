@@ -23,7 +23,7 @@ Every response includes `X-Request-ID`. The backend never trusts client-supplied
 
 ## Events
 
-`OrderHub` is still in-process WebSocket. Payloads include `restaurant_id`, `channel`, and `cause` (`status` or `location`). Location pings must not toast or refetch kitchen lists. Swap for Redis when there is more than one API instance.
+`OrderHub` is still in-process WebSocket. Payloads include `restaurant_id`, `channel`, and `cause` (`status`, `location`, or a separate `order.chat` frame). Location and chat must not toast as status changes or refetch kitchen lists. Swap for Redis when there is more than one API instance.
 
 ## Maps
 
@@ -40,6 +40,10 @@ Tiles render in Flutter (`flutter_map` + Carto Voyager / Dark Matter). Geocoding
 `scheduled_for` is a UTC-naive slot between 30 minutes and 48 hours. Table QR cannot be scheduled. Couriers only see a delivery once the slot is within 40 minutes (`due_for_courier` + the available-pool filter). Kitchen puts those tickets in a Later lane.
 
 Promo codes are restaurant-scoped (`promos`, unique on restaurant + code). Checkout quotes one code via `GET /restaurants/{id}/promo`. The ticket stores `promo_code` + `discount`; `used_count` increments on a successful create. Applying a code requires the `promotions` entitlement, not `if plan == "pro"`. Demo catalog: `BAO10`, `PIZZA500`, `SMASH500`.
+
+## Chat
+
+One thread per order (`order_messages`). Same people as `GET /orders/{id}`: customer, assigned courier, staff with `orders.read`, platform admin. Unassigned couriers cannot read it. Write is closed after delivered/cancelled. Frames are `{"type":"order.chat","message":{...}}` so kitchen lists do not refetch. FCM still no-ops without a key.
 
 ## Cache keys
 

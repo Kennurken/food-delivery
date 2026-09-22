@@ -122,6 +122,7 @@ class _MineTab extends ConsumerWidget {
         hint: context.l10n.noActiveDeliveriesHint,
       ),
       onRefresh: () => ref.refresh(ordersProvider.future),
+      showChat: true,
       action: (o) {
         final next = o.status.courierNext;
         if (next == null) return const SizedBox.shrink();
@@ -150,12 +151,14 @@ class _OrderList extends StatelessWidget {
     required this.empty,
     required this.onRefresh,
     required this.action,
+    this.showChat = false,
   });
 
   final AsyncValue<List<Order>> orders;
   final Widget empty;
   final Future<void> Function() onRefresh;
   final Widget Function(Order) action;
+  final bool showChat;
 
   @override
   Widget build(BuildContext context) {
@@ -221,6 +224,17 @@ class _OrderList extends StatelessWidget {
                                       context.push('/map/track/${o.id}'),
                                   icon: const Icon(Icons.map_outlined),
                                   label: Text(context.l10n.openMap),
+                                ),
+                              ),
+                            ],
+                            if (showChat) ...[
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: TextButton.icon(
+                                  onPressed: () =>
+                                      context.push('/chat/${o.id}'),
+                                  icon: const Icon(Icons.chat_bubble_outline),
+                                  label: Text(context.l10n.chat),
                                 ),
                               ),
                             ],

@@ -6,6 +6,7 @@ from app.models.feature_flag import FeatureOverride
 from app.models.floor_plan import Floor, FloorObject, FloorVersion, FloorZone
 from app.models.idempotency import IdempotencyRecord
 from app.models.member import RestaurantMember
+from app.models.message import OrderMessage
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.promo import Promo
 from app.models.restaurant import MenuItem, ModifierGroup, ModifierOption, Restaurant
@@ -27,6 +28,7 @@ __all__ = [
     "ModifierOption",
     "Order",
     "OrderItem",
+    "OrderMessage",
     "OrderStatus",
     "Promo",
     "Restaurant",

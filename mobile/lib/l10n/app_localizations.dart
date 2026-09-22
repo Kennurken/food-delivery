@@ -1544,6 +1544,54 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Later'**
   String get kitchenLater;
+
+  /// No description provided for @chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get chat;
+
+  /// No description provided for @orderChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat · #{id}'**
+  String orderChat(int id);
+
+  /// No description provided for @chatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get chatHint;
+
+  /// No description provided for @chatSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatSend;
+
+  /// No description provided for @chatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get chatEmpty;
+
+  /// No description provided for @chatEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen, courier, and you share this thread.'**
+  String get chatEmptyHint;
+
+  /// No description provided for @chatClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'This order is finished. Chat is read-only.'**
+  String get chatClosed;
+
+  /// No description provided for @chatPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'{who}: {body}'**
+  String chatPreview(String who, String body);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

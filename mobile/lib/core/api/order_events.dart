@@ -8,15 +8,18 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../storage/token_storage.dart';
 import 'api_config.dart';
 
-/// One `order.updated` frame from the server.
+/// One frame from `/api/v1/ws`.
 class OrderEvent {
-  const OrderEvent(this.order, {this.cause = 'status'});
+  const OrderEvent({this.order, this.chat, this.cause = 'status'});
 
-  final Map<String, dynamic> order;
+  final Map<String, dynamic>? order;
+  final Map<String, dynamic>? chat;
   final String cause;
 
-  int get id => order['id'] as int;
+  int get id => (order?['id'] as int?) ?? chat!['order_id'] as int;
   bool get isLocation => cause == 'location';
+  bool get isChat => cause == 'chat';
+  bool get isQuiet => isLocation || isChat;
 }
 
 /// Long-lived WebSocket to /api/v1/ws. Reconnects with backoff; ends when
@@ -40,11 +43,19 @@ final orderEventsProvider = StreamProvider.autoDispose<OrderEvent>((ref) {
         delay = const Duration(seconds: 1);
         await for (final frame in channel!.stream) {
           final msg = jsonDecode(frame as String) as Map<String, dynamic>;
-          if (msg['type'] == 'order.updated') {
+          final type = msg['type'] as String?;
+          if (type == 'order.updated') {
             controller.add(
               OrderEvent(
-                msg['order'] as Map<String, dynamic>,
+                order: msg['order'] as Map<String, dynamic>,
                 cause: msg['cause'] as String? ?? 'status',
+              ),
+            );
+          } else if (type == 'order.chat') {
+            controller.add(
+              OrderEvent(
+                chat: msg['message'] as Map<String, dynamic>,
+                cause: 'chat',
               ),
             );
           }

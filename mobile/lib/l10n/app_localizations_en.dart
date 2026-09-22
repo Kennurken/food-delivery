@@ -768,4 +768,32 @@ class L10nEn extends L10n {
 
   @override
   String get kitchenLater => 'Later';
+
+  @override
+  String get chat => 'Chat';
+
+  @override
+  String orderChat(int id) {
+    return 'Chat · #$id';
+  }
+
+  @override
+  String get chatHint => 'Message';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String get chatEmpty => 'No messages yet';
+
+  @override
+  String get chatEmptyHint => 'Kitchen, courier, and you share this thread.';
+
+  @override
+  String get chatClosed => 'This order is finished. Chat is read-only.';
+
+  @override
+  String chatPreview(String who, String body) {
+    return '$who: $body';
+  }
 }

@@ -20,7 +20,9 @@ Do **not** rebuild as a Firebase clone. The stack (Flutter + FastAPI + Neon, thr
 
 **Shipped 22 Sep 2026 (offers):** checkout slot (`scheduled_for`, 30 min–48 h, 15-min picker), kitchen Later lane, courier pool waits until 40 min before the slot. Restaurant promo codes (`BAO10` / `PIZZA500` / `SMASH500` on the demo catalog), quoted at checkout, snapshotted on the ticket. Table QR cannot be scheduled. Card/FCM still blocked on keys.
 
-**Next:** in-app chat. Card/FCM stay blocked on keys.
+**Shipped 22 Sep 2026 (chat):** one thread per order. Customer, kitchen, assigned courier, platform admin. Closed when the ticket is final. Same WebSocket; `order.chat` does not refetch the kitchen board. Card/FCM still blocked on keys.
+
+**Next:** reservations if we want the next no-key slice. Card/FCM stay blocked on keys.
 
 ## What we already have
 
@@ -82,6 +84,7 @@ Clones almost never implement: Uber One / Glovo Prime / Wolt+; scheduled slots; 
 | COD | Place order = done | Yes | Done |
 | Scheduled slot | Cart picker; `scheduled_for` on the ticket | Yes | Done |
 | Promo code | One per order, restaurant-scoped, `promotions` entitlement | Yes | Done |
+| In-app chat | One thread per order; ops can see it | Medium | Done |
 | Maps / FCM / Kaspi | Blocked until keys | No | Maps done; FCM/Kaspi wait |
 
 UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md). Flutter web canvaskit still ignores programmatic input (a11y tree ≠ `TextEditingController`).
@@ -98,6 +101,7 @@ UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.c
 8. ~~Admin floor-plan editor.~~
 9. ~~QR table ordering + plan entitlements.~~
 10. ~~Item options.~~ Medusa workflow steps stay our status machine — keep WebSocket.
-11. ~~Scheduled checkout + restaurant promo codes.~~ Chat is still later.
-12. FCM / Kaspi / Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
-13. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.
+11. ~~Scheduled checkout + restaurant promo codes.~~
+12. ~~Order chat (kitchen / courier / customer).~~
+13. FCM / Kaspi / Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
+14. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.

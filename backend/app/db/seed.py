@@ -409,6 +409,14 @@ def ensure_offers_schema() -> None:
     _add("orders", "discount", "FLOAT DEFAULT 0")
 
 
+def ensure_chat_schema() -> None:
+    """Prod deploys skip alembic; order thread."""
+    from app.db.session import engine
+    from app.models.message import OrderMessage
+
+    OrderMessage.__table__.create(bind=engine, checkfirst=True)
+
+
 DEMO_PROMOS = (
     ("Bao Bar", "BAO10", "percent", 10, 2000),
     ("Pizza Roma", "PIZZA500", "amount", 500, 3000),
@@ -551,6 +559,7 @@ def seed() -> None:
     ensure_demo_modifiers()
     ensure_offers_schema()
     ensure_demo_promos()
+    ensure_chat_schema()
     print("Already seeded" if added == 0 else "Seeded: 3 users, 3 restaurants, 9 menu items")
 
 
@@ -574,6 +583,7 @@ if __name__ == "__main__":
         ensure_demo_modifiers()
         ensure_offers_schema()
         ensure_demo_promos()
+        ensure_chat_schema()
         print(f"Catalog: {'seeded' if n else 'already present'}")
         if photos:
             print(f"Menu photos: backfilled {photos}")

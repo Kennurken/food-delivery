@@ -253,5 +253,20 @@
   "promo": "Промокод",
   "applyPromo": "Қолдану",
   "discount": "Жеңілдік",
-  "kitchenLater": "Кейін"
+  "kitchenLater": "Кейін",
+  "chat": "Чат",
+  "orderChat": "Чат · №{id}",
+  "@orderChat": {"placeholders": {"id": {"type": "int"}}},
+  "chatHint": "Хабар",
+  "chatSend": "Жіберу",
+  "chatEmpty": "Хабар жоқ",
+  "chatEmptyHint": "Ас үй, курьер және сіз бір жіпте жазасыз.",
+  "chatClosed": "Тапсырыс аяқталды. Чат тек оқуға.",
+  "chatPreview": "{who}: {body}",
+  "@chatPreview": {
+    "placeholders": {
+      "who": {"type": "String"},
+      "body": {"type": "String"}
+    }
+  }
 }

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
@@ -223,6 +224,12 @@ class _Ticket extends StatelessWidget {
                     ),
                   ),
                   StatusChip(o.status, order: o),
+                  IconButton(
+                    tooltip: t.chat,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => context.push('/chat/${o.id}'),
+                    icon: const Icon(Icons.chat_bubble_outline),
+                  ),
                 ],
               ),
               const SizedBox(height: 4),

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/order_events.dart';
 import '../../cart/presentation/cart_controller.dart';
+import '../domain/chat_message.dart';
 import '../domain/order.dart';
 
 class OrderRepository {
@@ -96,6 +97,22 @@ class OrderRepository {
     final r = await _dio.post('/api/v1/orders/$id/advance');
     return Order.fromJson(r.data);
   }
+
+  Future<List<ChatMessage>> messages(int orderId) async {
+    final r = await _dio.get('/api/v1/orders/$orderId/messages');
+    return [
+      for (final row in r.data as List)
+        ChatMessage.fromJson(row as Map<String, dynamic>),
+    ];
+  }
+
+  Future<ChatMessage> sendMessage(int orderId, String body) async {
+    final r = await _dio.post(
+      '/api/v1/orders/$orderId/messages',
+      data: {'body': body},
+    );
+    return ChatMessage.fromJson(r.data as Map<String, dynamic>);
+  }
 }
 
 final orderRepositoryProvider = Provider(
@@ -103,9 +120,9 @@ final orderRepositoryProvider = Provider(
 );
 
 final ordersProvider = FutureProvider<List<Order>>((ref) {
-  // Status / assignment changes the list. Location pings do not.
+  // Status / assignment changes the list. Location / chat pings do not.
   ref.listen(orderEventsProvider, (_, next) {
-    if (next.value?.isLocation ?? true) return;
+    if (next.value?.isQuiet ?? true) return;
     ref.invalidateSelf();
   });
   return ref.watch(orderRepositoryProvider).list();
@@ -124,8 +141,12 @@ final orderLiveProvider = StreamProvider.family<Order, int>((ref, id) {
       .then(controller.add, onError: controller.addError);
   ref.listen(orderEventsProvider, (_, next) {
     final evt = next.value;
-    if (evt != null && evt.id == id && !controller.isClosed) {
-      controller.add(Order.fromJson(evt.order));
+    if (evt != null &&
+        evt.id == id &&
+        evt.order != null &&
+        !evt.isQuiet &&
+        !controller.isClosed) {
+      controller.add(Order.fromJson(evt.order!));
     }
   });
   ref.onDispose(controller.close);
@@ -134,7 +155,7 @@ final orderLiveProvider = StreamProvider.family<Order, int>((ref, id) {
 
 final availableOrdersProvider = FutureProvider<List<Order>>((ref) {
   ref.listen(orderEventsProvider, (_, next) {
-    if (next.value?.isLocation ?? true) return;
+    if (next.value?.isQuiet ?? true) return;
     ref.invalidateSelf();
   });
   return ref.watch(orderRepositoryProvider).available();
@@ -146,8 +167,8 @@ final kitchenOrdersProvider = FutureProvider.family<List<Order>, int>((
 ) {
   ref.listen(orderEventsProvider, (_, next) {
     final evt = next.value;
-    if (evt == null || evt.isLocation) return;
-    if (evt.order['restaurant_id'] == restaurantId) {
+    if (evt == null || evt.isQuiet) return;
+    if (evt.order?['restaurant_id'] == restaurantId) {
       ref.invalidateSelf();
     }
   });

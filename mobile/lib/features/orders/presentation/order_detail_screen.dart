@@ -76,7 +76,16 @@ class OrderDetailScreen extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text(t.orderN(id))),
+      appBar: AppBar(
+        title: Text(t.orderN(id)),
+        actions: [
+          IconButton(
+            tooltip: t.chat,
+            onPressed: () => context.push('/chat/$id'),
+            icon: const Icon(Icons.chat_bubble_outline),
+          ),
+        ],
+      ),
       body: order.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(errorMessage(e))),
@@ -172,6 +181,18 @@ class OrderDetailScreen extends ConsumerWidget {
                     ),
                   ).stagger(idx++),
                 ],
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.chat_bubble_outline),
+                    title: Text(t.chat),
+                    subtitle: Text(
+                      o.status.isFinal ? t.chatClosed : t.chatEmptyHint,
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/chat/${o.id}'),
+                  ),
+                ).stagger(idx++),
                 const SizedBox(height: 12),
                 Card(
                   child: Column(

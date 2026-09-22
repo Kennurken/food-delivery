@@ -67,6 +67,14 @@ extension OrderChannelL10n on Order {
     _ => next.actionLabel(t),
   };
 
+  /// What the courier calls the same transition. The kitchen hands the bag
+  /// over; the courier picks it up — same status, different voice.
+  String courierActionLabel(OrderStatus next, L10n t) =>
+      switch ((channel, next)) {
+        ('delivery', OrderStatus.onTheWay) => t.actionPickedUp,
+        _ => nextActionLabel(next, t),
+      };
+
   String channelLabel(L10n t) => switch (channel) {
     'qr_table' => t.dineIn,
     'pickup' => t.pickup,
@@ -93,3 +101,12 @@ String formatDistance(L10n t, double meters) {
   final km = meters / 1000;
   return t.distanceKm(km >= 10 ? '${km.round()}' : km.toStringAsFixed(1));
 }
+
+String reservationStatusLabel(L10n t, String status) => switch (status) {
+  'requested' => t.reserveRequested,
+  'confirmed' => t.reserveConfirmed,
+  'seated' => t.reserveSeated,
+  'cancelled' => t.reserveCancelled,
+  'no_show' => t.reserveNoShow,
+  _ => status,
+};

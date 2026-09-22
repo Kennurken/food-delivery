@@ -86,6 +86,8 @@ class OrderOut(BaseModel):
     courier_seen_at: datetime | None = None
     pay_method: str = "cash"
     pay_status: str = "unpaid"
+    pay_ref: str | None = None
+    checkout_url: str | None = None
     scheduled_for: datetime | None = None
     promo_code: str | None = None
     discount: float = 0

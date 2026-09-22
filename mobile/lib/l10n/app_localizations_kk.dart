@@ -277,6 +277,9 @@ class L10nKk extends L10n {
   String get actionHandToCourier => 'Курьерге беру';
 
   @override
+  String get actionPickedUp => 'Тапсырысты алдым';
+
+  @override
   String get actionMarkDelivered => 'Жеткізілді';
 
   @override
@@ -724,6 +727,19 @@ class L10nKk extends L10n {
   String get cardNotConnected => 'Карта төлемі қосылмаған. Қолма-қол төлеңіз.';
 
   @override
+  String get payCardHint =>
+      'Stripe бетінде төлейсіз. Тест картасы 4242 4242 4242 4242.';
+
+  @override
+  String get payNow => 'Төлеу';
+
+  @override
+  String get waitingForCard => 'Карта күтілуде';
+
+  @override
+  String get paid => 'Төленді';
+
+  @override
   String get unpaid => 'Төленбеген';
 
   @override
@@ -794,4 +810,69 @@ class L10nKk extends L10n {
   String chatPreview(String who, String body) {
     return '$who: $body';
   }
+
+  @override
+  String get bookTable => 'Үстел брондау';
+
+  @override
+  String get reservations => 'Брондар';
+
+  @override
+  String get guests => 'Қонақтар';
+
+  @override
+  String guestsCount(int n) {
+    return '$n қонақ';
+  }
+
+  @override
+  String get pickTable => 'Үстел';
+
+  @override
+  String get anyTable => 'Кез келген үстел';
+
+  @override
+  String get book => 'Брондау';
+
+  @override
+  String get booked => 'Үстел брондалды';
+
+  @override
+  String get reserveRequested => 'Өтініш';
+
+  @override
+  String get reserveConfirmed => 'Расталды';
+
+  @override
+  String get reserveSeated => 'Отырғызылды';
+
+  @override
+  String get reserveCancelled => 'Болдырылмады';
+
+  @override
+  String get reserveNoShow => 'Келмеді';
+
+  @override
+  String get cancelReservation => 'Бронды болдырмау';
+
+  @override
+  String get noReservations => 'Брон жоқ';
+
+  @override
+  String get noReservationsHint =>
+      'Мейрамхананы ашып, «Үстел брондау» батырмасын басыңыз.';
+
+  @override
+  String get walkIn => 'Кездейсоқ қонақ';
+
+  @override
+  String get seatGuest => 'Отырғызу';
+
+  @override
+  String tableSeats(int n) {
+    return '$n орын';
+  }
+
+  @override
+  String get confirmReservation => 'Растау';
 }

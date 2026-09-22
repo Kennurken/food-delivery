@@ -42,6 +42,8 @@ class Order(Base):
     # cash = pay the courier / at the counter. online needs a PaymentProvider.
     pay_method: Mapped[str] = mapped_column(String(20), default="cash")
     pay_status: Mapped[str] = mapped_column(String(20), default="unpaid")
+    pay_ref: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    checkout_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     scheduled_for: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     promo_code: Mapped[str | None] = mapped_column(String(24), nullable=True)
     discount: Mapped[float] = mapped_column(Float, default=0)

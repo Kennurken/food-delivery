@@ -47,6 +47,11 @@ class OrderRepository {
     return Order.fromJson(r.data);
   }
 
+  Future<Order> syncPayment(int id) async {
+    final r = await _dio.post('/api/v1/orders/$id/pay/sync');
+    return Order.fromJson(r.data);
+  }
+
   Future<List<Order>> list({int? restaurantId}) async {
     final r = await _dio.get(
       '/api/v1/orders',

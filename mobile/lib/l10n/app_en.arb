@@ -91,6 +91,7 @@
   "actionConfirm": "Confirm",
   "actionStartPreparing": "Start preparing",
   "actionHandToCourier": "Hand to courier",
+  "actionPickedUp": "Picked up",
   "actionMarkDelivered": "Mark delivered",
   "actionCancel": "Cancel",
   "accept": "Accept",
@@ -249,6 +250,10 @@
   "payCard": "Card",
   "payOnDelivery": "Pay the courier or at the counter. The order stays unpaid until then.",
   "cardNotConnected": "Card payments are not connected. Use cash.",
+  "payCardHint": "You'll pay on a Stripe page. Test card 4242 4242 4242 4242.",
+  "payNow": "Pay now",
+  "waitingForCard": "Waiting for card",
+  "paid": "Paid",
   "unpaid": "Unpaid",
   "payMethod": "Payment",
   "modifiers": "Sizes & extras",
@@ -278,5 +283,35 @@
       "who": {"type": "String"},
       "body": {"type": "String"}
     }
-  }
+  },
+  "bookTable": "Book a table",
+  "reservations": "Reservations",
+  "guests": "Guests",
+  "guestsCount": "{n} guests",
+  "@guestsCount": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "pickTable": "Table",
+  "anyTable": "Any table",
+  "book": "Book",
+  "booked": "Table booked",
+  "reserveRequested": "Requested",
+  "reserveConfirmed": "Confirmed",
+  "reserveSeated": "Seated",
+  "reserveCancelled": "Cancelled",
+  "reserveNoShow": "No-show",
+  "cancelReservation": "Cancel booking",
+  "noReservations": "No bookings yet",
+  "noReservationsHint": "Open a restaurant and tap Book a table.",
+  "walkIn": "Walk-in",
+  "seatGuest": "Seat",
+  "tableSeats": "{n} seats",
+  "@tableSeats": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "confirmReservation": "Confirm"
 }

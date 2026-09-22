@@ -85,6 +85,7 @@
   "actionConfirm": "Подтвердить",
   "actionStartPreparing": "Начать готовить",
   "actionHandToCourier": "Передать курьеру",
+  "actionPickedUp": "Забрал заказ",
   "actionMarkDelivered": "Доставлен",
   "actionCancel": "Отменить",
   "accept": "Принять",
@@ -239,6 +240,10 @@
   "payCard": "Карта",
   "payOnDelivery": "Оплата курьеру или на кассе. Заказ останется неоплаченным до этого.",
   "cardNotConnected": "Карты не подключены. Платите наличными.",
+  "payCardHint": "Оплата на странице Stripe. Тестовая карта 4242 4242 4242 4242.",
+  "payNow": "Оплатить",
+  "waitingForCard": "Ждём карту",
+  "paid": "Оплачен",
   "unpaid": "Не оплачен",
   "payMethod": "Оплата",
   "modifiers": "Размер и добавки",
@@ -268,5 +273,35 @@
       "who": {"type": "String"},
       "body": {"type": "String"}
     }
-  }
+  },
+  "bookTable": "Забронировать стол",
+  "reservations": "Брони",
+  "guests": "Гости",
+  "guestsCount": "{n} гостей",
+  "@guestsCount": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "pickTable": "Стол",
+  "anyTable": "Любой стол",
+  "book": "Забронировать",
+  "booked": "Стол забронирован",
+  "reserveRequested": "Заявка",
+  "reserveConfirmed": "Подтверждена",
+  "reserveSeated": "Посадили",
+  "reserveCancelled": "Отменена",
+  "reserveNoShow": "Не пришли",
+  "cancelReservation": "Отменить бронь",
+  "noReservations": "Броней пока нет",
+  "noReservationsHint": "Откройте ресторан и нажмите «Забронировать стол».",
+  "walkIn": "Без записи",
+  "seatGuest": "Посадить",
+  "tableSeats": "{n} мест",
+  "@tableSeats": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "confirmReservation": "Подтвердить"
 }

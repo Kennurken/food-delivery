@@ -277,6 +277,9 @@ class L10nEn extends L10n {
   String get actionHandToCourier => 'Hand to courier';
 
   @override
+  String get actionPickedUp => 'Picked up';
+
+  @override
   String get actionMarkDelivered => 'Mark delivered';
 
   @override
@@ -726,6 +729,19 @@ class L10nEn extends L10n {
   String get cardNotConnected => 'Card payments are not connected. Use cash.';
 
   @override
+  String get payCardHint =>
+      'You\'ll pay on a Stripe page. Test card 4242 4242 4242 4242.';
+
+  @override
+  String get payNow => 'Pay now';
+
+  @override
+  String get waitingForCard => 'Waiting for card';
+
+  @override
+  String get paid => 'Paid';
+
+  @override
   String get unpaid => 'Unpaid';
 
   @override
@@ -796,4 +812,68 @@ class L10nEn extends L10n {
   String chatPreview(String who, String body) {
     return '$who: $body';
   }
+
+  @override
+  String get bookTable => 'Book a table';
+
+  @override
+  String get reservations => 'Reservations';
+
+  @override
+  String get guests => 'Guests';
+
+  @override
+  String guestsCount(int n) {
+    return '$n guests';
+  }
+
+  @override
+  String get pickTable => 'Table';
+
+  @override
+  String get anyTable => 'Any table';
+
+  @override
+  String get book => 'Book';
+
+  @override
+  String get booked => 'Table booked';
+
+  @override
+  String get reserveRequested => 'Requested';
+
+  @override
+  String get reserveConfirmed => 'Confirmed';
+
+  @override
+  String get reserveSeated => 'Seated';
+
+  @override
+  String get reserveCancelled => 'Cancelled';
+
+  @override
+  String get reserveNoShow => 'No-show';
+
+  @override
+  String get cancelReservation => 'Cancel booking';
+
+  @override
+  String get noReservations => 'No bookings yet';
+
+  @override
+  String get noReservationsHint => 'Open a restaurant and tap Book a table.';
+
+  @override
+  String get walkIn => 'Walk-in';
+
+  @override
+  String get seatGuest => 'Seat';
+
+  @override
+  String tableSeats(int n) {
+    return '$n seats';
+  }
+
+  @override
+  String get confirmReservation => 'Confirm';
 }

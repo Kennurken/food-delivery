@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
@@ -18,6 +19,7 @@ import '../../../core/widgets/success_check.dart';
 import '../../map/domain/place.dart';
 import '../../map/presentation/map_origin.dart';
 import '../../orders/data/order_repository.dart';
+import '../data/billing_config.dart';
 import '../../profile/data/profile_repository.dart';
 import '../../profile/domain/address.dart';
 import '../../restaurants/data/restaurant_repository.dart';
@@ -104,6 +106,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       ref.invalidate(ordersProvider);
       if (!mounted) return;
       Haptics.success();
+      final payUrl = order.checkoutUrl;
+      if (order.needsCard && payUrl != null && payUrl.isNotEmpty) {
+        await launchUrl(
+          Uri.parse(payUrl),
+          mode: LaunchMode.externalApplication,
+        );
+        if (mounted) context.go('/orders/${order.id}');
+        return;
+      }
       setState(() => _placedOrderId = order.id);
       // Let the success animation play before moving on.
       await Future<void>.delayed(const Duration(milliseconds: 1400));
@@ -235,6 +246,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final scheme = Theme.of(context).colorScheme;
 
     final t = context.l10n;
+    final cardReady = ref.watch(billingConfigProvider).value?.card == true;
     if (_placedOrderId != null) return _SuccessView(orderId: _placedOrderId!);
 
     if (cart.isEmpty) {
@@ -491,7 +503,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           ] else ...[
             const SizedBox(height: 8),
             Text(
-              t.cardNotConnected,
+              cardReady ? t.payCardHint : t.cardNotConnected,
               style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
             ).stagger(idx++),
           ],

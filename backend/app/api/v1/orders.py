@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Header, HTTPException, Query, status
+from fastapi import APIRouter, Header, HTTPException, Query, Request, status
 from sqlalchemy import or_, select
 
 from app.api.deps import DB, CourierUser, CurrentUser
@@ -15,15 +15,24 @@ from app.services.schedule import utcnow
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
+_PAID_OR_CASH = or_(Order.pay_method != "online", Order.pay_status == "paid")
+
 
 @router.post("", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
 def create_order(
     data: OrderCreate,
     db: DB,
     user: CurrentUser,
+    request: Request,
     idempotency_key: Annotated[str | None, Header()] = None,
 ) -> Order:
-    return order_service.create_order(db, user, data, idempotency_key=idempotency_key)
+    return order_service.create_order(
+        db,
+        user,
+        data,
+        idempotency_key=idempotency_key,
+        origin=request.headers.get("origin"),
+    )
 
 
 @router.get("", response_model=list[OrderOut])
@@ -40,7 +49,7 @@ def my_orders(
     )
     if restaurant_id is not None:
         require_restaurant(db, user, restaurant_id, "orders.read")
-        stmt = stmt.where(Order.restaurant_id == restaurant_id)
+        stmt = stmt.where(Order.restaurant_id == restaurant_id, _PAID_OR_CASH)
     elif user.role == UserRole.customer:
         stmt = stmt.where(Order.user_id == user.id)
     elif user.role == UserRole.courier:
@@ -57,6 +66,7 @@ def available_orders(db: DB, _: CourierUser) -> list[Order]:
             Order.courier_id.is_(None),
             Order.status.in_(order_service.COURIER_PICKABLE),
             Order.channel == order_service.DELIVERY_CHANNEL,
+            _PAID_OR_CASH,
             or_(
                 Order.scheduled_for.is_(None),
                 Order.scheduled_for <= utcnow() + timedelta(minutes=40),
@@ -87,6 +97,12 @@ def advance_order(order_id: int, db: DB, courier: CourierUser) -> Order:
 @router.get("/{order_id}", response_model=OrderOut)
 def get_order(order_id: int, db: DB, user: CurrentUser) -> Order:
     return order_service.get_visible_order(db, user, order_id)
+
+
+@router.post("/{order_id}/pay/sync", response_model=OrderOut)
+def sync_payment(order_id: int, db: DB, user: CurrentUser) -> Order:
+    order = order_service.get_visible_order(db, user, order_id)
+    return order_service.sync_payment(db, order)
 
 
 @router.get("/{order_id}/messages", response_model=list[ChatMessageOut])

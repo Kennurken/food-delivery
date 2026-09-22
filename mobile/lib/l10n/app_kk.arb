@@ -85,6 +85,7 @@
   "actionConfirm": "Растау",
   "actionStartPreparing": "Дайындауды бастау",
   "actionHandToCourier": "Курьерге беру",
+  "actionPickedUp": "Тапсырысты алдым",
   "actionMarkDelivered": "Жеткізілді",
   "actionCancel": "Болдырмау",
   "accept": "Қабылдау",
@@ -239,6 +240,10 @@
   "payCard": "Карта",
   "payOnDelivery": "Курьерге немесе кассада төлейсіз. Соған дейін төленбеген болады.",
   "cardNotConnected": "Карта төлемі қосылмаған. Қолма-қол төлеңіз.",
+  "payCardHint": "Stripe бетінде төлейсіз. Тест картасы 4242 4242 4242 4242.",
+  "payNow": "Төлеу",
+  "waitingForCard": "Карта күтілуде",
+  "paid": "Төленді",
   "unpaid": "Төленбеген",
   "payMethod": "Төлем",
   "modifiers": "Өлшем мен қосымшалар",
@@ -268,5 +273,35 @@
       "who": {"type": "String"},
       "body": {"type": "String"}
     }
-  }
+  },
+  "bookTable": "Үстел брондау",
+  "reservations": "Брондар",
+  "guests": "Қонақтар",
+  "guestsCount": "{n} қонақ",
+  "@guestsCount": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "pickTable": "Үстел",
+  "anyTable": "Кез келген үстел",
+  "book": "Брондау",
+  "booked": "Үстел брондалды",
+  "reserveRequested": "Өтініш",
+  "reserveConfirmed": "Расталды",
+  "reserveSeated": "Отырғызылды",
+  "reserveCancelled": "Болдырылмады",
+  "reserveNoShow": "Келмеді",
+  "cancelReservation": "Бронды болдырмау",
+  "noReservations": "Брон жоқ",
+  "noReservationsHint": "Мейрамхананы ашып, «Үстел брондау» батырмасын басыңыз.",
+  "walkIn": "Кездейсоқ қонақ",
+  "seatGuest": "Отырғызу",
+  "tableSeats": "{n} орын",
+  "@tableSeats": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "confirmReservation": "Растау"
 }

@@ -19,6 +19,8 @@ import '../../features/orders/presentation/order_chat_screen.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/reservations/presentation/book_table_screen.dart';
+import '../../features/reservations/presentation/my_reservations_screen.dart';
 import '../../features/restaurants/presentation/home_screen.dart';
 import '../../features/restaurants/presentation/qr_table_screen.dart';
 import '../../features/restaurants/presentation/restaurant_screen.dart';
@@ -143,6 +145,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (_, s) =>
                     RestaurantScreen(id: int.parse(s.pathParameters['id']!)),
               ),
+              GoRoute(
+                path: '/restaurants/:id/book',
+                builder: (_, s) => BookTableScreen(
+                  restaurantId: int.parse(s.pathParameters['id']!),
+                ),
+              ),
               GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
             ],
           ),
@@ -161,6 +169,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile',
                 builder: (_, _) => const ProfileScreen(),
+              ),
+              GoRoute(
+                path: '/reservations',
+                builder: (_, _) => const MyReservationsScreen(),
               ),
             ],
           ),

@@ -137,6 +137,7 @@ class Order {
     this.courierSeenAt,
     this.payMethod = 'cash',
     this.payStatus = 'unpaid',
+    this.checkoutUrl,
     this.scheduledFor,
     this.promoCode,
     this.discount = 0,
@@ -168,12 +169,14 @@ class Order {
   final DateTime? courierSeenAt;
   final String payMethod;
   final String payStatus;
+  final String? checkoutUrl;
   final DateTime? scheduledFor;
   final String? promoCode;
   final double discount;
 
   bool get isCash => payMethod == 'cash';
   bool get isPaid => payStatus == 'paid';
+  bool get needsCard => payMethod == 'online' && payStatus == 'pending';
   bool get isScheduled => scheduledFor != null;
   bool get isLater {
     final when = scheduledFor;
@@ -219,6 +222,7 @@ class Order {
         : DateTime.tryParse(json['courier_seen_at'] as String),
     payMethod: json['pay_method'] as String? ?? 'cash',
     payStatus: json['pay_status'] as String? ?? 'unpaid',
+    checkoutUrl: json['checkout_url'] as String?,
     scheduledFor: json['scheduled_for'] == null
         ? null
         : DateTime.tryParse(json['scheduled_for'] as String),

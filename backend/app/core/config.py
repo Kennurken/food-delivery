@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     allow_ephemeral_db: bool = False  # sqlite in /tmp on Vercel — data dies on cold start
     geo_provider: str = "photon"  # photon (OSM) | fixture (tests, offline)
     fcm_server_key: str = ""  # empty = push adapter is a no-op; never fake a send
+    stripe_secret_key: str = ""  # sk_test_ / sk_live_; empty = card checkout is 409
+    stripe_publishable_key: str = ""  # pk_test_ / pk_live_; returned to the client
+    stripe_webhook_secret: str = ""  # whsec_… for POST /billing/stripe/webhook
+    public_app_url: str = "https://food-delivery-drab-theta.vercel.app"
+    firebase_project_id: str = ""  # web client id; FCM send still needs a service account
 
     @field_validator("allow_ephemeral_db", mode="before")
     @classmethod

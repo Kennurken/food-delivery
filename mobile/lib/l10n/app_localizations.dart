@@ -609,6 +609,12 @@ abstract class L10n {
   /// **'Hand to courier'**
   String get actionHandToCourier;
 
+  /// No description provided for @actionPickedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked up'**
+  String get actionPickedUp;
+
   /// No description provided for @actionMarkDelivered.
   ///
   /// In en, this message translates to:
@@ -1461,6 +1467,30 @@ abstract class L10n {
   /// **'Card payments are not connected. Use cash.'**
   String get cardNotConnected;
 
+  /// No description provided for @payCardHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll pay on a Stripe page. Test card 4242 4242 4242 4242.'**
+  String get payCardHint;
+
+  /// No description provided for @payNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay now'**
+  String get payNow;
+
+  /// No description provided for @waitingForCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for card'**
+  String get waitingForCard;
+
+  /// No description provided for @paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get paid;
+
   /// No description provided for @unpaid.
   ///
   /// In en, this message translates to:
@@ -1592,6 +1622,126 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'{who}: {body}'**
   String chatPreview(String who, String body);
+
+  /// No description provided for @bookTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Book a table'**
+  String get bookTable;
+
+  /// No description provided for @reservations.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservations'**
+  String get reservations;
+
+  /// No description provided for @guests.
+  ///
+  /// In en, this message translates to:
+  /// **'Guests'**
+  String get guests;
+
+  /// No description provided for @guestsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} guests'**
+  String guestsCount(int n);
+
+  /// No description provided for @pickTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get pickTable;
+
+  /// No description provided for @anyTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Any table'**
+  String get anyTable;
+
+  /// No description provided for @book.
+  ///
+  /// In en, this message translates to:
+  /// **'Book'**
+  String get book;
+
+  /// No description provided for @booked.
+  ///
+  /// In en, this message translates to:
+  /// **'Table booked'**
+  String get booked;
+
+  /// No description provided for @reserveRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested'**
+  String get reserveRequested;
+
+  /// No description provided for @reserveConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get reserveConfirmed;
+
+  /// No description provided for @reserveSeated.
+  ///
+  /// In en, this message translates to:
+  /// **'Seated'**
+  String get reserveSeated;
+
+  /// No description provided for @reserveCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get reserveCancelled;
+
+  /// No description provided for @reserveNoShow.
+  ///
+  /// In en, this message translates to:
+  /// **'No-show'**
+  String get reserveNoShow;
+
+  /// No description provided for @cancelReservation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel booking'**
+  String get cancelReservation;
+
+  /// No description provided for @noReservations.
+  ///
+  /// In en, this message translates to:
+  /// **'No bookings yet'**
+  String get noReservations;
+
+  /// No description provided for @noReservationsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a restaurant and tap Book a table.'**
+  String get noReservationsHint;
+
+  /// No description provided for @walkIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk-in'**
+  String get walkIn;
+
+  /// No description provided for @seatGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Seat'**
+  String get seatGuest;
+
+  /// No description provided for @tableSeats.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} seats'**
+  String tableSeats(int n);
+
+  /// No description provided for @confirmReservation.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmReservation;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

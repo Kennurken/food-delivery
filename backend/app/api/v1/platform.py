@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from app.api.deps import DB, AdminUser, CurrentUser
 from app.core import audit
 from app.core.access import require_restaurant, valid_staff_role
+from app.core.billing import parse_webhook, public_config
 from app.core.features import entitlements, public_plans
 from app.models import MenuItem, Order, Restaurant, User
 from app.models.audit import AuditLog
@@ -34,6 +35,21 @@ def list_plans() -> list[dict]:
     return public_plans()
 
 
+@router.get("/billing/config")
+def billing_config() -> dict:
+    return public_config()
+
+
+@router.post("/billing/stripe/webhook")
+async def stripe_webhook(request: Request, db: DB) -> dict:
+    from app.services.order_service import apply_stripe_event
+
+    payload = await request.body()
+    event = parse_webhook(payload, request.headers.get("stripe-signature") or "")
+    order = apply_stripe_event(db, event)
+    return {"ok": True, "order_id": None if order is None else order.id}
+
+
 @router.get("/platform/overview")
 def overview(db: DB, _: AdminUser) -> dict:
     restaurants = db.scalar(select(func.count()).select_from(Restaurant)) or 0
@@ -46,7 +62,7 @@ def overview(db: DB, _: AdminUser) -> dict:
         "open": open_n,
         "orders_today": orders_today,
         "plans": {code: n for code, n in plan_rows},
-        "billing": "unconfigured",
+        "billing": "stripe" if public_config()["card"] else "unconfigured",
     }
 
 

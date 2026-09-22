@@ -14,7 +14,9 @@ Existing venues default to **Pro** so the marketplace delivery flow keeps workin
 
 ## Payments
 
-Customer checkout uses `app/core/billing.py`. `CashProvider` creates an unpaid order. `UnconfiguredProvider` returns HTTP 409 ("Card payments are not connected. Pay with cash.") — never a fake paid charge. There is no Stripe/Kaspi integration and no fake MRR on the platform overview.
+Customer checkout uses `app/core/billing.py`. `CashProvider` creates an unpaid order. If `STRIPE_SECRET_KEY` is empty, `UnconfiguredProvider` returns HTTP 409 ("Card payments are not connected. Pay with cash.") — never a fake paid charge. With a Stripe test/live secret the API opens a Checkout Session; the order stays `pending` until Stripe reports `paid` (webhook or `POST /orders/{id}/pay/sync`). Kaspi is not wired. There is no fake MRR on the platform overview.
+
+Do not put `sk_` keys in git. Local `backend/.env`, Vercel env for prod. After a secret leaks in chat, roll it in the Stripe dashboard.
 
 Restaurant SaaS billing is still unconfigured. Billing status on the restaurant (`trial`, `active`, `past_due`, `grace_period`, `suspended`, `cancelled`, `expired`) is stored. `suspended` / `cancelled` / `expired` refuse new orders. Nothing auto-transitions yet.
 

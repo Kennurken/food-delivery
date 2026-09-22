@@ -36,6 +36,7 @@ async def lifespan(_: FastAPI):
             ensure_geo_schema,
             ensure_menu_images,
             ensure_offers_schema,
+            ensure_reservations_schema,
             ensure_restaurant_coords,
             ensure_saas_schema,
             seed_catalog,
@@ -54,6 +55,7 @@ async def lifespan(_: FastAPI):
         ensure_offers_schema()
         ensure_demo_promos()
         ensure_chat_schema()
+        ensure_reservations_schema()
     # Sync endpoints run in a threadpool; hub needs the main loop to push WS frames.
     hub.bind_loop(asyncio.get_running_loop())
     yield
@@ -62,7 +64,7 @@ async def lifespan(_: FastAPI):
 docs = None if settings.is_prod else "/docs"
 app = FastAPI(
     title="Food Delivery API",
-    version="0.10.0",
+    version="0.11.0",
     lifespan=lifespan,
     docs_url=docs,
     redoc_url=None if settings.is_prod else "/redoc",

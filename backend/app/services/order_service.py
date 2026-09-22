@@ -1,3 +1,4 @@
+import logging
 from hashlib import sha256
 
 from fastapi import HTTPException, status
@@ -5,7 +6,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.access import has_permission, require_restaurant
-from app.core.billing import get_payment_provider
+from app.core.billing import (
+    CashProvider,
+    UnconfiguredProvider,
+    card_connected,
+    create_checkout_session,
+    refund_session,
+    session_is_paid,
+)
 from app.core.events import hub
 from app.core.features import INACTIVE_BILLING, entitlements
 from app.core.geo import resolve_point, valid_coord
@@ -18,6 +26,8 @@ from app.models.member import RestaurantMember
 from app.schemas.order import OrderCreate, OrderOut
 from app.services import promo as promo_service
 from app.services.schedule import due_for_courier, parse_slot
+
+log = logging.getLogger(__name__)
 
 # Statuses a courier can pick up from
 COURIER_PICKABLE = {OrderStatus.confirmed, OrderStatus.preparing}
@@ -159,7 +169,12 @@ def _resolve_table(db: Session, token: str, restaurant_id: int) -> FloorObject:
 
 
 def create_order(
-    db: Session, user: User, data: OrderCreate, *, idempotency_key: str | None = None
+    db: Session,
+    user: User,
+    data: OrderCreate,
+    *,
+    idempotency_key: str | None = None,
+    origin: str | None = None,
 ) -> Order:
     restaurant = db.get(Restaurant, data.restaurant_id)
     if not restaurant or not restaurant.is_open:
@@ -250,12 +265,13 @@ def create_order(
     pay_method = data.pay_method or "cash"
     if pay_method == "online" and not flags.enabled("payments.online"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Online payments are not on this plan")
-    paid = get_payment_provider(method=pay_method).charge(
-        amount=round(max(subtotal + delivery_fee - discount, 0), 2),
-        currency="KZT",
-        idempotency_key=idempotency_key or f"order:{user.id}:{restaurant.id}",
-        description=f"{restaurant.name} · {len(items)} items",
-    )
+    if pay_method == "online" and not card_connected():
+        UnconfiguredProvider().charge(
+            amount=0,
+            currency="KZT",
+            idempotency_key="unconfigured",
+            description="",
+        )
 
     pickup_lat, pickup_lng = restaurant.lat, restaurant.lng
     dest_lat, dest_lng = pickup_lat, pickup_lng
@@ -266,6 +282,16 @@ def create_order(
             if hit:
                 dest_lat, dest_lng = hit.lat, hit.lng
 
+    total = round(max(subtotal + delivery_fee - discount, 0), 2)
+    pay_status = "unpaid"
+    if pay_method == "cash":
+        pay_status = CashProvider().charge(
+            amount=total,
+            currency="KZT",
+            idempotency_key=idempotency_key or f"order:{user.id}:{restaurant.id}",
+            description=f"{restaurant.name} · {len(items)} items",
+        ).status
+
     order = Order(
         user_id=user.id,
         restaurant_id=restaurant.id,
@@ -273,7 +299,7 @@ def create_order(
         comment=data.comment,
         subtotal=round(subtotal, 2),
         delivery_fee=delivery_fee,
-        total=round(max(subtotal + delivery_fee - discount, 0), 2),
+        total=total,
         items=items,
         channel=channel,
         table_object_id=table_object_id,
@@ -281,27 +307,77 @@ def create_order(
         dest_lng=dest_lng,
         pickup_lat=pickup_lat,
         pickup_lng=pickup_lng,
-        pay_method=paid.provider if paid.provider == "cash" else pay_method,
-        pay_status=paid.status,
+        pay_method="cash" if pay_method == "cash" else "online",
+        pay_status=pay_status,
         scheduled_for=slot,
         promo_code=promo_code,
         discount=round(discount, 2),
     )
     db.add(order)
     db.flush()
-    if idempotency_key:
-        db.add(
-            IdempotencyRecord(
-                user_id=user.id,
-                key=idempotency_key,
-                body_hash=body_hash,
+    try:
+        if pay_method == "online":
+            paid = create_checkout_session(
+                amount=total,
+                currency="KZT",
+                description=f"{restaurant.name} · {len(items)} items",
                 order_id=order.id,
+                origin=origin,
+                idempotency_key=idempotency_key or f"order:{order.id}:checkout",
+                customer_email=user.email,
             )
-        )
+            order.pay_status = paid.status
+            order.pay_ref = paid.reference
+            order.checkout_url = paid.url
+        if idempotency_key:
+            db.add(
+                IdempotencyRecord(
+                    user_id=user.id,
+                    key=idempotency_key,
+                    body_hash=body_hash,
+                    order_id=order.id,
+                )
+            )
+        db.commit()
+    except HTTPException:
+        db.rollback()
+        raise
+    db.refresh(order)
+    if order.pay_status != "pending":
+        notify(db, order)
+    return order
+
+
+def mark_paid(db: Session, order: Order) -> Order:
+    if order.pay_status == "paid":
+        return order
+    waiting = order.pay_status == "pending"
+    order.pay_status = "paid"
     db.commit()
     db.refresh(order)
-    notify(db, order)
+    if waiting:
+        notify(db, order)
     return order
+
+
+def sync_payment(db: Session, order: Order) -> Order:
+    if order.pay_method != "online" or order.pay_status == "paid":
+        return order
+    if order.pay_ref and session_is_paid(order.pay_ref):
+        return mark_paid(db, order)
+    return order
+
+
+def apply_stripe_event(db: Session, event: dict) -> Order | None:
+    from app.core.billing import order_id_from_event
+
+    oid = order_id_from_event(event)
+    if oid is None:
+        return None
+    order = db.get(Order, oid)
+    if order is None or order.pay_method != "online":
+        return None
+    return mark_paid(db, order)
 
 
 def accept_order(db: Session, courier: User, order: Order) -> Order:
@@ -337,12 +413,31 @@ def advance_order(db: Session, courier: User, order: Order) -> Order:
     return update_status(db, order, next_status)
 
 
+def refund_if_paid(db: Session, order: Order) -> Order:
+    """Send the money back when a paid card ticket is cancelled.
+
+    Cash never moved, so there is nothing to return. A failed refund still lets
+    the cancel through and leaves pay_status 'paid' — a human has to settle it
+    rather than the ticket silently claiming it was refunded.
+    """
+    if order.pay_method != "online" or order.pay_status != "paid":
+        return order
+    ref = refund_session(order.pay_ref or "")
+    if ref is None:
+        log.error("order %s cancelled but refund failed; settle by hand", order.id)
+        return order
+    order.pay_status = "refunded"
+    return order
+
+
 def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
     if not _allowed(order, new_status):
         raise HTTPException(
             status.HTTP_409_CONFLICT, f"Cannot move from {order.status.value} to {new_status.value}"
         )
     order.status = new_status
+    if new_status == OrderStatus.cancelled:
+        refund_if_paid(db, order)
     db.commit()
     db.refresh(order)
     notify(db, order)

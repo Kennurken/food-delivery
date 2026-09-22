@@ -72,4 +72,25 @@ void main() {
     expect(o.destLat, 43.24);
     expect(o.courierLat, 43.245);
   });
+
+  test('card checkout url is optional on the ticket', () {
+    final o = Order.fromJson({
+      'id': 1,
+      'restaurant_id': 1,
+      'restaurant_name': 'Bao',
+      'status': 'pending',
+      'address': 'Abay 1',
+      'subtotal': 1,
+      'delivery_fee': 0,
+      'total': 1,
+      'created_at': '2026-01-01T00:00:00',
+      'items': <dynamic>[],
+      'customer': {'id': 1, 'name': 'A', 'phone': null},
+      'pay_method': 'online',
+      'pay_status': 'pending',
+      'checkout_url': 'https://checkout.stripe.com/c/pay/cs_test',
+    });
+    expect(o.needsCard, isTrue);
+    expect(o.checkoutUrl, contains('checkout.stripe.com'));
+  });
 }

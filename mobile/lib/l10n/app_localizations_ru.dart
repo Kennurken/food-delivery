@@ -277,6 +277,9 @@ class L10nRu extends L10n {
   String get actionHandToCourier => 'Передать курьеру';
 
   @override
+  String get actionPickedUp => 'Забрал заказ';
+
+  @override
   String get actionMarkDelivered => 'Доставлен';
 
   @override
@@ -725,6 +728,19 @@ class L10nRu extends L10n {
   String get cardNotConnected => 'Карты не подключены. Платите наличными.';
 
   @override
+  String get payCardHint =>
+      'Оплата на странице Stripe. Тестовая карта 4242 4242 4242 4242.';
+
+  @override
+  String get payNow => 'Оплатить';
+
+  @override
+  String get waitingForCard => 'Ждём карту';
+
+  @override
+  String get paid => 'Оплачен';
+
+  @override
   String get unpaid => 'Не оплачен';
 
   @override
@@ -795,4 +811,69 @@ class L10nRu extends L10n {
   String chatPreview(String who, String body) {
     return '$who: $body';
   }
+
+  @override
+  String get bookTable => 'Забронировать стол';
+
+  @override
+  String get reservations => 'Брони';
+
+  @override
+  String get guests => 'Гости';
+
+  @override
+  String guestsCount(int n) {
+    return '$n гостей';
+  }
+
+  @override
+  String get pickTable => 'Стол';
+
+  @override
+  String get anyTable => 'Любой стол';
+
+  @override
+  String get book => 'Забронировать';
+
+  @override
+  String get booked => 'Стол забронирован';
+
+  @override
+  String get reserveRequested => 'Заявка';
+
+  @override
+  String get reserveConfirmed => 'Подтверждена';
+
+  @override
+  String get reserveSeated => 'Посадили';
+
+  @override
+  String get reserveCancelled => 'Отменена';
+
+  @override
+  String get reserveNoShow => 'Не пришли';
+
+  @override
+  String get cancelReservation => 'Отменить бронь';
+
+  @override
+  String get noReservations => 'Броней пока нет';
+
+  @override
+  String get noReservationsHint =>
+      'Откройте ресторан и нажмите «Забронировать стол».';
+
+  @override
+  String get walkIn => 'Без записи';
+
+  @override
+  String get seatGuest => 'Посадить';
+
+  @override
+  String tableSeats(int n) {
+    return '$n мест';
+  }
+
+  @override
+  String get confirmReservation => 'Подтвердить';
 }

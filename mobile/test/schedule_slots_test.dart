@@ -18,4 +18,12 @@ void main() {
     expect(slots.first.day, 23);
     expect(slots.first.hour, greaterThanOrEqualTo(10));
   });
+
+  test('reservation slots cover two weeks of evenings', () {
+    final now = DateTime(2026, 9, 22, 12, 0);
+    final slots = reservationSlots(now);
+    expect(slots, isNotEmpty);
+    expect(slots.last.difference(now).inDays, greaterThanOrEqualTo(10));
+    expect(slots.first.isAfter(now.add(const Duration(minutes: 44))), isTrue);
+  });
 }

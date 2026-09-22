@@ -29,6 +29,9 @@ List<DateTime> scheduleSlots(
   return out;
 }
 
+List<DateTime> reservationSlots(DateTime now) =>
+    scheduleSlots(now, minMinutes: 45, days: 14);
+
 String formatSlot(DateTime t) {
   final d = t.day.toString().padLeft(2, '0');
   final mo = t.month.toString().padLeft(2, '0');

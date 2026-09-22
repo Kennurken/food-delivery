@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -250,7 +252,9 @@ class OrderDetailScreen extends ConsumerWidget {
                               t.payMethod,
                               [
                                 o.isCash ? t.payCash : t.payCard,
-                                if (!o.isPaid) t.unpaid,
+                                if (o.isPaid) t.paid,
+                                if (!o.isPaid && !o.needsCard) t.unpaid,
+                                if (o.needsCard) t.waitingForCard,
                               ].join(' · '),
                             ),
                             _Row(t.total, formatMoney(o.total), bold: true),
@@ -260,6 +264,10 @@ class OrderDetailScreen extends ConsumerWidget {
                     ],
                   ),
                 ).stagger(idx++),
+                if (o.needsCard) ...[
+                  const SizedBox(height: 12),
+                  _PayNowButton(order: o).stagger(idx++),
+                ],
                 const SizedBox(height: 20),
                 if (o.status.canCancel)
                   OutlinedButton(
@@ -433,6 +441,56 @@ class _StatusTimeline extends StatelessWidget {
           if (i < _steps.length - 1) const SizedBox(width: 4),
         ],
       ],
+    );
+  }
+}
+
+class _PayNowButton extends ConsumerStatefulWidget {
+  const _PayNowButton({required this.order});
+
+  final Order order;
+
+  @override
+  ConsumerState<_PayNowButton> createState() => _PayNowButtonState();
+}
+
+class _PayNowButtonState extends ConsumerState<_PayNowButton> {
+  var _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_sync());
+  }
+
+  Future<void> _sync() async {
+    try {
+      await ref.read(orderRepositoryProvider).syncPayment(widget.order.id);
+      ref.invalidate(orderLiveProvider(widget.order.id));
+      ref.invalidate(ordersProvider);
+    } catch (_) {}
+  }
+
+  Future<void> _pay() async {
+    final url = widget.order.checkoutUrl;
+    if (url != null && url.isNotEmpty) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    }
+    setState(() => _busy = true);
+    try {
+      await _sync();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    return FilledButton.icon(
+      onPressed: _busy ? null : _pay,
+      icon: const Icon(Icons.credit_card),
+      label: Text(t.payNow),
     );
   }
 }

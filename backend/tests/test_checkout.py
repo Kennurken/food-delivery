@@ -120,6 +120,61 @@ def test_card_checkout_stays_honest(client, auth):
     assert "cash" in r.json()["detail"].lower()
 
 
+def test_billing_config_hides_card_without_key(client):
+    body = client.get("/api/v1/billing/config").json()
+    assert body["card"] is False
+
+
+def test_stripe_checkout_stays_pending_until_stripe_says_paid(client, auth, admin, monkeypatch):
+    from app.core.billing import PaymentResult
+    from app.services import order_service as svc
+
+    monkeypatch.setattr(svc, "card_connected", lambda: True)
+
+    def fake_checkout(**kwargs):
+        assert kwargs["order_id"] > 0
+        return PaymentResult(
+            provider="stripe",
+            reference="cs_test_1",
+            status="pending",
+            url="https://checkout.stripe.com/c/pay/cs_test_1",
+        )
+
+    monkeypatch.setattr(svc, "create_checkout_session", fake_checkout)
+    menu = client.get("/api/v1/restaurants/1/menu").json()
+    r = client.post(
+        "/api/v1/orders",
+        json={
+            "restaurant_id": 1,
+            "address": "Abay 10",
+            "pay_method": "online",
+            "items": [{"menu_item_id": menu[0]["id"], "quantity": 1}],
+        },
+        headers=auth,
+    )
+    assert r.status_code == 201, r.text
+    order = r.json()
+    assert order["pay_method"] == "online"
+    assert order["pay_status"] == "pending"
+    assert order["checkout_url"].startswith("https://checkout.stripe.com/")
+    oid = order["id"]
+    ids = [
+        o["id"]
+        for o in client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=admin).json()
+    ]
+    assert oid not in ids
+
+    monkeypatch.setattr(svc, "session_is_paid", lambda _ref: True)
+    synced = client.post(f"/api/v1/orders/{oid}/pay/sync", headers=auth)
+    assert synced.status_code == 200, synced.text
+    assert synced.json()["pay_status"] == "paid"
+    ids = [
+        o["id"]
+        for o in client.get("/api/v1/orders", params={"restaurant_id": 1}, headers=admin).json()
+    ]
+    assert oid in ids
+
+
 def test_unknown_modifier_rejected(client, auth):
     menu = client.get("/api/v1/restaurants/1/menu").json()
     bao = next(i for i in menu if i["name"] == "Pork Bao")
@@ -162,3 +217,108 @@ def test_device_token_roundtrip(client, auth):
         headers=auth,
     )
     assert r.status_code == 204
+
+
+def test_stripe_amount_uses_two_decimals_for_tenge():
+    """KZT is not a Stripe zero-decimal currency: 2900 ₸ must become 290000."""
+    from app.core.billing import _stripe_amount
+
+    assert _stripe_amount(2900, "KZT") == 290000
+    assert _stripe_amount(2900, "JPY") == 2900  # zero-decimal stays whole
+    assert _stripe_amount(19.99, "USD") == 1999
+
+
+def test_cancelling_a_paid_card_order_refunds_it(client, auth, admin, monkeypatch):
+    """Money must move back when the kitchen cancels a ticket the customer paid."""
+    from app.services import order_service
+
+    calls: list[str] = []
+    monkeypatch.setattr(
+        order_service, "refund_session", lambda ref: calls.append(ref) or "re_test_1"
+    )
+
+    menu = client.get("/api/v1/restaurants/1/menu").json()
+    placed = client.post(
+        "/api/v1/orders",
+        json={
+            "restaurant_id": 1,
+            "address": "Abay 10",
+            "items": [{"menu_item_id": menu[0]["id"], "quantity": 1}],
+        },
+        headers=auth,
+    )
+    assert placed.status_code == 201, placed.text
+    order_id = placed.json()["id"]
+
+    # Force the ticket into the state Stripe would leave behind after payment.
+    from app.db.session import SessionLocal
+    from app.models import Order
+
+    with SessionLocal() as db:
+        row = db.get(Order, order_id)
+        row.pay_method = "online"
+        row.pay_status = "paid"
+        row.pay_ref = "cs_test_paid"
+        db.commit()
+
+    cancelled = client.post(f"/api/v1/orders/{order_id}/cancel", headers=auth)
+    assert cancelled.status_code == 200, cancelled.text
+    body = cancelled.json()
+    assert body["status"] == "cancelled"
+    assert body["pay_status"] == "refunded"
+    assert calls == ["cs_test_paid"]
+
+
+def test_failed_refund_does_not_claim_the_money_came_back(client, auth, monkeypatch):
+    """A Stripe failure closes the ticket but must not lie about the refund."""
+    from app.services import order_service
+
+    monkeypatch.setattr(order_service, "refund_session", lambda ref: None)
+
+    menu = client.get("/api/v1/restaurants/1/menu").json()
+    order_id = client.post(
+        "/api/v1/orders",
+        json={
+            "restaurant_id": 1,
+            "address": "Abay 10",
+            "items": [{"menu_item_id": menu[0]["id"], "quantity": 1}],
+        },
+        headers=auth,
+    ).json()["id"]
+
+    from app.db.session import SessionLocal
+    from app.models import Order
+
+    with SessionLocal() as db:
+        row = db.get(Order, order_id)
+        row.pay_method = "online"
+        row.pay_status = "paid"
+        row.pay_ref = "cs_test_paid"
+        db.commit()
+
+    body = client.post(f"/api/v1/orders/{order_id}/cancel", headers=auth).json()
+    assert body["status"] == "cancelled"
+    assert body["pay_status"] == "paid"  # still owed to the customer
+
+
+def test_cancelling_a_cash_order_refunds_nothing(client, auth, monkeypatch):
+    from app.services import order_service
+
+    def explode(ref):  # pragma: no cover - must never run
+        raise AssertionError("cash never reached Stripe")
+
+    monkeypatch.setattr(order_service, "refund_session", explode)
+
+    menu = client.get("/api/v1/restaurants/1/menu").json()
+    order_id = client.post(
+        "/api/v1/orders",
+        json={
+            "restaurant_id": 1,
+            "address": "Abay 10",
+            "items": [{"menu_item_id": menu[0]["id"], "quantity": 1}],
+            "pay_method": "cash",
+        },
+        headers=auth,
+    ).json()["id"]
+    body = client.post(f"/api/v1/orders/{order_id}/cancel", headers=auth).json()
+    assert body["status"] == "cancelled" and body["pay_status"] == "unpaid"

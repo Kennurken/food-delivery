@@ -704,4 +704,43 @@ class L10nKk extends L10n {
   String distanceKm(String km) {
     return '$km км';
   }
+
+  @override
+  String fromPrice(String price) {
+    return '$price бастап';
+  }
+
+  @override
+  String get payCash => 'Қолма-қол';
+
+  @override
+  String get payCard => 'Карта';
+
+  @override
+  String get payOnDelivery =>
+      'Курьерге немесе кассада төлейсіз. Соған дейін төленбеген болады.';
+
+  @override
+  String get cardNotConnected => 'Карта төлемі қосылмаған. Қолма-қол төлеңіз.';
+
+  @override
+  String get unpaid => 'Төленбеген';
+
+  @override
+  String get payMethod => 'Төлем';
+
+  @override
+  String get modifiers => 'Өлшем мен қосымшалар';
+
+  @override
+  String get addGroup => 'Топ қосу';
+
+  @override
+  String get addOption => 'Опция қосу';
+
+  @override
+  String get optionName => 'Опция';
+
+  @override
+  String get priceDelta => 'Δ ₸';
 }

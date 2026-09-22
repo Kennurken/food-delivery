@@ -51,6 +51,17 @@ class AdminRepository {
 
   Future<void> deleteMenuItem(int id) => _dio.delete('/api/v1/admin/menu/$id');
 
+  Future<MenuItem> replaceModifiers(
+    int itemId,
+    List<Map<String, dynamic>> groups,
+  ) async {
+    final r = await _dio.put(
+      '/api/v1/admin/menu/$itemId/modifiers',
+      data: groups,
+    );
+    return MenuItem.fromJson(r.data);
+  }
+
   Future<Map<String, dynamic>> overview() async {
     final r = await _dio.get('/api/v1/platform/overview');
     return r.data as Map<String, dynamic>;

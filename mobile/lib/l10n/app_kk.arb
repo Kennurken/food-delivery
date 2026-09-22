@@ -232,5 +232,18 @@
     "placeholders": {
       "km": {"type": "String"}
     }
-  }
+  },
+  "fromPrice": "{price} бастап",
+  "@fromPrice": {"placeholders": {"price": {"type": "String"}}},
+  "payCash": "Қолма-қол",
+  "payCard": "Карта",
+  "payOnDelivery": "Курьерге немесе кассада төлейсіз. Соған дейін төленбеген болады.",
+  "cardNotConnected": "Карта төлемі қосылмаған. Қолма-қол төлеңіз.",
+  "unpaid": "Төленбеген",
+  "payMethod": "Төлем",
+  "modifiers": "Өлшем мен қосымшалар",
+  "addGroup": "Топ қосу",
+  "addOption": "Опция қосу",
+  "optionName": "Опция",
+  "priceDelta": "Δ ₸"
 }

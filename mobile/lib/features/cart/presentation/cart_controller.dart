@@ -21,8 +21,8 @@ class CartState {
 
   final int? restaurantId;
 
-  /// keyed by menu item id
-  final Map<int, CartItem> items;
+  /// keyed by [CartItem.key] (`menuItemId` or `menuItemId:sortedOptionIds`)
+  final Map<String, CartItem> items;
   final String? qrToken;
 
   /// `delivery` or `pickup`. Ignored when [isDineIn].
@@ -38,9 +38,13 @@ class CartState {
   bool get isPickup => !isDineIn && fulfillment == 'pickup';
   bool get hasDest => destLat != null && destLng != null;
 
+  int quantityOf(int menuItemId) => items.values
+      .where((i) => i.item.id == menuItemId)
+      .fold(0, (s, i) => s + i.quantity);
+
   CartState copyWith({
     int? restaurantId,
-    Map<int, CartItem>? items,
+    Map<String, CartItem>? items,
     String? qrToken,
     bool clearQr = false,
     String? fulfillment,
@@ -61,6 +65,14 @@ class CartState {
   factory CartState.fromJson(Map<String, dynamic> json) {
     final raw = json['items'] as Map<String, dynamic>? ?? {};
     double? coord(dynamic v) => v is num ? v.toDouble() : null;
+    final parsed = <String, CartItem>{};
+    for (final value in raw.values) {
+      final line = CartItem.fromJson(value as Map<String, dynamic>);
+      final existing = parsed[line.key];
+      parsed[line.key] = existing == null
+          ? line
+          : existing.copyWith(quantity: existing.quantity + line.quantity);
+    }
     return CartState(
       restaurantId: json['restaurant_id'] as int?,
       qrToken: json['qr_token'] as String?,
@@ -68,10 +80,7 @@ class CartState {
       destLat: coord(json['dest_lat']),
       destLng: coord(json['dest_lng']),
       destLine: json['dest_line'] as String?,
-      items: {
-        for (final e in raw.entries)
-          int.parse(e.key): CartItem.fromJson(e.value as Map<String, dynamic>),
-      },
+      items: parsed,
     );
   }
 
@@ -82,7 +91,7 @@ class CartState {
     'dest_lat': destLat,
     'dest_lng': destLng,
     'dest_line': destLine,
-    'items': {for (final e in items.entries) '${e.key}': e.value.toJson()},
+    'items': {for (final e in items.entries) e.key: e.value.toJson()},
   };
 }
 
@@ -95,12 +104,14 @@ class CartStorage implements CartStore {
   CartStorage([this._storage = const FlutterSecureStorage()]);
 
   final FlutterSecureStorage _storage;
-  static const _key = 'cart_v1';
+  static const _key = 'cart_v2';
+  static const _legacy = 'cart_v1';
 
   @override
   Future<CartState?> read() async {
     try {
-      final raw = await _storage.read(key: _key);
+      final raw =
+          await _storage.read(key: _key) ?? await _storage.read(key: _legacy);
       if (raw == null || raw.isEmpty) return null;
       return CartState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     } catch (_) {
@@ -113,6 +124,7 @@ class CartStorage implements CartStore {
     try {
       if (state.isEmpty) {
         await _storage.delete(key: _key);
+        await _storage.delete(key: _legacy);
       } else {
         await _storage.write(key: _key, value: jsonEncode(state.toJson()));
       }
@@ -145,37 +157,57 @@ class CartController extends Notifier<CartState> {
   }
 
   /// Returns false if item belongs to another restaurant (cart must be cleared first).
-  bool add(MenuItem item) {
+  bool add(MenuItem item, {List<int>? optionIds, int quantity = 1}) {
     final other =
         state.restaurantId != null && state.restaurantId != item.restaurantId;
     if (other) return false;
-    final existing = state.items[item.id];
-    final next = Map<int, CartItem>.from(state.items)
-      ..[item.id] =
-          existing?.copyWith(quantity: existing.quantity + 1) ??
-          CartItem(item: item, quantity: 1);
+    final ids = optionIds ?? item.defaultOptionIds;
+    final key = CartItem.lineKey(item.id, ids);
+    final existing = state.items[key];
+    final next = Map<String, CartItem>.from(state.items)
+      ..[key] =
+          existing?.copyWith(quantity: existing.quantity + quantity) ??
+          CartItem(item: item, quantity: quantity, optionIds: ids);
     state = state.copyWith(restaurantId: item.restaurantId, items: next);
     Haptics.add();
     _save();
     return true;
   }
 
-  void remove(MenuItem item) {
-    final existing = state.items[item.id];
+  void remove(MenuItem item, {List<int>? optionIds}) {
+    final key = optionIds != null
+        ? CartItem.lineKey(item.id, optionIds)
+        : state.items.entries
+              .where((e) => e.value.item.id == item.id)
+              .map((e) => e.key)
+              .lastOrNull;
+    if (key == null) return;
+    removeLine(key, all: false);
+  }
+
+  void removeLine(String key, {bool all = true}) {
+    final existing = state.items[key];
     if (existing == null) return;
-    final next = Map<int, CartItem>.from(state.items);
-    if (existing.quantity <= 1) {
-      next.remove(item.id);
+    final next = Map<String, CartItem>.from(state.items);
+    if (all || existing.quantity <= 1) {
+      next.remove(key);
     } else {
-      next[item.id] = existing.copyWith(quantity: existing.quantity - 1);
+      next[key] = existing.copyWith(quantity: existing.quantity - 1);
     }
     state = next.isEmpty ? const CartState() : state.copyWith(items: next);
     Haptics.tap();
     _save();
   }
 
-  void removeAll(MenuItem item) {
-    final next = Map<int, CartItem>.from(state.items)..remove(item.id);
+  void removeAll(MenuItem item, {List<int>? optionIds}) {
+    if (optionIds != null) {
+      removeLine(CartItem.lineKey(item.id, optionIds));
+      return;
+    }
+    final next = {
+      for (final e in state.items.entries)
+        if (e.value.item.id != item.id) e.key: e.value,
+    };
     state = next.isEmpty ? const CartState() : state.copyWith(items: next);
     _save();
   }
@@ -214,7 +246,7 @@ class CartController extends Notifier<CartState> {
     _save();
   }
 
-  int quantityOf(int menuItemId) => state.items[menuItemId]?.quantity ?? 0;
+  int quantityOf(int menuItemId) => state.quantityOf(menuItemId);
 
   /// Replace the cart with these lines (one restaurant). Empty list clears.
   void replaceAll(List<CartItem> items, {String fulfillment = 'delivery'}) {
@@ -222,9 +254,16 @@ class CartController extends Notifier<CartState> {
       clear();
       return;
     }
+    final merged = <String, CartItem>{};
+    for (final line in items) {
+      final existing = merged[line.key];
+      merged[line.key] = existing == null
+          ? line
+          : existing.copyWith(quantity: existing.quantity + line.quantity);
+    }
     state = CartState(
       restaurantId: items.first.item.restaurantId,
-      items: {for (final i in items) i.item.id: i},
+      items: merged,
       fulfillment: fulfillment == 'pickup' ? 'pickup' : 'delivery',
       destLat: state.destLat,
       destLng: state.destLng,

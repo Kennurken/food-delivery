@@ -49,3 +49,8 @@ class RefreshRequest(BaseModel):
 class AccessToken(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class DeviceIn(BaseModel):
+    token: str = Field(min_length=8, max_length=512)
+    platform: str = Field(default="android", pattern="^(ios|android|web)$")

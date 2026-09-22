@@ -4,6 +4,8 @@
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>To pin your address and show the courier on the map.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Order status updates while the app is in the background.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

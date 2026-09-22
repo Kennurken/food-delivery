@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.order import OrderStatus
 
@@ -8,6 +8,7 @@ from app.models.order import OrderStatus
 class OrderItemCreate(BaseModel):
     menu_item_id: int
     quantity: int = Field(ge=1, le=50)
+    option_ids: list[int] = Field(default_factory=list)
 
 
 class OrderCreate(BaseModel):
@@ -18,6 +19,7 @@ class OrderCreate(BaseModel):
     dest_lat: float | None = Field(default=None, ge=-90, le=90)
     dest_lng: float | None = Field(default=None, ge=-180, le=180)
     comment: str | None = Field(default=None, max_length=500)
+    pay_method: str = Field(default="cash", pattern="^(cash|online)$")
     items: list[OrderItemCreate] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -39,6 +41,12 @@ class OrderItemOut(BaseModel):
     name: str
     price: float
     quantity: int
+    modifiers: list[dict] = Field(default_factory=list)
+
+    @field_validator("modifiers", mode="before")
+    @classmethod
+    def _mods(cls, value: object) -> object:
+        return value or []
 
 
 class UserBrief(BaseModel):
@@ -74,6 +82,8 @@ class OrderOut(BaseModel):
     courier_lng: float | None = None
     courier_heading: float | None = None
     courier_seen_at: datetime | None = None
+    pay_method: str = "cash"
+    pay_status: str = "unpaid"
     created_at: datetime
     items: list[OrderItemOut]
 

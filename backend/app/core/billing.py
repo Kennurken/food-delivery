@@ -1,4 +1,4 @@
-"""Payment provider adapter. Business code talks to this, not to Stripe/Kaspi."""
+"""Customer checkout money. Restaurant SaaS billing is still UnconfiguredProvider."""
 
 from typing import Protocol
 
@@ -9,7 +9,7 @@ from pydantic import BaseModel
 class PaymentResult(BaseModel):
     provider: str
     reference: str
-    status: str  # succeeded | pending | failed
+    status: str  # unpaid | pending | paid | failed
 
 
 class PaymentProvider(Protocol):
@@ -26,7 +26,7 @@ class PaymentProvider(Protocol):
 
 
 class UnconfiguredProvider:
-    """Honest no-op. Do not pretend a payment succeeded."""
+    """Honest no-op. Do not pretend a card payment succeeded."""
 
     name = "none"
 
@@ -39,10 +39,28 @@ class UnconfiguredProvider:
         description: str,
     ) -> PaymentResult:
         raise HTTPException(
-            status.HTTP_501_NOT_IMPLEMENTED,
-            "No payment provider configured",
+            status.HTTP_409_CONFLICT,
+            "Card payments are not connected. Pay with cash.",
         )
 
 
-def get_payment_provider() -> PaymentProvider:
+class CashProvider:
+    """Pay the courier, the counter, or the table. No money moves here."""
+
+    name = "cash"
+
+    def charge(
+        self,
+        *,
+        amount: float,
+        currency: str,
+        idempotency_key: str,
+        description: str,
+    ) -> PaymentResult:
+        return PaymentResult(provider="cash", reference=idempotency_key, status="unpaid")
+
+
+def get_payment_provider(*, method: str = "online") -> PaymentProvider:
+    if method == "cash":
+        return CashProvider()
     return UnconfiguredProvider()

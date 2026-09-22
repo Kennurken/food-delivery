@@ -242,5 +242,18 @@
     "placeholders": {
       "km": {"type": "String"}
     }
-  }
+  },
+  "fromPrice": "from {price}",
+  "@fromPrice": {"placeholders": {"price": {"type": "String"}}},
+  "payCash": "Cash",
+  "payCard": "Card",
+  "payOnDelivery": "Pay the courier or at the counter. The order stays unpaid until then.",
+  "cardNotConnected": "Card payments are not connected. Use cash.",
+  "unpaid": "Unpaid",
+  "payMethod": "Payment",
+  "modifiers": "Sizes & extras",
+  "addGroup": "Add group",
+  "addOption": "Add option",
+  "optionName": "Option",
+  "priceDelta": "Δ ₸"
 }

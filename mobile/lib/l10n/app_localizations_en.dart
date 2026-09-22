@@ -706,4 +706,43 @@ class L10nEn extends L10n {
   String distanceKm(String km) {
     return '$km km';
   }
+
+  @override
+  String fromPrice(String price) {
+    return 'from $price';
+  }
+
+  @override
+  String get payCash => 'Cash';
+
+  @override
+  String get payCard => 'Card';
+
+  @override
+  String get payOnDelivery =>
+      'Pay the courier or at the counter. The order stays unpaid until then.';
+
+  @override
+  String get cardNotConnected => 'Card payments are not connected. Use cash.';
+
+  @override
+  String get unpaid => 'Unpaid';
+
+  @override
+  String get payMethod => 'Payment';
+
+  @override
+  String get modifiers => 'Sizes & extras';
+
+  @override
+  String get addGroup => 'Add group';
+
+  @override
+  String get addOption => 'Add option';
+
+  @override
+  String get optionName => 'Option';
+
+  @override
+  String get priceDelta => 'Δ ₸';
 }

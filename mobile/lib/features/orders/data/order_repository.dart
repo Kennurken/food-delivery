@@ -17,6 +17,7 @@ class OrderRepository {
     required CartState cart,
     required String address,
     String? comment,
+    String payMethod = 'cash',
   }) async {
     final r = await _dio.post(
       '/api/v1/orders',
@@ -28,9 +29,14 @@ class OrderRepository {
         if (cart.destLat != null) 'dest_lat': cart.destLat,
         if (cart.destLng != null) 'dest_lng': cart.destLng,
         'comment': comment,
+        'pay_method': payMethod,
         'items': [
           for (final i in cart.items.values)
-            {'menu_item_id': i.item.id, 'quantity': i.quantity},
+            {
+              'menu_item_id': i.item.id,
+              'quantity': i.quantity,
+              'option_ids': i.optionIds,
+            },
         ],
       },
     );

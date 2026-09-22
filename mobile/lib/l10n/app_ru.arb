@@ -232,5 +232,18 @@
     "placeholders": {
       "km": {"type": "String"}
     }
-  }
+  },
+  "fromPrice": "от {price}",
+  "@fromPrice": {"placeholders": {"price": {"type": "String"}}},
+  "payCash": "Наличные",
+  "payCard": "Карта",
+  "payOnDelivery": "Оплата курьеру или на кассе. Заказ останется неоплаченным до этого.",
+  "cardNotConnected": "Карты не подключены. Платите наличными.",
+  "unpaid": "Не оплачен",
+  "payMethod": "Оплата",
+  "modifiers": "Размер и добавки",
+  "addGroup": "Добавить группу",
+  "addOption": "Добавить опцию",
+  "optionName": "Опция",
+  "priceDelta": "Δ ₸"
 }

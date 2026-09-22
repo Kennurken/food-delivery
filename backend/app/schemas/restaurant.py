@@ -1,6 +1,27 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class ModifierOptionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    price_delta: float
+    is_default: bool
+    is_available: bool
+
+
+class ModifierGroupOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    required: bool
+    min_select: int
+    max_select: int
+    options: list[ModifierOptionOut] = Field(default_factory=list)
+
+
 class MenuItemOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -12,6 +33,7 @@ class MenuItemOut(BaseModel):
     category: str
     image_url: str | None
     is_available: bool
+    modifier_groups: list[ModifierGroupOut] = Field(default_factory=list)
 
 
 class RestaurantOut(BaseModel):

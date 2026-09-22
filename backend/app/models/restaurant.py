@@ -41,3 +41,38 @@ class MenuItem(Base):
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
 
     restaurant: Mapped["Restaurant"] = relationship(back_populates="menu_items")
+    modifier_groups: Mapped[list["ModifierGroup"]] = relationship(
+        back_populates="menu_item", cascade="all, delete-orphan", lazy="selectin"
+    )
+
+
+class ModifierGroup(Base):
+    __tablename__ = "modifier_groups"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    menu_item_id: Mapped[int] = mapped_column(ForeignKey("menu_items.id"), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    required: Mapped[bool] = mapped_column(Boolean, default=False)
+    min_select: Mapped[int] = mapped_column(Integer, default=0)
+    max_select: Mapped[int] = mapped_column(Integer, default=1)
+
+    menu_item: Mapped["MenuItem"] = relationship(back_populates="modifier_groups")
+    options: Mapped[list["ModifierOption"]] = relationship(
+        back_populates="group",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="ModifierOption.id",
+    )
+
+
+class ModifierOption(Base):
+    __tablename__ = "modifier_options"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    group_id: Mapped[int] = mapped_column(ForeignKey("modifier_groups.id"), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    price_delta: Mapped[float] = mapped_column(Float, default=0)
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_available: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    group: Mapped["ModifierGroup"] = relationship(back_populates="options")

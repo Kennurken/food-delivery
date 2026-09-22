@@ -14,8 +14,8 @@ Existing venues default to **Pro** so the marketplace delivery flow keeps workin
 
 ## Payments
 
-`app/core/billing.py` defines `PaymentProvider`. The only implementation is `UnconfiguredProvider`, which returns HTTP 501. There is no Stripe/Kaspi integration and no fake MRR on the platform overview.
+Customer checkout uses `app/core/billing.py`. `CashProvider` creates an unpaid order. `UnconfiguredProvider` returns HTTP 409 ("Card payments are not connected. Pay with cash.") — never a fake paid charge. There is no Stripe/Kaspi integration and no fake MRR on the platform overview.
 
-Billing status on the restaurant (`trial`, `active`, `past_due`, `grace_period`, `suspended`, `cancelled`, `expired`) is stored. `suspended` / `cancelled` / `expired` refuse new orders. Nothing auto-transitions yet.
+Restaurant SaaS billing is still unconfigured. Billing status on the restaurant (`trial`, `active`, `past_due`, `grace_period`, `suspended`, `cancelled`, `expired`) is stored. `suspended` / `cancelled` / `expired` refuse new orders. Nothing auto-transitions yet.
 
 Setup fee vs subscription is a billing concern for when a provider is wired. Do not collect card data in this app until then.

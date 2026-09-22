@@ -39,3 +39,19 @@ class MenuItemUpdate(BaseModel):
     category: str | None = Field(default=None, max_length=50)
     is_available: bool | None = None
     image_url: str | None = None
+
+
+class ModifierOptionIn(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    price_delta: float = 0
+    is_default: bool = False
+    is_available: bool = True
+
+
+class ModifierGroupIn(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    required: bool = False
+    min_select: int = Field(default=0, ge=0, le=10)
+    max_select: int = Field(default=1, ge=1, le=10)
+    options: list[ModifierOptionIn] = Field(min_length=1)
+

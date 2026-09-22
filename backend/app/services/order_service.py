@@ -5,9 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.access import has_permission
+from app.core.billing import get_payment_provider
 from app.core.events import hub
 from app.core.features import INACTIVE_BILLING, entitlements
 from app.core.geo import resolve_point, valid_coord
+from app.core.push import fanout as push_fanout
 from app.core.qr import parse_table_token
 from app.models import MenuItem, Order, OrderItem, OrderStatus, Restaurant, User, UserRole
 from app.models.floor_plan import FloorObject
@@ -53,6 +55,14 @@ def notify(db: Session, order: Order, *, cause: str = "status") -> None:
         "order": OrderOut.model_validate(order).model_dump(mode="json"),
     }
     hub.publish_threadsafe(targets, payload)
+    if cause != "location":
+        push_fanout(
+            db,
+            targets,
+            title=f"Order #{order.id}",
+            body=f"{order.restaurant_name} · {order.status.value.replace('_', ' ')}",
+            data={"order_id": str(order.id), "status": order.status.value},
+        )
 
 
 # Allowed status transitions: current -> set of next
@@ -68,6 +78,40 @@ _TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
 
 def _allowed(order: Order, new_status: OrderStatus) -> bool:
     return new_status in _TRANSITIONS[order.status]
+
+
+def price_line(item: MenuItem, option_ids: list[int] | None) -> tuple[float, list[dict]]:
+    """Unit price + snapshot. Empty option_ids pick each group's defaults."""
+    wanted = list(option_ids or [])
+    by_id = {o.id: o for g in item.modifier_groups for o in g.options}
+    if not wanted:
+        wanted = [o.id for g in item.modifier_groups for o in g.options if o.is_default and o.is_available]
+    unknown = set(wanted) - set(by_id)
+    if unknown:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unknown modifier")
+    snaps: list[dict] = []
+    for group in item.modifier_groups:
+        picked = [o for o in group.options if o.id in wanted]
+        if any(not o.is_available for o in picked):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, f"{group.name}: option unavailable")
+        n = len(picked)
+        need = group.min_select if not group.required else max(group.min_select, 1)
+        if n < need:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Pick {group.name}")
+        if n > group.max_select:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Too many options on {group.name}")
+        for opt in picked:
+            snaps.append(
+                {
+                    "group_id": group.id,
+                    "group": group.name,
+                    "option_id": opt.id,
+                    "name": opt.name,
+                    "price": opt.price_delta,
+                }
+            )
+    unit = item.price + sum(s["price"] for s in snaps)
+    return round(unit, 2), snaps
 
 
 def _resolve_table(db: Session, token: str, restaurant_id: int) -> FloorObject:
@@ -147,8 +191,27 @@ def create_order(
         m = by_id[line.menu_item_id]
         if not m.is_available:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, f"{m.name} is unavailable")
-        subtotal += m.price * line.quantity
-        items.append(OrderItem(menu_item_id=m.id, name=m.name, price=m.price, quantity=line.quantity))
+        unit, snaps = price_line(m, line.option_ids)
+        subtotal += unit * line.quantity
+        items.append(
+            OrderItem(
+                menu_item_id=m.id,
+                name=m.name,
+                price=unit,
+                quantity=line.quantity,
+                modifiers=snaps,
+            )
+        )
+
+    pay_method = data.pay_method or "cash"
+    if pay_method == "online" and not flags.enabled("payments.online"):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Online payments are not on this plan")
+    paid = get_payment_provider(method=pay_method).charge(
+        amount=round(subtotal + delivery_fee, 2),
+        currency="KZT",
+        idempotency_key=idempotency_key or f"order:{user.id}:{restaurant.id}",
+        description=f"{restaurant.name} · {len(items)} items",
+    )
 
     pickup_lat, pickup_lng = restaurant.lat, restaurant.lng
     dest_lat, dest_lng = pickup_lat, pickup_lng
@@ -174,6 +237,8 @@ def create_order(
         dest_lng=dest_lng,
         pickup_lat=pickup_lat,
         pickup_lng=pickup_lng,
+        pay_method=paid.provider if paid.provider == "cash" else pay_method,
+        pay_status=paid.status,
     )
     db.add(order)
     db.flush()

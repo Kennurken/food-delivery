@@ -211,7 +211,7 @@ class _Ticket extends StatelessWidget {
               const SizedBox(height: 4),
               Text('${o.channelLabel(t)} · ${o.customer.name} · ${o.address}'),
               Text(
-                o.items.map((i) => '${i.quantity}× ${i.name}').join(', '),
+                o.items.map((i) => i.ticketLine).join(', '),
                 style: text.bodySmall,
               ),
               if (o.kitchenNext.isNotEmpty) ...[

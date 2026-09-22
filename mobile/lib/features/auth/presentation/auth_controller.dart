@@ -1,19 +1,25 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../notifications/device_repository.dart';
 import '../data/auth_repository.dart';
 import '../domain/user.dart';
 
 /// Holds current user. `null` = signed out. Loading only on app start.
 class AuthController extends AsyncNotifier<User?> {
   @override
-  Future<User?> build() {
+  Future<User?> build() async {
     ref.listen(authExpiredProvider, (prev, next) {
       if (prev != null && next != prev) {
+        unawaited(ref.read(deviceRepositoryProvider).forget());
         state = const AsyncData(null);
       }
     });
-    return ref.read(authRepositoryProvider).me();
+    final user = await ref.read(authRepositoryProvider).me();
+    if (user != null) unawaited(ref.read(deviceRepositoryProvider).sync());
+    return user;
   }
 
   Future<void> login(String email, String password) async {
@@ -21,6 +27,9 @@ class AuthController extends AsyncNotifier<User?> {
     state = await AsyncValue.guard(
       () => ref.read(authRepositoryProvider).login(email, password),
     );
+    if (state.value != null) {
+      unawaited(ref.read(deviceRepositoryProvider).sync());
+    }
   }
 
   Future<void> register({
@@ -35,6 +44,9 @@ class AuthController extends AsyncNotifier<User?> {
           .read(authRepositoryProvider)
           .register(email: email, name: name, password: password, phone: phone),
     );
+    if (state.value != null) {
+      unawaited(ref.read(deviceRepositoryProvider).sync());
+    }
   }
 
   /// Re-read /me after a profile change.
@@ -43,6 +55,7 @@ class AuthController extends AsyncNotifier<User?> {
   }
 
   Future<void> logout() async {
+    await ref.read(deviceRepositoryProvider).forget();
     await ref.read(authRepositoryProvider).logout();
     state = const AsyncData(null);
   }

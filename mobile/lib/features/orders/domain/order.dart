@@ -1,21 +1,58 @@
+class OrderModifier {
+  const OrderModifier({
+    required this.optionId,
+    required this.name,
+    this.group = '',
+    this.price = 0,
+  });
+
+  final int optionId;
+  final String name;
+  final String group;
+  final double price;
+
+  factory OrderModifier.fromJson(Map<String, dynamic> json) => OrderModifier(
+    optionId: json['option_id'] as int? ?? 0,
+    name: json['name'] as String? ?? '',
+    group: json['group'] as String? ?? '',
+    price: (json['price'] as num?)?.toDouble() ?? 0,
+  );
+}
+
 class OrderItem {
   const OrderItem({
     required this.menuItemId,
     required this.name,
     required this.price,
     required this.quantity,
+    this.modifiers = const [],
   });
 
   final int menuItemId;
   final String name;
   final double price;
   final int quantity;
+  final List<OrderModifier> modifiers;
+
+  List<int> get optionIds => [for (final m in modifiers) m.optionId];
+
+  String get extrasLabel =>
+      [for (final m in modifiers) m.name].where((n) => n.isNotEmpty).join(', ');
+
+  String get ticketLine {
+    final extras = extrasLabel;
+    return extras.isEmpty ? '$quantity× $name' : '$quantity× $name ($extras)';
+  }
 
   factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
     menuItemId: json['menu_item_id'] as int? ?? 0,
     name: json['name'] as String,
     price: (json['price'] as num).toDouble(),
     quantity: json['quantity'] as int,
+    modifiers: [
+      for (final m in json['modifiers'] as List<dynamic>? ?? [])
+        OrderModifier.fromJson(m as Map<String, dynamic>),
+    ],
   );
 }
 
@@ -98,6 +135,8 @@ class Order {
     this.courierLng,
     this.courierHeading,
     this.courierSeenAt,
+    this.payMethod = 'cash',
+    this.payStatus = 'unpaid',
   });
 
   final int id;
@@ -124,6 +163,11 @@ class Order {
   final double? courierLng;
   final double? courierHeading;
   final DateTime? courierSeenAt;
+  final String payMethod;
+  final String payStatus;
+
+  bool get isCash => payMethod == 'cash';
+  bool get isPaid => payStatus == 'paid';
 
   bool get isDelivery => channel == 'delivery';
   bool get isPickup => channel == 'pickup';
@@ -161,6 +205,8 @@ class Order {
     courierSeenAt: json['courier_seen_at'] == null
         ? null
         : DateTime.tryParse(json['courier_seen_at'] as String),
+    payMethod: json['pay_method'] as String? ?? 'cash',
+    payStatus: json['pay_status'] as String? ?? 'unpaid',
   );
 }
 

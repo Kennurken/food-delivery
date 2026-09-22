@@ -27,6 +27,8 @@ async def lifespan(_: FastAPI):
     elif not settings.sqlalchemy_url.startswith("sqlite"):
         from app.db.seed import (
             ensure_address_columns,
+            ensure_checkout_schema,
+            ensure_demo_modifiers,
             ensure_favorites_table,
             ensure_floor_plan_tables,
             ensure_geo_schema,
@@ -44,6 +46,8 @@ async def lifespan(_: FastAPI):
         ensure_saas_schema()
         ensure_geo_schema()
         ensure_restaurant_coords()
+        ensure_checkout_schema()
+        ensure_demo_modifiers()
     # Sync endpoints run in a threadpool; hub needs the main loop to push WS frames.
     hub.bind_loop(asyncio.get_running_loop())
     yield
@@ -52,7 +56,7 @@ async def lifespan(_: FastAPI):
 docs = None if settings.is_prod else "/docs"
 app = FastAPI(
     title="Food Delivery API",
-    version="0.7.0",
+    version="0.8.0",
     lifespan=lifespan,
     docs_url=docs,
     redoc_url=None if settings.is_prod else "/redoc",

@@ -67,7 +67,7 @@ void main() {
   test('hydrates from storage', () async {
     store.value = CartState(
       restaurantId: 10,
-      items: {1: CartItem(item: item(1, 10, 100), quantity: 2)},
+      items: {'1': CartItem(item: item(1, 10, 100), quantity: 2)},
     );
     container.read(cartProvider);
     await Future<void>.delayed(Duration.zero);
@@ -111,5 +111,50 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(store.value?.destLat, 43.24);
     expect(store.value?.destLine, 'Abay 10');
+  });
+
+  test('same dish different options are separate lines', () {
+    final size = const ModifierGroup(
+      id: 1,
+      name: 'Size',
+      required: true,
+      minSelect: 1,
+      maxSelect: 1,
+      options: [
+        ModifierOption(
+          id: 10,
+          name: 'Regular',
+          priceDelta: 0,
+          isDefault: true,
+          isAvailable: true,
+        ),
+        ModifierOption(
+          id: 11,
+          name: 'Large',
+          priceDelta: 400,
+          isDefault: false,
+          isAvailable: true,
+        ),
+      ],
+    );
+    final bao = MenuItem(
+      id: 1,
+      restaurantId: 10,
+      name: 'Pork Bao',
+      description: '',
+      price: 1500,
+      category: 'Bao',
+      isAvailable: true,
+      groups: [size],
+    );
+    final cart = container.read(cartProvider.notifier);
+    cart.add(bao);
+    cart.add(bao, optionIds: [11]);
+    cart.add(bao, optionIds: [11]);
+    final state = container.read(cartProvider);
+    expect(state.items, hasLength(2));
+    expect(state.count, 3);
+    expect(state.subtotal, 1500 + 1900 * 2);
+    expect(state.quantityOf(1), 3);
   });
 }

@@ -705,4 +705,43 @@ class L10nRu extends L10n {
   String distanceKm(String km) {
     return '$km км';
   }
+
+  @override
+  String fromPrice(String price) {
+    return 'от $price';
+  }
+
+  @override
+  String get payCash => 'Наличные';
+
+  @override
+  String get payCard => 'Карта';
+
+  @override
+  String get payOnDelivery =>
+      'Оплата курьеру или на кассе. Заказ останется неоплаченным до этого.';
+
+  @override
+  String get cardNotConnected => 'Карты не подключены. Платите наличными.';
+
+  @override
+  String get unpaid => 'Не оплачен';
+
+  @override
+  String get payMethod => 'Оплата';
+
+  @override
+  String get modifiers => 'Размер и добавки';
+
+  @override
+  String get addGroup => 'Добавить группу';
+
+  @override
+  String get addOption => 'Добавить опцию';
+
+  @override
+  String get optionName => 'Опция';
+
+  @override
+  String get priceDelta => 'Δ ₸';
 }

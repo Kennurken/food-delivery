@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String, func
+from sqlalchemy import JSON, DateTime, Enum, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -39,6 +39,9 @@ class Order(Base):
     dest_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     pickup_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     pickup_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # cash = pay the courier / at the counter. online needs a PaymentProvider.
+    pay_method: Mapped[str] = mapped_column(String(20), default="cash")
+    pay_status: Mapped[str] = mapped_column(String(20), default="unpaid")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="orders", foreign_keys=[user_id])  # noqa: F821
@@ -80,7 +83,8 @@ class OrderItem(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), index=True)
     menu_item_id: Mapped[int] = mapped_column(ForeignKey("menu_items.id"))
     name: Mapped[str] = mapped_column(String(150))  # snapshot at order time
-    price: Mapped[float] = mapped_column(Float)     # snapshot at order time
+    price: Mapped[float] = mapped_column(Float)  # unit price incl. modifiers
     quantity: Mapped[int] = mapped_column(Integer)
+    modifiers: Mapped[list] = mapped_column(JSON, default=list)
 
     order: Mapped["Order"] = relationship(back_populates="items")

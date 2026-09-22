@@ -29,6 +29,12 @@ Every response includes `X-Request-ID`. The backend never trusts client-supplied
 
 Tiles render in Flutter (`flutter_map` + Carto Voyager / Dark Matter). Geocoding and routing never leave the API (`app.core.geo`): Photon, then Nominatim; OSRM, then a straight line. `GEO_PROVIDER=fixture` keeps tests offline. Default camera is Republic Square, Almaty. Courier GPS lives on `User.last_*` and is snapshotted onto assigned orders over the socket.
 
+## Checkout
+
+`price_line` applies modifier groups on `MenuItem`. Empty `option_ids` pick each group's defaults so older clients still price Regular. The ticket stores `{group, option_id, name, price}` on `OrderItem.modifiers`; unit `price` already includes deltas.
+
+`pay_method=cash` → unpaid. `pay_method=online` without a card key → 409. Device tokens live on `device_tokens`. `app.core.push.fanout` is a no-op unless `FCM_SERVER_KEY` is set; it never fails an order.
+
 ## Cache keys
 
 `app.core.features.cache_key(restaurant_id, ...)` → `tenant:{id}:...`. No Redis yet; use this helper when one is added.

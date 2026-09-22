@@ -201,6 +201,9 @@ class OrderDetailScreen extends ConsumerWidget {
                             ),
                           ),
                           title: Text(i.name),
+                          subtitle: i.extrasLabel.isEmpty
+                              ? null
+                              : Text(i.extrasLabel),
                           trailing: Text(formatMoney(i.price * i.quantity)),
                         ),
                       const Divider(height: 1, indent: 16, endIndent: 16),
@@ -211,6 +214,13 @@ class OrderDetailScreen extends ConsumerWidget {
                             _Row(t.subtotal, formatMoney(o.subtotal)),
                             if (o.deliveryFee > 0)
                               _Row(t.delivery, formatMoney(o.deliveryFee)),
+                            _Row(
+                              t.payMethod,
+                              [
+                                o.isCash ? t.payCash : t.payCard,
+                                if (!o.isPaid) t.unpaid,
+                              ].join(' · '),
+                            ),
                             _Row(t.total, formatMoney(o.total), bold: true),
                           ],
                         ),

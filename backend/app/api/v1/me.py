@@ -1,16 +1,17 @@
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import DB, CurrentUser
 from app.core.config import settings
+from app.core.push import drop_token, register_token
 from app.core.ratelimit import limiter
 from app.core.security import hash_password, verify_password
 from app.models import Address, Favorite, Restaurant, User
 from app.models.member import RestaurantMember
 from app.schemas.address import AddressCreate, AddressOut, AddressUpdate
 from app.schemas.restaurant import RestaurantOut
-from app.schemas.user import PasswordChange, UserOut, UserUpdate
+from app.schemas.user import DeviceIn, PasswordChange, UserOut, UserUpdate
 from app.services.restaurant_view import to_out
 
 router = APIRouter(prefix="/me", tags=["me"])
@@ -139,3 +140,15 @@ def list_memberships(db: DB, user: CurrentUser) -> list[dict]:
             continue
         out.append({"restaurant_id": r.id, "name": r.name, "role": m.role, "is_active": m.is_active})
     return out
+
+
+@router.put("/devices", status_code=status.HTTP_204_NO_CONTENT)
+def save_device(data: DeviceIn, db: DB, user: CurrentUser) -> None:
+    register_token(db, user.id, data.token, data.platform)
+
+
+@router.delete("/devices", status_code=status.HTTP_204_NO_CONTENT)
+def forget_device(
+    db: DB, user: CurrentUser, token: str = Query(min_length=8, max_length=512)
+) -> None:
+    drop_token(db, user.id, token)

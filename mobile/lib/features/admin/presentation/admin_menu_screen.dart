@@ -10,6 +10,7 @@ import '../../../core/widgets/stagger.dart';
 import '../../../core/widgets/stretch_switch.dart';
 import '../../restaurants/domain/menu_item.dart';
 import '../data/admin_repository.dart';
+import 'admin_modifiers_sheet.dart';
 
 class AdminMenuScreen extends ConsumerWidget {
   const AdminMenuScreen({super.key, required this.restaurantId});
@@ -104,11 +105,27 @@ class AdminMenuScreen extends ConsumerWidget {
                 child: Card(
                   child: ListTile(
                     title: Text(m.name),
-                    subtitle: Text('${m.category} · ${formatMoney(m.price)}'),
+                    subtitle: Text(
+                      [
+                        m.category,
+                        formatMoney(m.price),
+                        if (m.groups.isNotEmpty) context.l10n.modifiers,
+                      ].join(' · '),
+                    ),
                     onTap: () => _edit(context, ref, item: m),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        IconButton(
+                          tooltip: context.l10n.modifiers,
+                          icon: const Icon(Icons.tune),
+                          onPressed: () => editModifiers(
+                            context,
+                            ref,
+                            m,
+                            onSaved: () => _refresh(ref),
+                          ),
+                        ),
                         StretchSwitch(
                           value: m.isAvailable,
                           onChanged: (v) => _run(

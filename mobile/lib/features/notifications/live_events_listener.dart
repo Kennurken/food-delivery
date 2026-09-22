@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +9,7 @@ import '../../core/router/app_router.dart';
 import '../../core/widgets/live_toast.dart';
 import '../auth/presentation/auth_controller.dart';
 import '../orders/domain/order.dart';
+import 'local_push.dart';
 
 /// Turns WebSocket order events into in-app banners, tailored per role.
 /// Keeps the socket alive for the whole session (it's autoDispose otherwise).
@@ -36,6 +39,12 @@ class LiveEventsListener extends ConsumerWidget {
               onTap: () =>
                   router.go('/admin/restaurants/${order.restaurantId}/kitchen'),
             );
+            unawaited(
+              LocalPush.show(
+                title: t.toastNewOrder(order.id),
+                body: '${order.restaurantName} · ${order.customer.name}',
+              ),
+            );
           }
         } else if (user.isCourier) {
           if (order.isDelivery &&
@@ -47,6 +56,12 @@ class LiveEventsListener extends ConsumerWidget {
               body: order.address,
               onTap: () => router.go('/courier'),
             );
+            unawaited(
+              LocalPush.show(
+                title: t.toastReadyForPickup(order.id),
+                body: order.address,
+              ),
+            );
           }
         } else if (order.customer.id == user.id &&
             order.status != OrderStatus.pending) {
@@ -57,6 +72,14 @@ class LiveEventsListener extends ConsumerWidget {
                 ? t.toastCourier(order.courier!.name)
                 : order.restaurantName,
             onTap: () => router.push('/orders/${order.id}'),
+          );
+          unawaited(
+            LocalPush.show(
+              title: '${t.orderN(order.id)} · ${order.statusLabel(t)}',
+              body: order.courier != null
+                  ? t.toastCourier(order.courier!.name)
+                  : order.restaurantName,
+            ),
           );
         }
       });

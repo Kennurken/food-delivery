@@ -9,7 +9,7 @@ from sqlalchemy import select
 import app.models  # noqa: F401
 from app.core.security import hash_password
 from app.db.session import SessionLocal
-from app.models import MenuItem, Restaurant, User, UserRole
+from app.models import MenuItem, ModifierGroup, ModifierOption, Restaurant, User, UserRole
 
 RESTAURANTS = [
     {
@@ -304,6 +304,109 @@ def ensure_menu_images() -> int:
     return updated
 
 
+DEMO_MODIFIERS = {
+    "Pork Bao": [
+        (
+            "Size",
+            True,
+            1,
+            1,
+            [("Regular", 0, True), ("Large", 400, False)],
+        ),
+        (
+            "Extras",
+            False,
+            0,
+            3,
+            [("Egg", 200, False), ("Chili oil", 100, False)],
+        ),
+    ],
+    "Margherita": [
+        (
+            "Size",
+            True,
+            1,
+            1,
+            [("30 cm", 0, True), ("40 cm", 800, False)],
+        ),
+        (
+            "Add-ons",
+            False,
+            0,
+            2,
+            [("Extra cheese", 300, False)],
+        ),
+    ],
+    "Classic Smash": [
+        (
+            "Add-ons",
+            False,
+            0,
+            3,
+            [("Bacon", 400, False), ("Extra patty", 700, False)],
+        ),
+    ],
+}
+
+
+def ensure_checkout_schema() -> None:
+    """Prod deploys skip alembic; modifiers, cash fields, device tokens."""
+    from sqlalchemy import inspect, text
+
+    from app.db.session import engine
+    from app.models.device import DeviceToken
+    from app.models.restaurant import ModifierGroup, ModifierOption
+
+    for model in (ModifierGroup, ModifierOption, DeviceToken):
+        model.__table__.create(bind=engine, checkfirst=True)
+
+    insp = inspect(engine)
+    dialect = engine.dialect.name
+
+    def _add(table: str, name: str, typ: str) -> None:
+        if table not in insp.get_table_names():
+            return
+        existing = {c["name"] for c in insp.get_columns(table)}
+        if name in existing:
+            return
+        with engine.begin() as conn:
+            if dialect == "postgresql":
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {name} {typ}"))
+            else:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {typ}"))
+
+    json_typ = "JSONB DEFAULT '[]'::jsonb" if dialect == "postgresql" else "JSON DEFAULT '[]'"
+    _add("order_items", "modifiers", json_typ)
+    _add("orders", "pay_method", "VARCHAR(20) DEFAULT 'cash'")
+    _add("orders", "pay_status", "VARCHAR(20) DEFAULT 'unpaid'")
+
+
+def ensure_demo_modifiers() -> int:
+    """Attach size/extras to the demo dishes once."""
+    added = 0
+    with SessionLocal() as db:
+        for item in db.scalars(select(MenuItem)).all():
+            spec = DEMO_MODIFIERS.get(item.name)
+            if not spec or item.modifier_groups:
+                continue
+            for name, required, mn, mx, options in spec:
+                group = ModifierGroup(
+                    menu_item_id=item.id,
+                    name=name,
+                    required=required,
+                    min_select=mn,
+                    max_select=mx,
+                )
+                group.options = [
+                    ModifierOption(name=n, price_delta=p, is_default=d) for n, p, d in options
+                ]
+                db.add(group)
+                added += 1
+        if added:
+            db.commit()
+    return added
+
+
 def ensure_user(email: str, password: str, role: UserRole, name: str, phone: str | None = None) -> bool:
     """Create a user if that email does not exist. Returns True if created."""
     with SessionLocal() as db:
@@ -379,6 +482,8 @@ def seed() -> None:
     added = seed_catalog()
     ensure_menu_images()
     ensure_restaurant_coords()
+    ensure_checkout_schema()
+    ensure_demo_modifiers()
     print("Already seeded" if added == 0 else "Seeded: 3 users, 3 restaurants, 9 menu items")
 
 

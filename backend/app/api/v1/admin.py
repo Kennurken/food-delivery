@@ -6,8 +6,14 @@ from sqlalchemy import select
 from app.api.deps import DB, AdminUser
 from app.core import audit
 from app.core.features import DEFAULT_PLAN, PLANS
-from app.models import MenuItem, Restaurant
-from app.schemas.admin import MenuItemCreate, MenuItemUpdate, RestaurantCreate, RestaurantUpdate
+from app.models import MenuItem, ModifierGroup, ModifierOption, Restaurant
+from app.schemas.admin import (
+    MenuItemCreate,
+    MenuItemUpdate,
+    ModifierGroupIn,
+    RestaurantCreate,
+    RestaurantUpdate,
+)
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
 from app.services.restaurant_view import to_detail, to_out
 
@@ -114,3 +120,37 @@ def delete_menu_item(item_id: int, db: DB, _: AdminUser) -> None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Menu item not found")
     db.delete(item)
     db.commit()
+
+
+@router.put("/menu/{item_id}/modifiers", response_model=MenuItemOut)
+def replace_modifiers(
+    item_id: int, data: list[ModifierGroupIn], db: DB, _: AdminUser
+) -> MenuItem:
+    item = db.get(MenuItem, item_id)
+    if not item:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Menu item not found")
+    item.modifier_groups.clear()
+    db.flush()
+    for group in data:
+        if group.min_select > group.max_select:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "min_select > max_select")
+        g = ModifierGroup(
+            menu_item_id=item.id,
+            name=group.name,
+            required=group.required,
+            min_select=group.min_select,
+            max_select=group.max_select,
+        )
+        g.options = [
+            ModifierOption(
+                name=opt.name,
+                price_delta=opt.price_delta,
+                is_default=opt.is_default,
+                is_available=opt.is_available,
+            )
+            for opt in group.options
+        ]
+        item.modifier_groups.append(g)
+    db.commit()
+    db.refresh(item)
+    return item

@@ -14,6 +14,7 @@ import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/shimmer.dart';
 import '../../../core/widgets/sliding_number.dart';
 import '../../../core/widgets/stagger.dart';
+import '../../cart/domain/cart_item.dart';
 import '../../cart/presentation/cart_controller.dart';
 import '../../map/presentation/restaurant_map_preview.dart';
 import '../data/restaurant_repository.dart';
@@ -329,9 +330,10 @@ class _MenuTile extends ConsumerWidget {
     WidgetRef ref,
     MenuItem item, {
     String? tableToken,
+    List<int>? optionIds,
   }) async {
     final cart = ref.read(cartProvider.notifier);
-    if (cart.add(item)) {
+    if (cart.add(item, optionIds: optionIds)) {
       if (tableToken != null) cart.setQrToken(tableToken);
       return;
     }
@@ -355,7 +357,7 @@ class _MenuTile extends ConsumerWidget {
     );
     if (replace == true) {
       cart.clear();
-      cart.add(item);
+      cart.add(item, optionIds: optionIds);
       if (tableToken != null) cart.setQrToken(tableToken);
     }
   }
@@ -375,9 +377,7 @@ class _MenuTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final canAdd = item.isAvailable && restaurantOpen;
-    final qty = ref.watch(
-      cartProvider.select((c) => c.items[item.id]?.quantity ?? 0),
-    );
+    final qty = ref.watch(cartProvider.select((c) => c.quantityOf(item.id)));
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Padding(
@@ -416,7 +416,11 @@ class _MenuTile extends ConsumerWidget {
                       const SizedBox(height: 6),
                       Text(
                         item.isAvailable && restaurantOpen
-                            ? formatMoney(item.price)
+                            ? (item.hasPricedOptions
+                                  ? context.l10n.fromPrice(
+                                      formatMoney(item.price),
+                                    )
+                                  : formatMoney(item.price))
                             : context.l10n.unavailable,
                         style: text.labelLarge?.copyWith(
                           fontWeight: FontWeight.w800,
@@ -430,7 +434,13 @@ class _MenuTile extends ConsumerWidget {
                 QuantityStepper(
                   qty: qty,
                   enabled: canAdd,
-                  onAdd: () => add(context, ref, item, tableToken: tableToken),
+                  onAdd: () {
+                    if (item.needsPicker) {
+                      _openSheet(context);
+                      return;
+                    }
+                    add(context, ref, item, tableToken: tableToken);
+                  },
                   onRemove: () => ref.read(cartProvider.notifier).remove(item),
                 ),
               ],
@@ -531,20 +541,67 @@ class _StepBtn extends StatelessWidget {
   );
 }
 
-/// animate-ui Sheet: item detail with big price and stepper.
-class _ItemSheet extends ConsumerWidget {
+/// animate-ui Sheet: item detail, modifiers, price, stepper.
+class _ItemSheet extends ConsumerStatefulWidget {
   const _ItemSheet(this.item, {this.tableToken});
 
   final MenuItem item;
   final String? tableToken;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ItemSheet> createState() => _ItemSheetState();
+}
+
+class _ItemSheetState extends ConsumerState<_ItemSheet> {
+  late Set<int> _picked;
+
+  MenuItem get item => widget.item;
+
+  @override
+  void initState() {
+    super.initState();
+    _picked = item.defaultOptionIds.toSet();
+  }
+
+  bool get _valid => item.accepts(_picked);
+
+  double get _unit => item.priceWith(_picked);
+
+  void _toggle(ModifierGroup group, ModifierOption option) {
+    if (!option.isAvailable) return;
+    setState(() {
+      final selected = [
+        for (final o in group.options)
+          if (_picked.contains(o.id)) o.id,
+      ];
+      if (_picked.contains(option.id)) {
+        if (group.required && selected.length <= group.need) return;
+        _picked.remove(option.id);
+        return;
+      }
+      if (group.maxSelect == 1) {
+        for (final o in group.options) {
+          _picked.remove(o.id);
+        }
+        _picked.add(option.id);
+        return;
+      }
+      if (selected.length >= group.maxSelect) return;
+      _picked.add(option.id);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ids = _picked.toList();
     final qty = ref.watch(
-      cartProvider.select((c) => c.items[item.id]?.quantity ?? 0),
+      cartProvider.select(
+        (c) => c.items[CartItem.lineKey(item.id, ids)]?.quantity ?? 0,
+      ),
     );
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final t = context.l10n;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
@@ -552,63 +609,111 @@ class _ItemSheet extends ConsumerWidget {
         24,
         24 + MediaQuery.paddingOf(context).bottom,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (item.imageUrl != null && item.imageUrl!.isNotEmpty) ...[
-            Center(child: DishThumb(url: item.imageUrl, size: 168, radius: 24)),
-            const SizedBox(height: 16),
-          ],
-          Text(
-            item.category.toUpperCase(),
-            style: text.labelSmall?.copyWith(
-              letterSpacing: 1.2,
-              color: scheme.primary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            item.name,
-            style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          if (item.description.isNotEmpty) ...[
-            const SizedBox(height: 8),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (item.imageUrl != null && item.imageUrl!.isNotEmpty) ...[
+              Center(
+                child: DishThumb(url: item.imageUrl, size: 168, radius: 24),
+              ),
+              const SizedBox(height: 16),
+            ],
             Text(
-              item.description,
-              style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+              item.category.toUpperCase(),
+              style: text.labelSmall?.copyWith(
+                letterSpacing: 1.2,
+                color: scheme.primary,
+                fontWeight: FontWeight.w800,
+              ),
             ),
-          ],
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SlidingNumber(
-                formatMoney(item.price * (qty == 0 ? 1 : qty)),
-                style: text.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
+            const SizedBox(height: 4),
+            Text(
+              item.name,
+              style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            if (item.description.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                item.description,
+                style: text.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
-              QuantityStepper(
-                qty: qty,
-                onAdd: () =>
-                    _MenuTile.add(context, ref, item, tableToken: tableToken),
-                onRemove: () => ref.read(cartProvider.notifier).remove(item),
+            ],
+            for (final group in item.groups) ...[
+              const SizedBox(height: 18),
+              Text(
+                group.required ? '${group.name} · ${t.required}' : group.name,
+                style: text.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final o in group.options)
+                    FilterChip(
+                      label: Text(
+                        o.priceDelta == 0
+                            ? o.name
+                            : '${o.name} · +${formatMoney(o.priceDelta)}',
+                      ),
+                      selected: _picked.contains(o.id),
+                      onSelected: o.isAvailable
+                          ? (_) => _toggle(group, o)
+                          : null,
+                    ),
+                ],
               ),
             ],
-          ),
-          const SizedBox(height: 16),
-          FilledButton(
-            onPressed: () {
-              if (qty == 0) {
-                _MenuTile.add(context, ref, item, tableToken: tableToken);
-              }
-              Navigator.pop(context);
-            },
-            child: Text(qty == 0 ? context.l10n.addToCart : context.l10n.done),
-          ),
-        ],
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SlidingNumber(
+                  formatMoney(_unit * (qty == 0 ? 1 : qty)),
+                  style: text.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                QuantityStepper(
+                  qty: qty,
+                  enabled: _valid,
+                  onAdd: () => _MenuTile.add(
+                    context,
+                    ref,
+                    item,
+                    tableToken: widget.tableToken,
+                    optionIds: ids,
+                  ),
+                  onRemove: () => ref
+                      .read(cartProvider.notifier)
+                      .remove(item, optionIds: ids),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: !_valid
+                  ? null
+                  : () {
+                      if (qty == 0) {
+                        _MenuTile.add(
+                          context,
+                          ref,
+                          item,
+                          tableToken: widget.tableToken,
+                          optionIds: ids,
+                        );
+                      }
+                      Navigator.pop(context);
+                    },
+              child: Text(qty == 0 ? t.addToCart : t.done),
+            ),
+          ],
+        ),
       ),
     );
   }

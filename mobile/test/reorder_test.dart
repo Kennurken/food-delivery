@@ -50,4 +50,96 @@ void main() {
       isTrue,
     );
   });
+
+  test('keeps modifiers when they still exist', () {
+    final size = const ModifierGroup(
+      id: 1,
+      name: 'Size',
+      required: true,
+      minSelect: 1,
+      maxSelect: 1,
+      options: [
+        ModifierOption(
+          id: 10,
+          name: 'Regular',
+          priceDelta: 0,
+          isDefault: true,
+          isAvailable: true,
+        ),
+        ModifierOption(
+          id: 11,
+          name: 'Large',
+          priceDelta: 400,
+          isDefault: false,
+          isAvailable: true,
+        ),
+      ],
+    );
+    final bao = MenuItem(
+      id: 1,
+      restaurantId: 10,
+      name: 'Bao',
+      description: '',
+      price: 1500,
+      category: 'Buns',
+      isAvailable: true,
+      groups: [size],
+    );
+    final plan = planReorder(
+      ordered: [
+        OrderItem(
+          menuItemId: 1,
+          name: 'Bao',
+          price: 1900,
+          quantity: 1,
+          modifiers: const [OrderModifier(optionId: 11, name: 'Large')],
+        ),
+      ],
+      menu: [bao],
+    );
+    expect(plan.items.single.optionIds, [11]);
+    expect(plan.items.single.unitPrice, 1900);
+  });
+
+  test('falls back to defaults when old option is gone', () {
+    final size = const ModifierGroup(
+      id: 1,
+      name: 'Size',
+      required: true,
+      minSelect: 1,
+      maxSelect: 1,
+      options: [
+        ModifierOption(
+          id: 10,
+          name: 'Regular',
+          priceDelta: 0,
+          isDefault: true,
+          isAvailable: true,
+        ),
+      ],
+    );
+    final bao = MenuItem(
+      id: 1,
+      restaurantId: 10,
+      name: 'Bao',
+      description: '',
+      price: 1500,
+      category: 'Buns',
+      isAvailable: true,
+      groups: [size],
+    );
+    final plan = planReorder(
+      ordered: [
+        OrderItem(
+          menuItemId: 1,
+          name: 'Bao',
+          price: 1900,
+          quantity: 1,
+          modifiers: const [OrderModifier(optionId: 99, name: 'Gone')],
+        ),
+      ],
+      menu: [bao],
+    );
+    expect(plan.items.single.optionIds, [10]);
+  });
 }

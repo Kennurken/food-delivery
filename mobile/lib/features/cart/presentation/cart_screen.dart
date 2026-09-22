@@ -38,6 +38,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   final _comment = TextEditingController();
   bool _submitting = false;
   int? _placedOrderId;
+  String _payMethod = 'cash';
 
   @override
   void initState() {
@@ -93,6 +94,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             cart: cart,
             address: _address.text.trim(),
             comment: _comment.text.trim().isEmpty ? null : _comment.text.trim(),
+            payMethod: _payMethod,
           );
       ref.read(cartProvider.notifier).clear();
       ref.invalidate(ordersProvider);
@@ -200,11 +202,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Dismissible(
-                key: ValueKey(line.item.id),
+                key: ValueKey(line.key),
                 direction: DismissDirection.endToStart,
                 onDismissed: (_) {
                   Haptics.warn();
-                  ref.read(cartProvider.notifier).removeAll(line.item);
+                  ref
+                      .read(cartProvider.notifier)
+                      .removeAll(line.item, optionIds: line.optionIds);
                 },
                 background: Container(
                   alignment: Alignment.centerRight,
@@ -236,6 +240,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
+                              if (line.extrasLabel.isNotEmpty)
+                                Text(
+                                  line.extrasLabel,
+                                  style: text.bodySmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
                               SlidingNumber(
                                 formatMoney(line.lineTotal),
                                 style: text.bodySmall?.copyWith(
@@ -247,10 +258,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         ),
                         QuantityStepper(
                           qty: line.quantity,
-                          onAdd: () =>
-                              ref.read(cartProvider.notifier).add(line.item),
-                          onRemove: () =>
-                              ref.read(cartProvider.notifier).remove(line.item),
+                          onAdd: () => ref
+                              .read(cartProvider.notifier)
+                              .add(line.item, optionIds: line.optionIds),
+                          onRemove: () => ref
+                              .read(cartProvider.notifier)
+                              .remove(line.item, optionIds: line.optionIds),
                         ),
                       ],
                     ),
@@ -340,6 +353,36 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 label: Text(t.pickAddress),
               ).stagger(idx++),
             ],
+          ],
+          const SizedBox(height: 12),
+          SegmentedButton<String>(
+            segments: [
+              ButtonSegment(
+                value: 'cash',
+                icon: const Icon(Icons.payments_outlined),
+                label: Text(t.payCash),
+              ),
+              ButtonSegment(
+                value: 'online',
+                icon: const Icon(Icons.credit_card),
+                label: Text(t.payCard),
+              ),
+            ],
+            selected: {_payMethod},
+            onSelectionChanged: (s) => setState(() => _payMethod = s.first),
+          ).stagger(idx++),
+          if (_payMethod == 'cash') ...[
+            const SizedBox(height: 8),
+            Text(
+              t.payOnDelivery,
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ).stagger(idx++),
+          ] else ...[
+            const SizedBox(height: 8),
+            Text(
+              t.cardNotConnected,
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ).stagger(idx++),
           ],
           const SizedBox(height: 12),
           TextField(

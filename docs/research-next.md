@@ -16,7 +16,9 @@ Do **not** rebuild as a Firebase clone. The stack (Flutter + FastAPI + Neon, thr
 
 **Shipped 22 Sep 2026 (maps):** OSM tiles, center-pin address picker, restaurant pins, driving polyline, live courier GPS. No Google/Yandex/2GIS SDK.
 
-**Next slice (no keys):** item modifiers (size / extras) — needs an `OrderItem` snapshot migrate. Skip COD/FCM/Kaspi unless asked.
+**Shipped 22 Sep 2026 (checkout):** item modifiers with ticket snapshot, cash-on-delivery (unpaid), device tokens, local notifications when paused. No Kaspi/Stripe/FCM keys — card checkout is 409, FCM send is 0.
+
+**Next:** scheduled orders, promos, chat. Card/FCM stay blocked on keys.
 
 ## What we already have
 
@@ -70,13 +72,13 @@ Clones almost never implement: Uber One / Glovo Prime / Wolt+; scheduled slots; 
 | Home modules | Flat restaurant list | Yes | Done |
 | Reorder | History exists; no “order again” | Yes | Done |
 | Favorites | Heart on cards + `/me/favorites` + Saved row | Yes | Done |
-| Item modifiers | `OrderItem` is name+price+qty snapshot | Medium | Open |
+| Item modifiers | `OrderItem` is name+price+qty snapshot | Medium | Done |
 | KZ address | `Address.line` plus apt / entrance / floor / intercom | Yes | Done |
 | Admin create restaurant | `POST /admin/restaurants` + FAB | Yes | Done |
 | Floor plan editor | Admin canvas: floors, zones, tables, save/undo | Medium | Done |
 | Tenant / plans / QR table order | Restaurant membership + entitlements + `/t/:token` | Medium | Done |
-| COD | Place order = done | Yes | Open |
-| Maps / FCM / Kaspi | Blocked until keys | No | Wait |
+| COD | Place order = done | Yes | Done |
+| Maps / FCM / Kaspi | Blocked until keys | No | Maps done; FCM/Kaspi wait |
 
 UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md). Flutter web canvaskit still ignores programmatic input (a11y tree ≠ `TextEditingController`).
 
@@ -91,6 +93,6 @@ UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.c
 7. ~~Favorites.~~
 8. ~~Admin floor-plan editor.~~
 9. ~~QR table ordering + plan entitlements.~~
-10. Item options when we are willing to migrate. Medusa workflow steps stay our status machine — keep WebSocket.
-11. Map, FCM, Kaspi/Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
+10. ~~Item options.~~ Medusa workflow steps stay our status machine — keep WebSocket.
+11. FCM / Kaspi / Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
 12. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.

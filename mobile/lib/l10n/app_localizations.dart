@@ -1430,6 +1430,78 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'{km} km'**
   String distanceKm(String km);
+
+  /// No description provided for @fromPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'from {price}'**
+  String fromPrice(String price);
+
+  /// No description provided for @payCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get payCash;
+
+  /// No description provided for @payCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get payCard;
+
+  /// No description provided for @payOnDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay the courier or at the counter. The order stays unpaid until then.'**
+  String get payOnDelivery;
+
+  /// No description provided for @cardNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Card payments are not connected. Use cash.'**
+  String get cardNotConnected;
+
+  /// No description provided for @unpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get unpaid;
+
+  /// No description provided for @payMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get payMethod;
+
+  /// No description provided for @modifiers.
+  ///
+  /// In en, this message translates to:
+  /// **'Sizes & extras'**
+  String get modifiers;
+
+  /// No description provided for @addGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Add group'**
+  String get addGroup;
+
+  /// No description provided for @addOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Add option'**
+  String get addOption;
+
+  /// No description provided for @optionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Option'**
+  String get optionName;
+
+  /// No description provided for @priceDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Δ ₸'**
+  String get priceDelta;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

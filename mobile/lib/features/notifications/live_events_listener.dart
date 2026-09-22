@@ -32,11 +32,14 @@ class LiveEventsListener extends ConsumerWidget {
               icon: Icons.receipt_long,
               title: t.toastNewOrder(order.id),
               body: '${order.restaurantName} · ${order.customer.name}',
-              onTap: () => router.go('/admin'),
+              onTap: () =>
+                  router.go('/admin/restaurants/${order.restaurantId}/kitchen'),
             );
           }
         } else if (user.isCourier) {
-          if (order.courier == null && order.status == OrderStatus.confirmed) {
+          if (order.isDelivery &&
+              order.courier == null &&
+              order.status == OrderStatus.confirmed) {
             LiveToast.show(
               icon: Icons.delivery_dining,
               title: t.toastReadyForPickup(order.id),
@@ -48,7 +51,7 @@ class LiveEventsListener extends ConsumerWidget {
             order.status != OrderStatus.pending) {
           LiveToast.show(
             icon: Icons.local_dining,
-            title: '${t.orderN(order.id)} · ${order.status.label(t)}',
+            title: '${t.orderN(order.id)} · ${order.statusLabel(t)}',
             body: order.courier != null
                 ? t.toastCourier(order.courier!.name)
                 : order.restaurantName,

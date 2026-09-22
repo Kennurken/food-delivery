@@ -173,7 +173,7 @@ class _OrderCard extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    StatusChip(o.status),
+                    StatusChip(o.status, order: o),
                   ],
                 ),
               ),
@@ -194,9 +194,10 @@ class _OrderCard extends ConsumerWidget {
 }
 
 class StatusChip extends StatelessWidget {
-  const StatusChip(this.status, {super.key});
+  const StatusChip(this.status, {super.key, this.order});
 
   final OrderStatus status;
+  final Order? order;
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +225,7 @@ class StatusChip extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            status.label(context.l10n),
+            order?.statusLabel(context.l10n) ?? status.label(context.l10n),
             style: TextStyle(
               color: color,
               fontSize: 12,

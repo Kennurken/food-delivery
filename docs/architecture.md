@@ -11,7 +11,7 @@ Platform admin
     │     ├── members
     │     ├── menu
     │     ├── floors / tables
-    │     └── orders (delivery | qr_table)
+    │     └── orders (delivery | pickup | qr_table)
     └── Restaurant B
 ```
 

@@ -610,4 +610,65 @@ class L10nRu extends L10n {
 
   @override
   String get plan => 'Тариф';
+
+  @override
+  String get pickup => 'Самовывоз';
+
+  @override
+  String get kitchen => 'Кухня';
+
+  @override
+  String get kitchenNew => 'Новые';
+
+  @override
+  String get kitchenCooking => 'Готовят';
+
+  @override
+  String get kitchenReady => 'Готово';
+
+  @override
+  String get actionMarkReady => 'Готово';
+
+  @override
+  String get actionMarkServed => 'Подано';
+
+  @override
+  String get actionMarkCollected => 'Выдан';
+
+  @override
+  String get statusReady => 'Готово';
+
+  @override
+  String get statusServed => 'Подано';
+
+  @override
+  String get statusCollected => 'Выдан';
+
+  @override
+  String get hintConfirmedTable => 'Приняли — кухня готовит';
+
+  @override
+  String get hintConfirmedPickup => 'Приняли — готовим к самовывозу';
+
+  @override
+  String get hintReadyTable => 'Готово — принесут к столу';
+
+  @override
+  String get hintReadyPickup => 'Можно забирать в ресторане';
+
+  @override
+  String get hintServed => 'Подано. Приятного аппетита!';
+
+  @override
+  String get hintCollected => 'Забрали. Приятного аппетита!';
+
+  @override
+  String get orderNote => 'Комментарий';
+
+  @override
+  String get tableOnly =>
+      'Этот ресторан принимает заказы только со стола. Сканируйте QR на столе.';
+
+  @override
+  String get pickupAt => 'Забрать в ресторане';
 }

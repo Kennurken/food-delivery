@@ -610,4 +610,65 @@ class L10nEn extends L10n {
 
   @override
   String get plan => 'Plan';
+
+  @override
+  String get pickup => 'Pickup';
+
+  @override
+  String get kitchen => 'Kitchen';
+
+  @override
+  String get kitchenNew => 'New';
+
+  @override
+  String get kitchenCooking => 'Cooking';
+
+  @override
+  String get kitchenReady => 'Ready';
+
+  @override
+  String get actionMarkReady => 'Mark ready';
+
+  @override
+  String get actionMarkServed => 'Served';
+
+  @override
+  String get actionMarkCollected => 'Collected';
+
+  @override
+  String get statusReady => 'Ready';
+
+  @override
+  String get statusServed => 'Served';
+
+  @override
+  String get statusCollected => 'Collected';
+
+  @override
+  String get hintConfirmedTable => 'Confirmed — the kitchen has your order';
+
+  @override
+  String get hintConfirmedPickup => 'Confirmed — getting it ready for pickup';
+
+  @override
+  String get hintReadyTable => 'Ready — staff will bring it to the table';
+
+  @override
+  String get hintReadyPickup => 'Ready for pickup at the restaurant';
+
+  @override
+  String get hintServed => 'Served. Enjoy!';
+
+  @override
+  String get hintCollected => 'Collected. Enjoy!';
+
+  @override
+  String get orderNote => 'Comment';
+
+  @override
+  String get tableOnly =>
+      'This restaurant takes table orders only. Scan the QR on your table.';
+
+  @override
+  String get pickupAt => 'Pickup at the restaurant';
 }

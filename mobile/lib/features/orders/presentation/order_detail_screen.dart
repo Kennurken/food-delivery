@@ -112,6 +112,7 @@ class OrderDetailScreen extends ConsumerWidget {
                               child: StatusChip(
                                 o.status,
                                 key: ValueKey(o.status),
+                                order: o,
                               ),
                             ),
                           ],
@@ -120,7 +121,7 @@ class OrderDetailScreen extends ConsumerWidget {
                         _StatusTimeline(o.status),
                         const SizedBox(height: 6),
                         Text(
-                          o.status.hint(t),
+                          o.statusHint(t),
                           style: text.bodySmall?.copyWith(
                             color: scheme.onSurfaceVariant,
                           ),
@@ -195,7 +196,8 @@ class OrderDetailScreen extends ConsumerWidget {
                         child: Column(
                           children: [
                             _Row(t.subtotal, formatMoney(o.subtotal)),
-                            _Row(t.delivery, formatMoney(o.deliveryFee)),
+                            if (o.deliveryFee > 0)
+                              _Row(t.delivery, formatMoney(o.deliveryFee)),
                             _Row(t.total, formatMoney(o.total), bold: true),
                           ],
                         ),

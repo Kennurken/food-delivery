@@ -53,7 +53,12 @@ Future<void> reorderOrder(
           .showSnackBar(SnackBar(content: Text(t.nothingToReorder)));
       return;
     }
-    ref.read(cartProvider.notifier).replaceAll(plan.items);
+    ref
+        .read(cartProvider.notifier)
+        .replaceAll(
+          plan.items,
+          fulfillment: order.channel == 'pickup' ? 'pickup' : 'delivery',
+        );
     if (plan.skipped > 0) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(t.someItemsUnavailable)));

@@ -12,6 +12,8 @@ Do **not** rebuild as a Firebase clone. The stack (Flutter + FastAPI + Neon, thr
 
 **Shipped 22 Sep 2026:** tenant = restaurant, plan entitlements, table QR (`/t/:token`), dine-in orders, membership isolation, platform counts (no fake MRR).
 
+**Shipped 22 Sep 2026 (later):** pickup channel + kitchen board. Same status machine for delivery / pickup / table QR.
+
 **Next slice (no keys):** item modifiers (size / extras) — needs an `OrderItem` snapshot migrate. Skip COD/maps/FCM/Kaspi unless asked.
 
 ## What we already have

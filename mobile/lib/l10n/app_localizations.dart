@@ -1250,6 +1250,126 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Plan'**
   String get plan;
+
+  /// No description provided for @pickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup'**
+  String get pickup;
+
+  /// No description provided for @kitchen.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen'**
+  String get kitchen;
+
+  /// No description provided for @kitchenNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get kitchenNew;
+
+  /// No description provided for @kitchenCooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking'**
+  String get kitchenCooking;
+
+  /// No description provided for @kitchenReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get kitchenReady;
+
+  /// No description provided for @actionMarkReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark ready'**
+  String get actionMarkReady;
+
+  /// No description provided for @actionMarkServed.
+  ///
+  /// In en, this message translates to:
+  /// **'Served'**
+  String get actionMarkServed;
+
+  /// No description provided for @actionMarkCollected.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected'**
+  String get actionMarkCollected;
+
+  /// No description provided for @statusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get statusReady;
+
+  /// No description provided for @statusServed.
+  ///
+  /// In en, this message translates to:
+  /// **'Served'**
+  String get statusServed;
+
+  /// No description provided for @statusCollected.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected'**
+  String get statusCollected;
+
+  /// No description provided for @hintConfirmedTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed — the kitchen has your order'**
+  String get hintConfirmedTable;
+
+  /// No description provided for @hintConfirmedPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed — getting it ready for pickup'**
+  String get hintConfirmedPickup;
+
+  /// No description provided for @hintReadyTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready — staff will bring it to the table'**
+  String get hintReadyTable;
+
+  /// No description provided for @hintReadyPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for pickup at the restaurant'**
+  String get hintReadyPickup;
+
+  /// No description provided for @hintServed.
+  ///
+  /// In en, this message translates to:
+  /// **'Served. Enjoy!'**
+  String get hintServed;
+
+  /// No description provided for @hintCollected.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected. Enjoy!'**
+  String get hintCollected;
+
+  /// No description provided for @orderNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment'**
+  String get orderNote;
+
+  /// No description provided for @tableOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This restaurant takes table orders only. Scan the QR on your table.'**
+  String get tableOnly;
+
+  /// No description provided for @pickupAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup at the restaurant'**
+  String get pickupAt;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

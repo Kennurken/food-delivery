@@ -109,12 +109,12 @@ class _OrdersTab extends ConsumerWidget {
                                     style: text.titleMedium,
                                   ),
                                 ),
-                                StatusChip(o.status),
+                                StatusChip(o.status, order: o),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${o.customer.name} · ${o.address}${o.isDelivery ? '' : ' · ${o.channel}'}',
+                              '${o.customer.name} · ${o.address} · ${o.channelLabel(context.l10n)}',
                             ),
                             Text(
                               o.items
@@ -148,7 +148,7 @@ class _OrdersTab extends ConsumerWidget {
                                           onPressed: () =>
                                               _set(context, ref, o, s),
                                           child: Text(
-                                            s.actionLabel(context.l10n),
+                                            o.nextActionLabel(s, context.l10n),
                                           ),
                                         ),
                                       ),

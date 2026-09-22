@@ -25,7 +25,7 @@ The public API stores data in Neon Postgres. Register a customer account there. 
 | Browse by cuisine, search, save restaurants | Pick up confirmed orders | Confirm / advance / cancel any order |
 | Cart with morphing stepper, saved addresses | Advance step by step to *delivered* | Add restaurants, toggle open/closed |
 | Live order tracking, rate after delivery | Live "ready for pickup" banners | Menu editor, floor plan, table QR |
-| Scan a table QR and order without delivery | | Plans, staff, real platform counts |
+| Scan a table QR, or pick up without a courier | | Plans, staff, kitchen board, table QR |
 
 Every status change is pushed over WebSocket to whoever cares — the customer, the assigned courier, all staff — and surfaces as an in-app banner.
 
@@ -84,13 +84,13 @@ Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim h
 | GET | /api/v1/restaurants?q=&cuisine= | – |
 | GET | /api/v1/restaurants/{id} | – |
 | POST | /api/v1/orders | user |
-| GET | /api/v1/orders | user |
-| GET | /api/v1/orders/{id} | user |
+| GET | /api/v1/orders | user; kitchen: `?restaurant_id=` |
+| GET | /api/v1/orders/{id} | user / kitchen |
 | POST | /api/v1/orders/{id}/cancel | customer |
 | GET | /api/v1/orders/available | courier |
 | POST | /api/v1/orders/{id}/accept | courier |
 | POST | /api/v1/orders/{id}/advance | courier (assigned) |
-| PATCH | /api/v1/orders/{id}/status | admin |
+| PATCH | /api/v1/orders/{id}/status | admin / kitchen |
 | PATCH | /api/v1/me | user |
 | POST | /api/v1/me/password | user |
 | GET/PUT/DELETE | /api/v1/me/favorites[/{restaurant_id}] | user |
@@ -113,10 +113,9 @@ Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim h
 | GET | /api/v1/me/memberships | user |
 | GET | /api/v1/platform/audit | admin |
 
-Order status machine: `pending → confirmed → preparing → on_the_way → delivered`; cancel allowed from `pending`/`confirmed`. Table (`qr_table`) orders skip courier and go `preparing → delivered`.
-Admin confirms; courier picks up **delivery** orders from `confirmed`/`preparing` and advances step by step.
+Order status machine (every channel): `pending → confirmed → preparing → on_the_way → delivered`; cancel from `pending`/`confirmed`. `on_the_way` means out with the courier for **delivery**, ready at the pass for **pickup** / **qr_table**. Couriers only see delivery. `GET /orders?restaurant_id=` is the kitchen ticket list.
 
-Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","order":{...}}` to the customer, the assigned courier, and admins. Couriers also get unassigned pickable orders (the available pool). Hub is in-process — one instance; swap for Redis pub/sub to scale out.
+Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","order":{...}}` to the customer, restaurant staff with `orders.read`, assigned courier, and platform admins. Couriers also get unassigned **delivery** pickable orders. Hub is in-process — one instance; swap for Redis pub/sub to scale out.
 
 Login and refresh are rate-limited. Access tokens last 60 minutes; a 30-day refresh token issues a new access token. The app refuses to start in `ENV=prod` with a short/default `SECRET_KEY`, `CORS_ORIGINS=*` (unless `CORS_ORIGIN_REGEX` is set), or a sqlite `DATABASE_URL` (unless `ALLOW_EPHEMERAL_DB=1` for a throwaway demo). `/docs` is off in prod. `python -m app.db.seed` in prod (or `--catalog-only`) inserts restaurants only and mints random staff passwords — it will not create `admin123` / `user123`.
 

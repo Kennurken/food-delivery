@@ -14,8 +14,8 @@ Status is against this repo, not the long-term product spec.
 | Audit log | **Shipped** (plan/staff/create) | — |
 | Platform overview | **Shipped** (real counts, no MRR) | — |
 | Order idempotency | **Shipped** | header |
-| Pickup | Missing | `pickup.enabled` |
-| KDS | Missing | `kds` |
+| Pickup | **Shipped** | `pickup.enabled` |
+| KDS | **Shipped** (same order machine) | `kds` |
 | Reservations | Missing | `reservations` |
 | Promotions | Missing | `promotions` |
 | Online payments | Missing (adapter only) | `payments.online` |

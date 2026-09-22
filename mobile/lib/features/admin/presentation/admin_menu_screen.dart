@@ -64,6 +64,12 @@ class AdminMenuScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(restaurant.value?.name ?? context.l10n.menu),
         actions: [
+          IconButton(
+            tooltip: context.l10n.kitchen,
+            onPressed: () =>
+                context.push('/admin/restaurants/$restaurantId/kitchen'),
+            icon: const Icon(Icons.soup_kitchen_outlined),
+          ),
           TextButton.icon(
             onPressed: () =>
                 context.push('/admin/restaurants/$restaurantId/floor'),

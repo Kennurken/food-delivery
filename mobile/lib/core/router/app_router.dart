@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/admin/floor_plan/presentation/floor_plan_screen.dart';
 import '../../features/admin/presentation/admin_menu_screen.dart';
 import '../../features/admin/presentation/admin_screen.dart';
+import '../../features/admin/presentation/kitchen_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
@@ -95,6 +96,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/restaurants/:id/floor',
         builder: (_, s) =>
             FloorPlanScreen(restaurantId: int.parse(s.pathParameters['id']!)),
+      ),
+      GoRoute(
+        path: '/admin/restaurants/:id/kitchen',
+        builder: (_, s) =>
+            KitchenScreen(restaurantId: int.parse(s.pathParameters['id']!)),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

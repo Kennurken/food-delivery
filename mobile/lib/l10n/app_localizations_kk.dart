@@ -610,4 +610,64 @@ class L10nKk extends L10n {
 
   @override
   String get plan => 'Тариф';
+
+  @override
+  String get pickup => 'Өзім аламын';
+
+  @override
+  String get kitchen => 'Ас үй';
+
+  @override
+  String get kitchenNew => 'Жаңа';
+
+  @override
+  String get kitchenCooking => 'Дайындалуда';
+
+  @override
+  String get kitchenReady => 'Дайын';
+
+  @override
+  String get actionMarkReady => 'Дайын';
+
+  @override
+  String get actionMarkServed => 'Берілді';
+
+  @override
+  String get actionMarkCollected => 'Алынды';
+
+  @override
+  String get statusReady => 'Дайын';
+
+  @override
+  String get statusServed => 'Берілді';
+
+  @override
+  String get statusCollected => 'Алынды';
+
+  @override
+  String get hintConfirmedTable => 'Қабылданды — ас үй дайындайды';
+
+  @override
+  String get hintConfirmedPickup => 'Қабылданды — өзіңіз аласыз';
+
+  @override
+  String get hintReadyTable => 'Дайын — үстелге әкеледі';
+
+  @override
+  String get hintReadyPickup => 'Мейрамханадан алуға болады';
+
+  @override
+  String get hintServed => 'Берілді. Дәмді болсын!';
+
+  @override
+  String get hintCollected => 'Алынды. Дәмді болсын!';
+
+  @override
+  String get orderNote => 'Пікір';
+
+  @override
+  String get tableOnly => 'Бұл мейрамхана тек үстел QR арқылы қабылдайды.';
+
+  @override
+  String get pickupAt => 'Мейрамханадан алу';
 }

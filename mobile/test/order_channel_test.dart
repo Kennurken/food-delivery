@@ -20,12 +20,10 @@ Order order({
 );
 
 void main() {
-  test('delivery preparing hands to courier', () {
+  test('every channel uses the same kitchen steps', () {
     expect(order().kitchenNext, [OrderStatus.onTheWay]);
-  });
-
-  test('table order preparing is served, not dispatched', () {
-    expect(order(channel: 'qr_table').kitchenNext, [OrderStatus.delivered]);
+    expect(order(channel: 'qr_table').kitchenNext, [OrderStatus.onTheWay]);
+    expect(order(channel: 'pickup').kitchenNext, [OrderStatus.onTheWay]);
   });
 
   test('legacy json without channel is delivery', () {

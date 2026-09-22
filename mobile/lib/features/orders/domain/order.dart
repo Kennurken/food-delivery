@@ -110,16 +110,10 @@ class Order {
   final int? tableObjectId;
 
   bool get isDelivery => channel == 'delivery';
+  bool get isPickup => channel == 'pickup';
+  bool get isDineIn => channel == 'qr_table';
 
-  List<OrderStatus> get kitchenNext {
-    if (isDelivery) return status.adminNext;
-    return switch (status) {
-      OrderStatus.pending => [OrderStatus.confirmed, OrderStatus.cancelled],
-      OrderStatus.confirmed => [OrderStatus.preparing, OrderStatus.cancelled],
-      OrderStatus.preparing => [OrderStatus.delivered],
-      _ => [],
-    };
-  }
+  List<OrderStatus> get kitchenNext => status.adminNext;
 
   factory Order.fromJson(Map<String, dynamic> json) => Order(
     id: json['id'] as int,

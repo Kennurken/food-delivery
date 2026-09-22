@@ -9,7 +9,12 @@ import '../../restaurants/domain/menu_item.dart';
 import '../domain/cart_item.dart';
 
 class CartState {
-  const CartState({this.restaurantId, this.items = const {}, this.qrToken});
+  const CartState({
+    this.restaurantId,
+    this.items = const {},
+    this.qrToken,
+    this.fulfillment = 'delivery',
+  });
 
   final int? restaurantId;
 
@@ -17,20 +22,26 @@ class CartState {
   final Map<int, CartItem> items;
   final String? qrToken;
 
+  /// `delivery` or `pickup`. Ignored when [isDineIn].
+  final String fulfillment;
+
   int get count => items.values.fold(0, (s, i) => s + i.quantity);
   double get subtotal => items.values.fold(0.0, (s, i) => s + i.lineTotal);
   bool get isEmpty => items.isEmpty;
   bool get isDineIn => qrToken != null;
+  bool get isPickup => !isDineIn && fulfillment == 'pickup';
 
   CartState copyWith({
     int? restaurantId,
     Map<int, CartItem>? items,
     String? qrToken,
     bool clearQr = false,
+    String? fulfillment,
   }) => CartState(
     restaurantId: restaurantId ?? this.restaurantId,
     items: items ?? this.items,
     qrToken: clearQr ? null : (qrToken ?? this.qrToken),
+    fulfillment: fulfillment ?? this.fulfillment,
   );
 
   factory CartState.fromJson(Map<String, dynamic> json) {
@@ -38,6 +49,7 @@ class CartState {
     return CartState(
       restaurantId: json['restaurant_id'] as int?,
       qrToken: json['qr_token'] as String?,
+      fulfillment: json['fulfillment'] as String? ?? 'delivery',
       items: {
         for (final e in raw.entries)
           int.parse(e.key): CartItem.fromJson(e.value as Map<String, dynamic>),
@@ -48,6 +60,7 @@ class CartState {
   Map<String, dynamic> toJson() => {
     'restaurant_id': restaurantId,
     'qr_token': qrToken,
+    'fulfillment': fulfillment,
     'items': {for (final e in items.entries) '${e.key}': e.value.toJson()},
   };
 }
@@ -156,14 +169,22 @@ class CartController extends Notifier<CartState> {
       restaurantId: state.restaurantId,
       items: state.items,
       qrToken: token,
+      fulfillment: state.fulfillment,
     );
+    _save();
+  }
+
+  void setFulfillment(String channel) {
+    if (channel != 'pickup' && channel != 'delivery') return;
+    if (state.fulfillment == channel) return;
+    state = state.copyWith(fulfillment: channel);
     _save();
   }
 
   int quantityOf(int menuItemId) => state.items[menuItemId]?.quantity ?? 0;
 
   /// Replace the cart with these lines (one restaurant). Empty list clears.
-  void replaceAll(List<CartItem> items) {
+  void replaceAll(List<CartItem> items, {String fulfillment = 'delivery'}) {
     if (items.isEmpty) {
       clear();
       return;
@@ -171,6 +192,7 @@ class CartController extends Notifier<CartState> {
     state = CartState(
       restaurantId: items.first.item.restaurantId,
       items: {for (final i in items) i.item.id: i},
+      fulfillment: fulfillment == 'pickup' ? 'pickup' : 'delivery',
     );
     Haptics.add();
     _save();

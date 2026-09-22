@@ -90,4 +90,17 @@ void main() {
     expect(state.count, 3);
     expect(state.subtotal, 150);
   });
+
+  test('pickup fulfillment persists', () async {
+    final cart = container.read(cartProvider.notifier);
+    cart.add(item(1, 10, 100));
+    cart.setFulfillment('pickup');
+    expect(container.read(cartProvider).isPickup, isTrue);
+    await Future<void>.delayed(Duration.zero);
+    expect(store.value?.fulfillment, 'pickup');
+    cart.replaceAll([
+      CartItem(item: item(1, 10, 100), quantity: 1),
+    ], fulfillment: 'pickup');
+    expect(container.read(cartProvider).isPickup, isTrue);
+  });
 }

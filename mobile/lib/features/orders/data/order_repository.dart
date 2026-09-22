@@ -23,7 +23,8 @@ class OrderRepository {
       data: {
         'restaurant_id': cart.restaurantId,
         if (cart.qrToken != null) 'qr_token': cart.qrToken,
-        if (cart.qrToken == null) 'address': address,
+        if (cart.qrToken == null && cart.isPickup) 'channel': 'pickup',
+        if (cart.qrToken == null && !cart.isPickup) 'address': address,
         'comment': comment,
         'items': [
           for (final i in cart.items.values)
@@ -34,8 +35,11 @@ class OrderRepository {
     return Order.fromJson(r.data);
   }
 
-  Future<List<Order>> list() async {
-    final r = await _dio.get('/api/v1/orders');
+  Future<List<Order>> list({int? restaurantId}) async {
+    final r = await _dio.get(
+      '/api/v1/orders',
+      queryParameters: {'restaurant_id': ?restaurantId},
+    );
     return (r.data as List).map((e) => Order.fromJson(e)).toList();
   }
 
@@ -117,4 +121,17 @@ final orderLiveProvider = StreamProvider.family<Order, int>((ref, id) {
 final availableOrdersProvider = FutureProvider<List<Order>>((ref) {
   ref.listen(orderEventsProvider, (_, _) => ref.invalidateSelf());
   return ref.watch(orderRepositoryProvider).available();
+});
+
+final kitchenOrdersProvider = FutureProvider.family<List<Order>, int>((
+  ref,
+  restaurantId,
+) {
+  ref.listen(orderEventsProvider, (_, next) {
+    final evt = next.value;
+    if (evt != null && evt.order['restaurant_id'] == restaurantId) {
+      ref.invalidateSelf();
+    }
+  });
+  return ref.watch(orderRepositoryProvider).list(restaurantId: restaurantId);
 });

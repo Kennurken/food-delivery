@@ -18,6 +18,7 @@ import '../../../core/widgets/success_check.dart';
 import '../../orders/data/order_repository.dart';
 import '../../profile/data/profile_repository.dart';
 import '../../restaurants/data/restaurant_repository.dart';
+import '../../restaurants/domain/restaurant.dart';
 import '../../restaurants/presentation/restaurant_screen.dart'
     show QuantityStepper;
 import 'cart_controller.dart';
@@ -42,11 +43,36 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     super.dispose();
   }
 
+  bool _blocked(CartState cart, Restaurant? restaurant) {
+    if (cart.isDineIn) return false;
+    if (restaurant == null) return false;
+    return !restaurant.allowsDelivery && !restaurant.allowsPickup;
+  }
+
+  String _syncedFulfillment(Restaurant r, CartState cart) {
+    if (cart.fulfillment == 'pickup' && r.allowsPickup) return 'pickup';
+    if (r.allowsDelivery) return 'delivery';
+    if (r.allowsPickup) return 'pickup';
+    return cart.fulfillment;
+  }
+
   Future<void> _checkout() async {
     final cart = ref.read(cartProvider);
-    if (!cart.isDineIn && _address.text.trim().length < 3) {
+    final restaurant = cart.restaurantId == null
+        ? null
+        : ref.read(restaurantProvider(cart.restaurantId!)).value;
+    final t = context.l10n;
+    if (!cart.isDineIn &&
+        restaurant != null &&
+        !restaurant.allowsDelivery &&
+        !restaurant.allowsPickup) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(context.l10n.enterAddress)));
+          .showSnackBar(SnackBar(content: Text(t.tableOnly)));
+      return;
+    }
+    if (!cart.isDineIn && !cart.isPickup && _address.text.trim().length < 3) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(t.enterAddress)));
       return;
     }
     setState(() => _submitting = true);
@@ -92,7 +118,18 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final restaurant = cart.restaurantId == null
         ? null
         : ref.watch(restaurantProvider(cart.restaurantId!)).value;
-    final fee = cart.isDineIn ? 0.0 : (restaurant?.deliveryFee ?? 0);
+    if (restaurant != null && !cart.isDineIn) {
+      final synced = _syncedFulfillment(restaurant, cart);
+      if (synced != cart.fulfillment) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          ref.read(cartProvider.notifier).setFulfillment(synced);
+        });
+      }
+    }
+    final fee = (cart.isDineIn || cart.isPickup)
+        ? 0.0
+        : (restaurant?.deliveryFee ?? 0);
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
@@ -191,38 +228,82 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 subtitle: Text(t.tableQr),
               ),
             ).stagger(idx++)
-          else ...[
-            if (saved.isNotEmpty) ...[
-              Wrap(
-                spacing: 8,
-                children: [
-                  for (final a in saved)
-                    ActionChip(
-                      avatar: Icon(
-                        a.isDefault ? Icons.home : Icons.place_outlined,
-                        size: 18,
-                      ),
-                      label: Text(a.label),
-                      onPressed: () =>
-                          setState(() => _address.text = a.display(t)),
-                    ),
-                ],
-              ).stagger(idx++),
-              const SizedBox(height: 10),
-            ],
-            TextField(
-              controller: _address,
-              decoration: InputDecoration(
-                labelText: t.deliveryAddress,
-                prefixIcon: Icon(Icons.place_outlined),
+          else if (restaurant != null &&
+              !restaurant.allowsDelivery &&
+              !restaurant.allowsPickup)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.qr_code_2_outlined),
+                title: Text(t.dineIn),
+                subtitle: Text(t.tableOnly),
               ),
-            ).stagger(idx++),
+            ).stagger(idx++)
+          else ...[
+            if (restaurant != null &&
+                restaurant.allowsDelivery &&
+                restaurant.allowsPickup) ...[
+              SegmentedButton<String>(
+                segments: [
+                  ButtonSegment(
+                    value: 'delivery',
+                    icon: const Icon(Icons.delivery_dining_outlined),
+                    label: Text(t.delivery),
+                  ),
+                  ButtonSegment(
+                    value: 'pickup',
+                    icon: const Icon(Icons.storefront_outlined),
+                    label: Text(t.pickup),
+                  ),
+                ],
+                selected: {cart.fulfillment},
+                onSelectionChanged: (s) =>
+                    ref.read(cartProvider.notifier).setFulfillment(s.first),
+              ).stagger(idx++),
+              const SizedBox(height: 12),
+            ],
+            if (cart.isPickup)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.storefront_outlined),
+                  title: Text(t.pickup),
+                  subtitle: Text(t.pickupAt),
+                ),
+              ).stagger(idx++)
+            else ...[
+              if (saved.isNotEmpty) ...[
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final a in saved)
+                      ActionChip(
+                        avatar: Icon(
+                          a.isDefault ? Icons.home : Icons.place_outlined,
+                          size: 18,
+                        ),
+                        label: Text(a.label),
+                        onPressed: () =>
+                            setState(() => _address.text = a.display(t)),
+                      ),
+                  ],
+                ).stagger(idx++),
+                const SizedBox(height: 10),
+              ],
+              TextField(
+                controller: _address,
+                decoration: InputDecoration(
+                  labelText: t.deliveryAddress,
+                  prefixIcon: Icon(Icons.place_outlined),
+                ),
+              ).stagger(idx++),
+            ],
           ],
           const SizedBox(height: 12),
           TextField(
             controller: _comment,
             decoration: InputDecoration(
-              labelText: t.courierComment,
+              labelText: cart.isDineIn || cart.isPickup
+                  ? t.orderNote
+                  : t.courierComment,
               prefixIcon: Icon(Icons.chat_bubble_outline),
             ),
             maxLines: 2,
@@ -234,7 +315,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               child: Column(
                 children: [
                   _Row(t.subtotal, formatMoney(cart.subtotal)),
-                  _Row(t.delivery, formatMoney(fee)),
+                  if (fee > 0) _Row(t.delivery, formatMoney(fee)),
                   const Divider(height: 20),
                   _Row(t.total, formatMoney(cart.subtotal + fee), bold: true),
                 ],
@@ -247,9 +328,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Pressable(
-            onTap: _submitting ? null : _checkout,
+            onTap: _submitting || _blocked(cart, restaurant) ? null : _checkout,
             child: FilledButton(
-              onPressed: _submitting ? null : _checkout,
+              onPressed: _submitting || _blocked(cart, restaurant)
+                  ? null
+                  : _checkout,
               child: AnimatedSwitcher(
                 duration: Motion.fast,
                 child: _submitting

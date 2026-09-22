@@ -41,6 +41,39 @@ extension OrderStatusL10n on OrderStatus {
   };
 }
 
+extension OrderChannelL10n on Order {
+  String statusLabel(L10n t) => switch ((channel, status)) {
+    ('qr_table', OrderStatus.onTheWay) ||
+    ('pickup', OrderStatus.onTheWay) => t.statusReady,
+    ('qr_table', OrderStatus.delivered) => t.statusServed,
+    ('pickup', OrderStatus.delivered) => t.statusCollected,
+    _ => status.label(t),
+  };
+
+  String statusHint(L10n t) => switch ((channel, status)) {
+    ('qr_table', OrderStatus.confirmed) => t.hintConfirmedTable,
+    ('pickup', OrderStatus.confirmed) => t.hintConfirmedPickup,
+    ('qr_table', OrderStatus.onTheWay) => t.hintReadyTable,
+    ('pickup', OrderStatus.onTheWay) => t.hintReadyPickup,
+    ('qr_table', OrderStatus.delivered) => t.hintServed,
+    ('pickup', OrderStatus.delivered) => t.hintCollected,
+    _ => status.hint(t),
+  };
+
+  String nextActionLabel(OrderStatus next, L10n t) => switch ((channel, next)) {
+    (final c, OrderStatus.onTheWay) when c != 'delivery' => t.actionMarkReady,
+    ('qr_table', OrderStatus.delivered) => t.actionMarkServed,
+    ('pickup', OrderStatus.delivered) => t.actionMarkCollected,
+    _ => next.actionLabel(t),
+  };
+
+  String channelLabel(L10n t) => switch (channel) {
+    'qr_table' => t.dineIn,
+    'pickup' => t.pickup,
+    _ => t.delivery,
+  };
+}
+
 extension AddressL10n on Address {
   String display(L10n t) => formatAddress(
     line,

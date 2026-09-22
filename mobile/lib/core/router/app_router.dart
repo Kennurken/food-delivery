@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/admin/floor_plan/presentation/floor_plan_screen.dart';
 import '../../features/admin/presentation/admin_menu_screen.dart';
 import '../../features/admin/presentation/admin_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
@@ -69,6 +70,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/restaurants/:id',
         builder: (_, s) =>
             AdminMenuScreen(restaurantId: int.parse(s.pathParameters['id']!)),
+      ),
+      GoRoute(
+        path: '/admin/restaurants/:id/floor',
+        builder: (_, s) =>
+            FloorPlanScreen(restaurantId: int.parse(s.pathParameters['id']!)),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

@@ -498,4 +498,69 @@ class L10nEn extends L10n {
 
   @override
   String get removeFavorite => 'Remove from saved';
+
+  @override
+  String get floorPlan => 'Floor plan';
+
+  @override
+  String get noFloorPlan => 'No floor plan yet';
+
+  @override
+  String get noFloorPlanHint =>
+      'Place tables, walls and rooms on a scale drawing of the dining room.';
+
+  @override
+  String get createFloorPlan => 'Create floor plan';
+
+  @override
+  String get startScratch => 'Start from scratch';
+
+  @override
+  String get useTemplate => 'Use cafe template';
+
+  @override
+  String get firstFloor => '1st Floor';
+
+  @override
+  String get addFloor => 'Add floor';
+
+  @override
+  String get renameFloor => 'Rename floor';
+
+  @override
+  String get duplicateFloor => 'Duplicate floor';
+
+  @override
+  String get deleteFloor => 'Delete floor';
+
+  @override
+  String get previewLayout => 'Preview';
+
+  @override
+  String get editLayout => 'Edit';
+
+  @override
+  String get layoutSaved => 'Saved';
+
+  @override
+  String get layoutSaving => 'Saving…';
+
+  @override
+  String get layoutUnsaved => 'Unsaved changes';
+
+  @override
+  String get layoutSaveFailed => 'Unable to save';
+
+  @override
+  String get layoutSaveFailedBody =>
+      'Your local changes are still here. Retry or keep editing.';
+
+  @override
+  String get continueEditing => 'Continue editing';
+
+  @override
+  String get snapOn => 'Snap on';
+
+  @override
+  String get snapOff => 'Snap off';
 }

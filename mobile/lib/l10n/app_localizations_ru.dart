@@ -498,4 +498,69 @@ class L10nRu extends L10n {
 
   @override
   String get removeFavorite => 'Убрать из избранного';
+
+  @override
+  String get floorPlan => 'План зала';
+
+  @override
+  String get noFloorPlan => 'Плана ещё нет';
+
+  @override
+  String get noFloorPlanHint =>
+      'Расставьте столы, стены и зоны в масштабе реального зала.';
+
+  @override
+  String get createFloorPlan => 'Создать план';
+
+  @override
+  String get startScratch => 'С нуля';
+
+  @override
+  String get useTemplate => 'Шаблон кафе';
+
+  @override
+  String get firstFloor => '1 этаж';
+
+  @override
+  String get addFloor => 'Добавить этаж';
+
+  @override
+  String get renameFloor => 'Переименовать';
+
+  @override
+  String get duplicateFloor => 'Дублировать этаж';
+
+  @override
+  String get deleteFloor => 'Удалить этаж';
+
+  @override
+  String get previewLayout => 'Просмотр';
+
+  @override
+  String get editLayout => 'Редактор';
+
+  @override
+  String get layoutSaved => 'Сохранено';
+
+  @override
+  String get layoutSaving => 'Сохранение…';
+
+  @override
+  String get layoutUnsaved => 'Есть изменения';
+
+  @override
+  String get layoutSaveFailed => 'Не удалось сохранить';
+
+  @override
+  String get layoutSaveFailedBody =>
+      'Локальные правки на месте. Повторите или продолжите.';
+
+  @override
+  String get continueEditing => 'Продолжить';
+
+  @override
+  String get snapOn => 'Привязка вкл';
+
+  @override
+  String get snapOff => 'Привязка выкл';
 }

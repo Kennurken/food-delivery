@@ -5,14 +5,16 @@ import 'package:flutter/material.dart';
 /// Phone-width column on a warm stage (web/desktop). Matches SwiggyUI's
 /// constrained storefront instead of stretching inputs to 1920px.
 class AppShell extends StatelessWidget {
-  const AppShell({super.key, required this.child});
+  const AppShell({super.key, required this.child, this.fullBleed = false});
 
   static const maxWidth = 560.0;
 
   final Widget child;
+  final bool fullBleed;
 
   @override
   Widget build(BuildContext context) {
+    if (fullBleed) return child;
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = math.min(constraints.maxWidth, maxWidth);

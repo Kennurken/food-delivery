@@ -22,9 +22,9 @@ The public API stores data in Neon Postgres. Register a customer account there. 
 
 | Customer | Courier | Admin |
 |---|---|---|
-| Browse by cuisine, search, hero-image menus | Pick up confirmed orders | Confirm / advance / cancel any order |
-| Cart with morphing stepper, saved addresses | Advance step by step to *delivered* | Toggle restaurants open/closed |
-| Live order tracking, rate after delivery | Live "ready for pickup" banners | Menu editor: price, availability, delete |
+| Browse by cuisine, search, save restaurants | Pick up confirmed orders | Confirm / advance / cancel any order |
+| Cart with morphing stepper, saved addresses | Advance step by step to *delivered* | Add restaurants, toggle open/closed |
+| Live order tracking, rate after delivery | Live "ready for pickup" banners | Menu editor + floor plan |
 
 Every status change is pushed over WebSocket to whoever cares — the customer, the assigned courier, all staff — and surfaces as an in-app banner.
 
@@ -92,12 +92,17 @@ Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim h
 | PATCH | /api/v1/orders/{id}/status | admin |
 | PATCH | /api/v1/me | user |
 | POST | /api/v1/me/password | user |
+| GET/PUT/DELETE | /api/v1/me/favorites[/{restaurant_id}] | user |
 | GET/POST/PATCH/DELETE | /api/v1/me/addresses[/{id}] | user |
 | POST | /api/v1/orders/{id}/rate | customer (delivered) |
 | GET | /api/v1/restaurants/cuisines | – |
 | GET/POST/PATCH | /api/v1/admin/restaurants[/{id}] | admin |
 | POST | /api/v1/admin/restaurants/{id}/menu | admin |
 | PATCH/DELETE | /api/v1/admin/menu/{id} | admin |
+| GET/POST | /api/v1/admin/restaurants/{id}/floors | admin |
+| GET/PATCH/DELETE | /api/v1/admin/floors/{id} | admin |
+| PUT | /api/v1/admin/floors/{id}/layout | admin |
+| GET/POST | /api/v1/admin/floors/{id}/versions[/{vid}/restore] | admin |
 
 Order status machine: `pending → confirmed → preparing → on_the_way → delivered`; cancel allowed from `pending`/`confirmed`.
 Admin confirms; courier picks up from `confirmed`/`preparing` and advances step by step.
@@ -161,10 +166,12 @@ cd mobile && flutter test
 - [x] Alembic migrations, Postgres via docker compose
 - [x] Live order updates over WebSocket
 - [x] GitHub Actions CI (ruff, pytest, alembic check, dart format, analyze, flutter test)
-- [x] Customer profile, saved addresses, address picker at checkout
+- [x] Customer profile, saved addresses (apt / entrance / floor / intercom)
+- [x] Favorite restaurants
+- [x] Admin floor-plan editor (floors, zones, tables, save/undo)
 - [x] Order rating → restaurant running average
 - [x] Cuisine filter
-- [x] Admin panel in-app (confirm/advance orders, toggle restaurant, edit menu)
+- [x] Admin panel in-app (add restaurants, confirm/advance orders, toggle open, edit menu)
 - [x] Refresh tokens, login rate limits, prod secret/CORS/sqlite guards
 - [x] en / ru / kk UI
 - [x] Vercel + Neon (persistent orders, no public `admin123`)

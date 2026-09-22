@@ -8,9 +8,9 @@ Second GitHub pass (same day) went deeper on clones vs real Glovo/Wolt: Enatega 
 
 Do **not** rebuild as a Firebase clone. The stack (Flutter + FastAPI + Neon, three live roles, WebSocket status, en/ru/kk) is already ahead of the 1k-star UI-only GitHub demos.
 
-**Shipped 21 Sep 2026:** web column ~560px, customer sliding-pill bottom nav, dish photos + dish search, persist cart, reduced motion, empty-cart CTA, login password visibility.
+**Shipped 21 Sep 2026:** web column ~560px, customer sliding-pill bottom nav, dish photos + dish search, persist cart, reduced motion, empty-cart CTA, login password visibility, reorder, home sort + Popular, KZ address extras, admin add-restaurant, favorite restaurants, admin floor-plan editor.
 
-**Next slice (no keys):** reorder from history, then a Swiggy-style home (sort by rating/ETA/fee, one spotlight row). Skip COD/address/maps/FCM/Kaspi unless asked.
+**Next slice (no keys):** item modifiers (size / extras) — needs an `OrderItem` snapshot migrate. Skip COD/maps/FCM/Kaspi unless asked.
 
 ## What we already have
 
@@ -60,13 +60,14 @@ Clones almost never implement: Uber One / Glovo Prime / Wolt+; scheduled slots; 
 | Dish search | `q` matches `MenuItem.name` | Yes | Done |
 | Persist cart | `CartStorage` via secure storage | Yes | Done |
 | Empty CTAs / greeting / reduced motion | Cart EmptyState; no 👋; `Motion.reduced` | Yes | Done |
-| Sort | Cuisine chip only; no rating / ETA / fee sort | Yes | Open |
-| Home modules | Flat restaurant list | Yes | Open |
+| Sort | Cuisine chip only; no rating / ETA / fee sort | Yes | Done |
+| Home modules | Flat restaurant list | Yes | Done |
 | Reorder | History exists; no “order again” | Yes | Done |
-| Favorites | No model | Medium | Open |
+| Favorites | Heart on cards + `/me/favorites` + Saved row | Yes | Done |
 | Item modifiers | `OrderItem` is name+price+qty snapshot | Medium | Open |
-| KZ address | `Address.line` only | Medium | Open |
-| Admin create restaurant | `POST /admin/restaurants` unused in UI | Yes | Open |
+| KZ address | `Address.line` plus apt / entrance / floor / intercom | Yes | Done |
+| Admin create restaurant | `POST /admin/restaurants` + FAB | Yes | Done |
+| Floor plan editor | Admin canvas: floors, zones, tables, save/undo | Medium | Done |
 | COD | Place order = done | Yes | Open |
 | Maps / FCM / Kaspi | Blocked until keys | No | Wait |
 
@@ -78,8 +79,10 @@ UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.c
 2. ~~Dish photos + dish search.~~
 3. ~~Persist cart.~~ (COD radio still optional, no PSP.)
 4. ~~Reorder from history.~~
-5. Home modules + sort from [SwiggyUI](https://github.com/vinothvino42/SwiggyUI) (spotlight row, rating/ETA/fee). Filter sheet pattern: Grub.
-6. Structured address; admin “add restaurant” dialog (API exists).
-7. Item options when we are willing to migrate. Medusa workflow steps stay our status machine — keep WebSocket.
-8. Map, FCM, Kaspi/Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
-9. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.
+5. ~~Home modules + sort.~~
+6. ~~Structured address; admin “add restaurant” dialog (API exists).~~
+7. ~~Favorites.~~
+8. ~~Admin floor-plan editor.~~
+9. Item options when we are willing to migrate. Medusa workflow steps stay our status machine — keep WebSocket.
+10. Map, FCM, Kaspi/Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
+11. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.

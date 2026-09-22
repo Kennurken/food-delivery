@@ -129,6 +129,14 @@ def seed_catalog() -> int:
         return 3
 
 
+def ensure_floor_plan_tables() -> None:
+    from app.db.session import engine
+    from app.models.floor_plan import Floor, FloorObject, FloorVersion, FloorZone
+
+    for model in (Floor, FloorZone, FloorObject, FloorVersion):
+        model.__table__.create(bind=engine, checkfirst=True)
+
+
 def ensure_favorites_table() -> None:
     """Prod deploys skip alembic; create the favorites table if missing."""
     from app.db.session import engine

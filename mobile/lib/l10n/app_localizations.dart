@@ -1034,6 +1034,132 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Remove from saved'**
   String get removeFavorite;
+
+  /// No description provided for @floorPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor plan'**
+  String get floorPlan;
+
+  /// No description provided for @noFloorPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'No floor plan yet'**
+  String get noFloorPlan;
+
+  /// No description provided for @noFloorPlanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Place tables, walls and rooms on a scale drawing of the dining room.'**
+  String get noFloorPlanHint;
+
+  /// No description provided for @createFloorPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Create floor plan'**
+  String get createFloorPlan;
+
+  /// No description provided for @startScratch.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from scratch'**
+  String get startScratch;
+
+  /// No description provided for @useTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Use cafe template'**
+  String get useTemplate;
+
+  /// No description provided for @firstFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'1st Floor'**
+  String get firstFloor;
+
+  /// No description provided for @addFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Add floor'**
+  String get addFloor;
+
+  /// No description provided for @renameFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename floor'**
+  String get renameFloor;
+
+  /// No description provided for @duplicateFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate floor'**
+  String get duplicateFloor;
+
+  /// No description provided for @deleteFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete floor'**
+  String get deleteFloor;
+
+  /// No description provided for @previewLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get previewLayout;
+
+  /// No description provided for @editLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editLayout;
+
+  /// No description provided for @layoutSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get layoutSaved;
+
+  /// No description provided for @layoutSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get layoutSaving;
+
+  /// No description provided for @layoutUnsaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get layoutUnsaved;
+
+  /// No description provided for @layoutSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save'**
+  String get layoutSaveFailed;
+
+  /// No description provided for @layoutSaveFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your local changes are still here. Retry or keep editing.'**
+  String get layoutSaveFailedBody;
+
+  /// No description provided for @continueEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue editing'**
+  String get continueEditing;
+
+  /// No description provided for @snapOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Snap on'**
+  String get snapOn;
+
+  /// No description provided for @snapOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Snap off'**
+  String get snapOff;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

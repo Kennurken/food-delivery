@@ -498,4 +498,69 @@ class L10nKk extends L10n {
 
   @override
   String get removeFavorite => 'Таңдаулыдан алу';
+
+  @override
+  String get floorPlan => 'Зал жоспары';
+
+  @override
+  String get noFloorPlan => 'Жоспар жоқ';
+
+  @override
+  String get noFloorPlanHint =>
+      'Үстелдер, қабырғалар және аймақтарды нақты масштабта орналастырыңыз.';
+
+  @override
+  String get createFloorPlan => 'Жоспар құру';
+
+  @override
+  String get startScratch => 'Нөлден';
+
+  @override
+  String get useTemplate => 'Кафе үлгісі';
+
+  @override
+  String get firstFloor => '1-қабат';
+
+  @override
+  String get addFloor => 'Қабат қосу';
+
+  @override
+  String get renameFloor => 'Атын өзгерту';
+
+  @override
+  String get duplicateFloor => 'Қабатты көшіру';
+
+  @override
+  String get deleteFloor => 'Қабатты жою';
+
+  @override
+  String get previewLayout => 'Қарау';
+
+  @override
+  String get editLayout => 'Өңдеу';
+
+  @override
+  String get layoutSaved => 'Сақталды';
+
+  @override
+  String get layoutSaving => 'Сақталуда…';
+
+  @override
+  String get layoutUnsaved => 'Сақталмаған';
+
+  @override
+  String get layoutSaveFailed => 'Сақталмады';
+
+  @override
+  String get layoutSaveFailedBody =>
+      'Жергілікті өзгерістер қалды. Қайталаңыз немесе жалғастырыңыз.';
+
+  @override
+  String get continueEditing => 'Жалғастыру';
+
+  @override
+  String get snapOn => 'Жабысу қосулы';
+
+  @override
+  String get snapOff => 'Жабысу өшірулі';
 }

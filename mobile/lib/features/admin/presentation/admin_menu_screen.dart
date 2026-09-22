@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
@@ -59,7 +60,17 @@ class AdminMenuScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final restaurant = ref.watch(adminRestaurantProvider(restaurantId));
     return Scaffold(
-      appBar: AppBar(title: Text(restaurant.value?.name ?? context.l10n.menu)),
+      appBar: AppBar(
+        title: Text(restaurant.value?.name ?? context.l10n.menu),
+        actions: [
+          TextButton.icon(
+            onPressed: () =>
+                context.push('/admin/restaurants/$restaurantId/floor'),
+            icon: const Icon(Icons.grid_on, size: 18),
+            label: Text(context.l10n.floorPlan),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _edit(context, ref),
         child: const Icon(Icons.add),

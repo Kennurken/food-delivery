@@ -24,8 +24,19 @@ class FoodDeliveryApp extends ConsumerWidget {
       supportedLocales: L10n.supportedLocales,
       onGenerateTitle: (context) => context.l10n.appName,
       debugShowCheckedModeBanner: false,
-      builder: (context, child) =>
-          AppShell(child: LiveEventsListener(child: child!)),
+      builder: (context, child) {
+        final router = ref.read(routerProvider);
+        return ListenableBuilder(
+          listenable: router.routerDelegate,
+          builder: (context, _) {
+            final path = router.routerDelegate.currentConfiguration.uri.path;
+            return AppShell(
+              fullBleed: path.contains('/floor'),
+              child: LiveEventsListener(child: child!),
+            );
+          },
+        );
+      },
     );
   }
 }

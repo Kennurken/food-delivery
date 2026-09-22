@@ -28,6 +28,14 @@ def test_search_matches_dish_name(client):
     assert any(item.get("image_url") for item in menu)
 
 
+def test_sort_restaurants(client):
+    by_eta = [r["name"] for r in client.get("/api/v1/restaurants", params={"sort": "eta"}).json()]
+    assert by_eta.index("Burger Lab") < by_eta.index("Pizza Roma")
+    by_fee = [r["name"] for r in client.get("/api/v1/restaurants", params={"sort": "fee"}).json()]
+    assert by_fee.index("Bao Bar") < by_fee.index("Pizza Roma")
+    assert client.get("/api/v1/restaurants", params={"sort": "nope"}).status_code == 422
+
+
 def test_order_flow(client, auth):
     menu = client.get("/api/v1/restaurants/1/menu").json()
     payload = {
@@ -312,17 +320,6 @@ def test_admin_can_create_restaurant(client, admin):
     assert any(x["id"] == r.json()["id"] for x in client.get("/api/v1/restaurants").json())
 
 
-def test_set_default_address(client, auth):
-    a1 = client.post("/api/v1/me/addresses", json={"label": "Home", "line": "Abay 10"}, headers=auth).json()
-    a2 = client.post("/api/v1/me/addresses", json={"label": "Work", "line": "Dostyk 1"}, headers=auth).json()
-    r = client.patch(f"/api/v1/me/addresses/{a2['id']}", json={"is_default": True}, headers=auth)
-    assert r.status_code == 200 and r.json()["is_default"] is True
-    lst = client.get("/api/v1/me/addresses", headers=auth).json()
-    by_id = {a["id"]: a["is_default"] for a in lst}
-    assert by_id[a1["id"]] is False and by_id[a2["id"]] is True
-
-
-
 def test_address_details_roundtrip(client, auth):
     r = client.post(
         "/api/v1/me/addresses",
@@ -352,6 +349,17 @@ def test_address_details_roundtrip(client, auth):
     assert blank.json()["apt"] is None
 
 
+def test_set_default_address(client, auth):
+    a1 = client.post("/api/v1/me/addresses", json={"label": "Home", "line": "Abay 10"}, headers=auth).json()
+    a2 = client.post("/api/v1/me/addresses", json={"label": "Work", "line": "Dostyk 1"}, headers=auth).json()
+    r = client.patch(f"/api/v1/me/addresses/{a2['id']}", json={"is_default": True}, headers=auth)
+    assert r.status_code == 200 and r.json()["is_default"] is True
+    lst = client.get("/api/v1/me/addresses", headers=auth).json()
+    by_id = {a["id"]: a["is_default"] for a in lst}
+    assert by_id[a1["id"]] is False and by_id[a2["id"]] is True
+
+
+
 def test_favorites_roundtrip(client, auth):
     assert client.get("/api/v1/me/favorites").status_code == 401
     assert client.get("/api/v1/me/favorites", headers=auth).json() == []
@@ -379,3 +387,54 @@ def test_login_rate_limited(client, monkeypatch):
     assert client.post("/api/v1/auth/login/json", json=bad).status_code == 401
     assert client.post("/api/v1/auth/login/json", json=bad).status_code == 429
     limiter.reset()
+
+
+def test_floor_plan_admin_only(client, auth, admin):
+    assert client.get("/api/v1/admin/restaurants/1/floors", headers=auth).status_code == 403
+    empty = client.get("/api/v1/admin/restaurants/1/floors", headers=admin)
+    assert empty.status_code == 200 and empty.json() == []
+    created = client.post(
+        "/api/v1/admin/restaurants/1/floors",
+        json={"name": "1st Floor", "template": "cafe"},
+        headers=admin,
+    )
+    assert created.status_code == 201, created.text
+    floor = created.json()
+    assert floor["name"] == "1st Floor"
+    assert len(floor["objects"]) >= 6
+    fid = floor["id"]
+    loaded = client.get(f"/api/v1/admin/floors/{fid}", headers=admin).json()
+    table = next(o for o in loaded["objects"] if o["kind"].startswith("table"))
+    table["x"] = 333
+    saved = client.put(
+        f"/api/v1/admin/floors/{fid}/layout",
+        json={
+            "updated_at": loaded["updated_at"],
+            "zones": loaded["zones"],
+            "objects": loaded["objects"],
+        },
+        headers=admin,
+    )
+    assert saved.status_code == 200, saved.text
+    again = client.get(f"/api/v1/admin/floors/{fid}", headers=admin).json()
+    moved = next(o for o in again["objects"] if o["id"] == table["id"])
+    assert moved["x"] == 333
+    stale = client.put(
+        f"/api/v1/admin/floors/{fid}/layout",
+        json={"updated_at": loaded["updated_at"], "zones": [], "objects": []},
+        headers=admin,
+    )
+    assert stale.status_code == 409
+    versions = client.get(f"/api/v1/admin/floors/{fid}/versions", headers=admin).json()
+    assert len(versions) >= 1
+    restored = client.post(
+        f"/api/v1/admin/floors/{fid}/versions/{versions[0]['id']}/restore",
+        headers=admin,
+    )
+    assert restored.status_code == 200, restored.text
+    dup = client.post(f"/api/v1/admin/floors/{fid}/duplicate", headers=admin)
+    assert dup.status_code == 201
+    assert dup.json()["name"].endswith("copy")
+    assert len(dup.json()["objects"]) == len(restored.json()["objects"])
+    assert client.delete(f"/api/v1/admin/floors/{fid}", headers=admin).status_code == 204
+    assert client.get(f"/api/v1/admin/floors/{fid}", headers=admin).status_code == 404

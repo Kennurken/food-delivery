@@ -27,6 +27,7 @@ async def lifespan(_: FastAPI):
         from app.db.seed import (
             ensure_address_columns,
             ensure_favorites_table,
+            ensure_floor_plan_tables,
             ensure_menu_images,
             seed_catalog,
         )
@@ -35,6 +36,7 @@ async def lifespan(_: FastAPI):
         ensure_menu_images()
         ensure_address_columns()
         ensure_favorites_table()
+        ensure_floor_plan_tables()
     # Sync endpoints run in a threadpool; hub needs the main loop to push WS frames.
     hub.bind_loop(asyncio.get_running_loop())
     yield

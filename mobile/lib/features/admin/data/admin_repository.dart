@@ -20,6 +20,11 @@ class AdminRepository {
     return Restaurant.fromJson(r.data);
   }
 
+  Future<Restaurant> createRestaurant(Map<String, dynamic> data) async {
+    final r = await _dio.post('/api/v1/admin/restaurants', data: data);
+    return Restaurant.fromJson(r.data);
+  }
+
   Future<Restaurant> updateRestaurant(
     int id,
     Map<String, dynamic> patch,

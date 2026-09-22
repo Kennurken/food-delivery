@@ -169,51 +169,182 @@ class _OrdersTab extends ConsumerWidget {
 class _RestaurantsTab extends ConsumerWidget {
   const _RestaurantsTab();
 
+  Future<void> _create(BuildContext context, WidgetRef ref) async {
+    final data = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (_) => const _RestaurantDialog(),
+    );
+    if (data == null || !context.mounted) return;
+    try {
+      await ref.read(adminRepositoryProvider).createRestaurant(data);
+      Haptics.success();
+      ref.invalidate(adminRestaurantsProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final restaurants = ref.watch(adminRestaurantsProvider);
-    return restaurants.when(
-      loading: () => const ListSkeleton(),
-      error: (e, _) => Center(child: Text(errorMessage(e))),
-      data: (list) => ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: list.length,
-        itemBuilder: (_, i) {
-          final r = list[i];
-          // Row tap opens the menu; only the switch toggles is_open.
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Card(
-              child: ListTile(
-                leading: const Icon(Icons.restaurant_menu),
-                title: Text(r.name),
-                subtitle: Text(
-                  '${r.cuisine} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))} · ${r.isOpen ? context.l10n.open : context.l10n.closed}',
-                ),
-                onTap: () => context.push('/admin/restaurants/${r.id}'),
-                trailing: StretchSwitch(
-                  value: r.isOpen,
-                  onChanged: (v) async {
-                    try {
-                      await ref.read(adminRepositoryProvider).updateRestaurant(
-                        r.id,
-                        {'is_open': v},
-                      );
-                      ref.invalidate(adminRestaurantsProvider);
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(errorMessage(e))),
-                        );
-                      }
-                    }
-                  },
-                ),
-              ),
-            ),
-          ).stagger(i);
-        },
+    return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _create(context, ref),
+        icon: const Icon(Icons.add),
+        label: Text(context.l10n.newRestaurant),
       ),
+      body: restaurants.when(
+        loading: () => const ListSkeleton(),
+        error: (e, _) => Center(child: Text(errorMessage(e))),
+        data: (list) => list.isEmpty
+            ? EmptyState(
+                icon: Icons.storefront_outlined,
+                title: context.l10n.noRestaurants,
+                hint: context.l10n.noRestaurantsHint,
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+                itemCount: list.length,
+                itemBuilder: (_, i) {
+                  final r = list[i];
+                  // Row tap opens the menu; only the switch toggles is_open.
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.restaurant_menu),
+                        title: Text(r.name),
+                        subtitle: Text(
+                          '${r.cuisine} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))} · ${r.isOpen ? context.l10n.open : context.l10n.closed}',
+                        ),
+                        onTap: () => context.push('/admin/restaurants/${r.id}'),
+                        trailing: StretchSwitch(
+                          value: r.isOpen,
+                          onChanged: (v) async {
+                            try {
+                              await ref
+                                  .read(adminRepositoryProvider)
+                                  .updateRestaurant(r.id, {'is_open': v});
+                              ref.invalidate(adminRestaurantsProvider);
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(errorMessage(e))),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ).stagger(i);
+                },
+              ),
+      ),
+    );
+  }
+}
+
+class _RestaurantDialog extends StatefulWidget {
+  const _RestaurantDialog();
+
+  @override
+  State<_RestaurantDialog> createState() => _RestaurantDialogState();
+}
+
+class _RestaurantDialogState extends State<_RestaurantDialog> {
+  final _form = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _cuisine = TextEditingController();
+  final _desc = TextEditingController();
+  final _fee = TextEditingController(text: '500');
+  final _eta = TextEditingController(text: '30');
+
+  @override
+  void dispose() {
+    for (final c in [_name, _cuisine, _desc, _fee, _eta]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    return AlertDialog(
+      title: Text(t.newRestaurant),
+      content: Form(
+        key: _form,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _name,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(labelText: t.name),
+                validator: (v) =>
+                    v != null && v.trim().isNotEmpty ? null : t.required,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _cuisine,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(labelText: t.cuisine),
+                validator: (v) =>
+                    v != null && v.trim().isNotEmpty ? null : t.required,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _desc,
+                decoration: InputDecoration(labelText: t.description),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _fee,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: t.deliveryFeeTenge),
+                validator: (v) => (double.tryParse(v ?? '') ?? -1) >= 0
+                    ? null
+                    : t.mustBePositive,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _eta,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: t.etaMinutes),
+                validator: (v) {
+                  final n = int.tryParse(v ?? '');
+                  if (n == null || n < 1) return t.mustBePositive;
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(t.cancel),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (!_form.currentState!.validate()) return;
+            Navigator.pop(context, {
+              'name': _name.text.trim(),
+              'cuisine': _cuisine.text.trim(),
+              'description': _desc.text.trim(),
+              'delivery_fee': double.parse(_fee.text),
+              'delivery_time_min': int.parse(_eta.text),
+            });
+          },
+          child: Text(t.save),
+        ),
+      ],
     );
   }
 }

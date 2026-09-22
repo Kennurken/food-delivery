@@ -157,6 +157,12 @@
   "confirmPassword": "Confirm new password",
   "passwordChanged": "Password updated",
   "passwordsDoNotMatch": "Passwords don't match",
+  "newRestaurant": "New restaurant",
+  "cuisine": "Cuisine",
+  "deliveryFeeTenge": "Delivery fee, ₸",
+  "etaMinutes": "ETA, min",
+  "noRestaurants": "No restaurants",
+  "noRestaurantsHint": "Add one to start taking orders",
   "favorites": "Saved",
   "addFavorite": "Save restaurant",
   "removeFavorite": "Remove from saved"

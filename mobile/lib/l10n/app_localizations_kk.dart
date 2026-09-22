@@ -473,6 +473,24 @@ class L10nKk extends L10n {
   String get passwordsDoNotMatch => 'Құпиясөздер сәйкес емес';
 
   @override
+  String get newRestaurant => 'Жаңа мейрамхана';
+
+  @override
+  String get cuisine => 'Ас';
+
+  @override
+  String get deliveryFeeTenge => 'Жеткізу, ₸';
+
+  @override
+  String get etaMinutes => 'Уақыт, мин';
+
+  @override
+  String get noRestaurants => 'Мейрамхана жоқ';
+
+  @override
+  String get noRestaurantsHint => 'Тапсырыс қабылдау үшін біреуін қосыңыз';
+
+  @override
   String get favorites => 'Таңдаулы';
 
   @override

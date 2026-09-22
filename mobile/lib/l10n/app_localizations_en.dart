@@ -473,6 +473,24 @@ class L10nEn extends L10n {
   String get passwordsDoNotMatch => 'Passwords don\'t match';
 
   @override
+  String get newRestaurant => 'New restaurant';
+
+  @override
+  String get cuisine => 'Cuisine';
+
+  @override
+  String get deliveryFeeTenge => 'Delivery fee, ₸';
+
+  @override
+  String get etaMinutes => 'ETA, min';
+
+  @override
+  String get noRestaurants => 'No restaurants';
+
+  @override
+  String get noRestaurantsHint => 'Add one to start taking orders';
+
+  @override
   String get favorites => 'Saved';
 
   @override

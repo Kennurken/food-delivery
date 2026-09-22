@@ -147,6 +147,12 @@
   "confirmPassword": "Жаңа құпиясөзді қайталаңыз",
   "passwordChanged": "Құпиясөз жаңартылды",
   "passwordsDoNotMatch": "Құпиясөздер сәйкес емес",
+  "newRestaurant": "Жаңа мейрамхана",
+  "cuisine": "Ас",
+  "deliveryFeeTenge": "Жеткізу, ₸",
+  "etaMinutes": "Уақыт, мин",
+  "noRestaurants": "Мейрамхана жоқ",
+  "noRestaurantsHint": "Тапсырыс қабылдау үшін біреуін қосыңыз",
   "favorites": "Таңдаулы",
   "addFavorite": "Мейрамхананы сақтау",
   "removeFavorite": "Таңдаулыдан алу"

@@ -147,6 +147,12 @@
   "confirmPassword": "Повторите новый пароль",
   "passwordChanged": "Пароль обновлён",
   "passwordsDoNotMatch": "Пароли не совпадают",
+  "newRestaurant": "Новый ресторан",
+  "cuisine": "Кухня",
+  "deliveryFeeTenge": "Доставка, ₸",
+  "etaMinutes": "Время, мин",
+  "noRestaurants": "Нет ресторанов",
+  "noRestaurantsHint": "Добавьте первый, чтобы принимать заказы",
   "favorites": "Избранное",
   "addFavorite": "Сохранить ресторан",
   "removeFavorite": "Убрать из избранного"

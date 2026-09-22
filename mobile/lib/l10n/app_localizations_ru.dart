@@ -473,6 +473,24 @@ class L10nRu extends L10n {
   String get passwordsDoNotMatch => 'Пароли не совпадают';
 
   @override
+  String get newRestaurant => 'Новый ресторан';
+
+  @override
+  String get cuisine => 'Кухня';
+
+  @override
+  String get deliveryFeeTenge => 'Доставка, ₸';
+
+  @override
+  String get etaMinutes => 'Время, мин';
+
+  @override
+  String get noRestaurants => 'Нет ресторанов';
+
+  @override
+  String get noRestaurantsHint => 'Добавьте первый, чтобы принимать заказы';
+
+  @override
   String get favorites => 'Избранное';
 
   @override

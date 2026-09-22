@@ -981,6 +981,42 @@ abstract class L10n {
   /// **'Passwords don\'t match'**
   String get passwordsDoNotMatch;
 
+  /// No description provided for @newRestaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'New restaurant'**
+  String get newRestaurant;
+
+  /// No description provided for @cuisine.
+  ///
+  /// In en, this message translates to:
+  /// **'Cuisine'**
+  String get cuisine;
+
+  /// No description provided for @deliveryFeeTenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery fee, ₸'**
+  String get deliveryFeeTenge;
+
+  /// No description provided for @etaMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'ETA, min'**
+  String get etaMinutes;
+
+  /// No description provided for @noRestaurants.
+  ///
+  /// In en, this message translates to:
+  /// **'No restaurants'**
+  String get noRestaurants;
+
+  /// No description provided for @noRestaurantsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add one to start taking orders'**
+  String get noRestaurantsHint;
+
   /// No description provided for @favorites.
   ///
   /// In en, this message translates to:

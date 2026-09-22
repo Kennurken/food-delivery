@@ -26,6 +26,10 @@
   "navHome": "Главная",
   "orders": "Заказы",
   "profile": "Профиль",
+  "popular": "Популярное",
+  "sortRating": "Рейтинг",
+  "sortEta": "Быстрее",
+  "sortFee": "Доставка",
   "minutes": "{n} мин",
   "deliveryFee": "доставка {fee}",
   "unavailable": "Нет в наличии",
@@ -142,5 +146,8 @@
   "newPassword": "Новый пароль",
   "confirmPassword": "Повторите новый пароль",
   "passwordChanged": "Пароль обновлён",
-  "passwordsDoNotMatch": "Пароли не совпадают"
+  "passwordsDoNotMatch": "Пароли не совпадают",
+  "favorites": "Избранное",
+  "addFavorite": "Сохранить ресторан",
+  "removeFavorite": "Убрать из избранного"
 }

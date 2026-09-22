@@ -90,6 +90,18 @@ class L10nRu extends L10n {
   String get profile => 'Профиль';
 
   @override
+  String get popular => 'Популярное';
+
+  @override
+  String get sortRating => 'Рейтинг';
+
+  @override
+  String get sortEta => 'Быстрее';
+
+  @override
+  String get sortFee => 'Доставка';
+
+  @override
   String minutes(int n) {
     return '$n мин';
   }
@@ -459,4 +471,13 @@ class L10nRu extends L10n {
 
   @override
   String get passwordsDoNotMatch => 'Пароли не совпадают';
+
+  @override
+  String get favorites => 'Избранное';
+
+  @override
+  String get addFavorite => 'Сохранить ресторан';
+
+  @override
+  String get removeFavorite => 'Убрать из избранного';
 }

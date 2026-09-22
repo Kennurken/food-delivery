@@ -17,8 +17,11 @@ import '../../../core/widgets/sliding_number.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../cart/presentation/cart_controller.dart';
+import '../data/favorite_repository.dart';
 import '../data/restaurant_repository.dart';
 import '../domain/restaurant.dart';
+import '../domain/sort.dart';
+import 'favorite_button.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -69,7 +72,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final restaurants = ref.watch(restaurantsProvider);
+    final restaurants = ref.watch(sortedRestaurantsProvider);
+    final query = ref.watch(restaurantSearchProvider);
     final user = ref.watch(authControllerProvider).value;
     final t = context.l10n;
 
@@ -140,6 +144,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: Column(
         children: [
           const _CuisineChips(),
+          const _SortChips(),
           Expanded(
             child: restaurants.when(
               loading: () => const _Skeleton(),
@@ -147,18 +152,52 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 message: errorMessage(e),
                 onRetry: () => ref.invalidate(restaurantsProvider),
               ),
-              data: (list) => list.isEmpty
-                  ? EmptyState(icon: Icons.search_off, title: t.nothingFound)
-                  : RefreshIndicator(
-                      onRefresh: () => ref.refresh(restaurantsProvider.future),
-                      child: ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
-                        itemCount: list.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 14),
-                        itemBuilder: (_, i) =>
-                            _RestaurantCard(list[i]).stagger(i),
+              data: (list) {
+                if (list.isEmpty) {
+                  return EmptyState(
+                    icon: Icons.search_off,
+                    title: t.nothingFound,
+                  );
+                }
+                final saved = query.isEmpty
+                    ? (ref.watch(favoritesProvider).value ??
+                          const <Restaurant>[])
+                    : const <Restaurant>[];
+                final savedIds = {for (final r in saved) r.id};
+                final popular = query.isEmpty
+                    ? spotlightOf(
+                        list.where((r) => !savedIds.contains(r.id)).toList(),
+                      )
+                    : const <Restaurant>[];
+                return RefreshIndicator(
+                  onRefresh: () {
+                    ref.invalidate(favoritesProvider);
+                    return Future.wait([
+                      ref.refresh(restaurantsProvider.future),
+                      ref.refresh(favoritesProvider.future),
+                    ]);
+                  },
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(0, 4, 0, 96),
+                    children: [
+                      if (saved.isNotEmpty)
+                        _Spotlight(saved, title: t.favorites),
+                      if (popular.length >= 2) _Spotlight(popular),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          children: [
+                            for (final (i, r) in list.indexed) ...[
+                              if (i > 0) const SizedBox(height: 14),
+                              _RestaurantCard(r).stagger(i),
+                            ],
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -256,6 +295,156 @@ class _CuisineChips extends ConsumerWidget {
   }
 }
 
+class _SortChips extends ConsumerWidget {
+  const _SortChips();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selected = ref.watch(restaurantSortProvider);
+    final t = context.l10n;
+    final options = <(RestaurantSort, String)>[
+      (RestaurantSort.rating, t.sortRating),
+      (RestaurantSort.eta, t.sortEta),
+      (RestaurantSort.fee, t.sortFee),
+    ];
+    return SizedBox(
+      height: 48,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+        itemCount: options.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final (sort, label) = options[i];
+          return FilterChip(
+            label: Text(label),
+            selected: selected == sort,
+            showCheckmark: false,
+            onSelected: (_) =>
+                ref.read(restaurantSortProvider.notifier).set(sort),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _Spotlight extends StatelessWidget {
+  const _Spotlight(this.restaurants, {this.title});
+
+  final List<Restaurant> restaurants;
+  final String? title;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+            child: Text(
+              title ?? t.popular,
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w800),
+            ),
+          ),
+          SizedBox(
+            height: 168,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: restaurants.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (_, i) =>
+                  _SpotlightCard(restaurants[i]).stagger(i, slide: 0),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SpotlightCard extends StatelessWidget {
+  const _SpotlightCard(this.r);
+
+  final Restaurant r;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return Stack(
+      children: [
+        Pressable(
+          onTap: () => context.push('/restaurants/${r.id}'),
+          child: SizedBox(
+            width: 168,
+            child: Card(
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: r.imageUrl == null
+                        ? ColoredBox(
+                            color: scheme.surfaceContainerHighest,
+                            child: const Icon(Icons.restaurant),
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: r.imageUrl!,
+                            fit: BoxFit.cover,
+                            fadeInDuration: Motion.normal,
+                            placeholder: (_, _) => ColoredBox(
+                              color: scheme.surfaceContainerHighest,
+                            ),
+                            errorWidget: (_, _, _) => ColoredBox(
+                              color: scheme.surfaceContainerHighest,
+                            ),
+                          ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          r.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${r.rating.toStringAsFixed(1)} · ${context.l10n.minutes(r.deliveryTimeMin)}',
+                          style: text.labelSmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: FavoriteButton(restaurant: r, onPhoto: true),
+        ),
+      ],
+    );
+  }
+}
+
 class _RestaurantCard extends StatelessWidget {
   const _RestaurantCard(this.r);
 
@@ -265,101 +454,113 @@ class _RestaurantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    return Pressable(
-      onTap: () => context.push('/restaurants/${r.id}'),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
+    return Stack(
+      children: [
+        Pressable(
+          onTap: () => context.push('/restaurants/${r.id}'),
+          child: Card(
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Hero(
-                  tag: 'restaurant-${r.id}',
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: r.imageUrl == null
-                        ? Container(
-                            color: scheme.surfaceContainerHighest,
-                            child: const Icon(Icons.restaurant, size: 48),
-                          )
-                        : CachedNetworkImage(
-                            imageUrl: r.imageUrl!,
-                            fit: BoxFit.cover,
-                            fadeInDuration: Motion.normal,
-                            placeholder: (_, _) => Shimmer(
-                              child: Container(
+                Stack(
+                  children: [
+                    Hero(
+                      tag: 'restaurant-${r.id}',
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: r.imageUrl == null
+                            ? Container(
                                 color: scheme.surfaceContainerHighest,
+                                child: const Icon(Icons.restaurant, size: 48),
+                              )
+                            : CachedNetworkImage(
+                                imageUrl: r.imageUrl!,
+                                fit: BoxFit.cover,
+                                fadeInDuration: Motion.normal,
+                                placeholder: (_, _) => Shimmer(
+                                  child: Container(
+                                    color: scheme.surfaceContainerHighest,
+                                  ),
+                                ),
+                                errorWidget: (_, _, _) => Container(
+                                  color: scheme.surfaceContainerHighest,
+                                ),
                               ),
-                            ),
-                            errorWidget: (_, _, _) => Container(
-                              color: scheme.surfaceContainerHighest,
-                            ),
-                          ),
-                  ),
-                ),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: _Pill(
-                    icon: Icons.schedule,
-                    label: context.l10n.minutes(r.deliveryTimeMin),
-                  ),
-                ),
-                if (!r.isOpen)
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: _Pill(
-                      icon: Icons.storefront,
-                      label: context.l10n.closed,
+                      ),
                     ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          r.name,
-                          style: text.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                    Positioned(
+                      bottom: 12,
+                      right: 12,
+                      child: _Pill(
+                        icon: Icons.schedule,
+                        label: context.l10n.minutes(r.deliveryTimeMin),
+                      ),
+                    ),
+                    if (!r.isOpen)
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: _Pill(
+                          icon: Icons.storefront,
+                          label: context.l10n.closed,
                         ),
                       ),
-                      const Icon(
-                        Icons.star_rounded,
-                        size: 18,
-                        color: Color(0xFFF5A623),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              r.name,
+                              style: text.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.star_rounded,
+                            size: 18,
+                            color: Color(0xFFF5A623),
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            r.rating.toStringAsFixed(1),
+                            style: text.labelLarge,
+                          ),
+                          Text(
+                            ' (${r.ratingCount})',
+                            style: text.labelSmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 2),
-                      Text(r.rating.toStringAsFixed(1), style: text.labelLarge),
+                      const SizedBox(height: 4),
                       Text(
-                        ' (${r.ratingCount})',
-                        style: text.labelSmall?.copyWith(
+                        '${r.cuisine} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))}',
+                        style: text.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${r.cuisine} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))}',
-                    style: text.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+        Positioned(
+          top: 12,
+          right: 12,
+          child: FavoriteButton(restaurant: r, onPhoto: true),
+        ),
+      ],
     );
   }
 }

@@ -90,6 +90,18 @@ class L10nEn extends L10n {
   String get profile => 'Profile';
 
   @override
+  String get popular => 'Popular';
+
+  @override
+  String get sortRating => 'Rating';
+
+  @override
+  String get sortEta => 'Fastest';
+
+  @override
+  String get sortFee => 'Fee';
+
+  @override
   String minutes(int n) {
     return '$n min';
   }
@@ -459,4 +471,13 @@ class L10nEn extends L10n {
 
   @override
   String get passwordsDoNotMatch => 'Passwords don\'t match';
+
+  @override
+  String get favorites => 'Saved';
+
+  @override
+  String get addFavorite => 'Save restaurant';
+
+  @override
+  String get removeFavorite => 'Remove from saved';
 }

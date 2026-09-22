@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../domain/restaurant.dart';
+import '../domain/sort.dart';
 
 class RestaurantRepository {
   RestaurantRepository(this._dio);
@@ -58,6 +59,18 @@ final cuisineFilterProvider = NotifierProvider<CuisineFilter, String?>(
   CuisineFilter.new,
 );
 
+class RestaurantSortCtrl extends Notifier<RestaurantSort> {
+  @override
+  RestaurantSort build() => RestaurantSort.rating;
+
+  void set(RestaurantSort value) => state = value;
+}
+
+final restaurantSortProvider =
+    NotifierProvider<RestaurantSortCtrl, RestaurantSort>(
+      RestaurantSortCtrl.new,
+    );
+
 final cuisinesProvider = FutureProvider<List<String>>(
   (ref) => ref.watch(restaurantRepositoryProvider).cuisines(),
 );
@@ -68,6 +81,13 @@ final restaurantsProvider = FutureProvider<List<Restaurant>>((ref) {
   return ref
       .watch(restaurantRepositoryProvider)
       .list(query: q, cuisine: cuisine);
+});
+
+final sortedRestaurantsProvider = Provider<AsyncValue<List<Restaurant>>>((ref) {
+  final sort = ref.watch(restaurantSortProvider);
+  return ref
+      .watch(restaurantsProvider)
+      .whenData((list) => sortRestaurants(list, sort));
 });
 
 final restaurantProvider = FutureProvider.family<Restaurant, int>(

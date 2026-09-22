@@ -255,6 +255,30 @@ abstract class L10n {
   /// **'Profile'**
   String get profile;
 
+  /// No description provided for @popular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get popular;
+
+  /// No description provided for @sortRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get sortRating;
+
+  /// No description provided for @sortEta.
+  ///
+  /// In en, this message translates to:
+  /// **'Fastest'**
+  String get sortEta;
+
+  /// No description provided for @sortFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee'**
+  String get sortFee;
+
   /// No description provided for @minutes.
   ///
   /// In en, this message translates to:
@@ -956,6 +980,24 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Passwords don\'t match'**
   String get passwordsDoNotMatch;
+
+  /// No description provided for @favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get favorites;
+
+  /// No description provided for @addFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Save restaurant'**
+  String get addFavorite;
+
+  /// No description provided for @removeFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from saved'**
+  String get removeFavorite;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

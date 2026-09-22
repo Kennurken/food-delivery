@@ -17,6 +17,7 @@ import '../../../core/widgets/stagger.dart';
 import '../../cart/presentation/cart_controller.dart';
 import '../data/restaurant_repository.dart';
 import '../domain/menu_item.dart';
+import 'favorite_button.dart';
 
 class RestaurantScreen extends ConsumerWidget {
   const RestaurantScreen({super.key, required this.id});
@@ -54,6 +55,7 @@ class RestaurantScreen extends ConsumerWidget {
                   color: Colors.white,
                   shadows: [Shadow(blurRadius: 12, color: Colors.black87)],
                 ),
+                actions: [FavoriteButton(restaurant: r)],
                 flexibleSpace: FlexibleSpaceBar(
                   stretchModes: const [
                     StretchMode.zoomBackground,
@@ -62,7 +64,7 @@ class RestaurantScreen extends ConsumerWidget {
                   titlePadding: const EdgeInsetsDirectional.only(
                     start: 56,
                     bottom: 14,
-                    end: 16,
+                    end: 56,
                   ),
                   title: Text(
                     r.name,

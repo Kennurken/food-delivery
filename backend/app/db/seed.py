@@ -129,6 +129,14 @@ def seed_catalog() -> int:
         return 3
 
 
+def ensure_favorites_table() -> None:
+    """Prod deploys skip alembic; create the favorites table if missing."""
+    from app.db.session import engine
+    from app.models.favorite import Favorite
+
+    Favorite.__table__.create(bind=engine, checkfirst=True)
+
+
 def ensure_address_columns() -> None:
     """Prod deploys skip alembic; add KZ address fields if the table predates them."""
     from sqlalchemy import inspect, text

@@ -90,6 +90,18 @@ class L10nKk extends L10n {
   String get profile => 'Профиль';
 
   @override
+  String get popular => 'Танымал';
+
+  @override
+  String get sortRating => 'Рейтинг';
+
+  @override
+  String get sortEta => 'Тезірек';
+
+  @override
+  String get sortFee => 'Жеткізу';
+
+  @override
   String minutes(int n) {
     return '$n мин';
   }
@@ -459,4 +471,13 @@ class L10nKk extends L10n {
 
   @override
   String get passwordsDoNotMatch => 'Құпиясөздер сәйкес емес';
+
+  @override
+  String get favorites => 'Таңдаулы';
+
+  @override
+  String get addFavorite => 'Мейрамхананы сақтау';
+
+  @override
+  String get removeFavorite => 'Таңдаулыдан алу';
 }

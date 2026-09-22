@@ -26,6 +26,10 @@
   "navHome": "Басты",
   "orders": "Тапсырыстар",
   "profile": "Профиль",
+  "popular": "Танымал",
+  "sortRating": "Рейтинг",
+  "sortEta": "Тезірек",
+  "sortFee": "Жеткізу",
   "minutes": "{n} мин",
   "deliveryFee": "жеткізу {fee}",
   "unavailable": "Жоқ",
@@ -142,5 +146,8 @@
   "newPassword": "Жаңа құпиясөз",
   "confirmPassword": "Жаңа құпиясөзді қайталаңыз",
   "passwordChanged": "Құпиясөз жаңартылды",
-  "passwordsDoNotMatch": "Құпиясөздер сәйкес емес"
+  "passwordsDoNotMatch": "Құпиясөздер сәйкес емес",
+  "favorites": "Таңдаулы",
+  "addFavorite": "Мейрамхананы сақтау",
+  "removeFavorite": "Таңдаулыдан алу"
 }

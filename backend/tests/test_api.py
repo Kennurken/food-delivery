@@ -352,6 +352,22 @@ def test_address_details_roundtrip(client, auth):
     assert blank.json()["apt"] is None
 
 
+def test_favorites_roundtrip(client, auth):
+    assert client.get("/api/v1/me/favorites").status_code == 401
+    assert client.get("/api/v1/me/favorites", headers=auth).json() == []
+    assert client.put("/api/v1/me/favorites/1", headers=auth).status_code == 204
+    assert client.put("/api/v1/me/favorites/1", headers=auth).status_code == 204
+    lst = client.get("/api/v1/me/favorites", headers=auth).json()
+    assert [r["id"] for r in lst] == [1]
+    assert client.put("/api/v1/me/favorites/2", headers=auth).status_code == 204
+    assert {r["id"] for r in client.get("/api/v1/me/favorites", headers=auth).json()} == {1, 2}
+    assert client.delete("/api/v1/me/favorites/2", headers=auth).status_code == 204
+    assert [r["id"] for r in client.get("/api/v1/me/favorites", headers=auth).json()] == [1]
+    assert client.delete("/api/v1/me/favorites/1", headers=auth).status_code == 204
+    assert client.get("/api/v1/me/favorites", headers=auth).json() == []
+    assert client.put("/api/v1/me/favorites/999", headers=auth).status_code == 404
+
+
 def test_login_rate_limited(client, monkeypatch):
     from app.core.config import settings
     from app.core.ratelimit import limiter

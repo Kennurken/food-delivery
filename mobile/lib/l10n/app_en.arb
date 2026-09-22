@@ -27,6 +27,10 @@
   "navHome": "Home",
   "orders": "Orders",
   "profile": "Profile",
+  "popular": "Popular",
+  "sortRating": "Rating",
+  "sortEta": "Fastest",
+  "sortFee": "Fee",
   "minutes": "{n} min",
   "@minutes": {"placeholders": {"n": {"type": "int"}}},
   "deliveryFee": "delivery {fee}",
@@ -152,5 +156,8 @@
   "newPassword": "New password",
   "confirmPassword": "Confirm new password",
   "passwordChanged": "Password updated",
-  "passwordsDoNotMatch": "Passwords don't match"
+  "passwordsDoNotMatch": "Passwords don't match",
+  "favorites": "Saved",
+  "addFavorite": "Save restaurant",
+  "removeFavorite": "Remove from saved"
 }

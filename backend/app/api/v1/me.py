@@ -1,11 +1,14 @@
 from fastapi import APIRouter, HTTPException, Request, status
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import DB, CurrentUser
 from app.core.config import settings
 from app.core.ratelimit import limiter
 from app.core.security import hash_password, verify_password
-from app.models import Address, User
+from app.models import Address, Favorite, Restaurant, User
 from app.schemas.address import AddressCreate, AddressOut, AddressUpdate
+from app.schemas.restaurant import RestaurantOut
 from app.schemas.user import PasswordChange, UserOut, UserUpdate
 
 router = APIRouter(prefix="/me", tags=["me"])
@@ -86,4 +89,37 @@ def delete_address(address_id: int, db: DB, user: CurrentUser) -> None:
     db.flush()
     if was_default and user.addresses:
         user.addresses[0].is_default = True
+    db.commit()
+
+
+@router.get("/favorites", response_model=list[RestaurantOut])
+def list_favorites(db: DB, user: CurrentUser) -> list[Restaurant]:
+    stmt = (
+        select(Restaurant)
+        .join(Favorite, Favorite.restaurant_id == Restaurant.id)
+        .where(Favorite.user_id == user.id)
+        .order_by(Favorite.created_at.desc())
+    )
+    return list(db.scalars(stmt))
+
+
+@router.put("/favorites/{restaurant_id}", status_code=status.HTTP_204_NO_CONTENT)
+def add_favorite(restaurant_id: int, db: DB, user: CurrentUser) -> None:
+    if not db.get(Restaurant, restaurant_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
+    if db.get(Favorite, (user.id, restaurant_id)):
+        return
+    db.add(Favorite(user_id=user.id, restaurant_id=restaurant_id))
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+
+
+@router.delete("/favorites/{restaurant_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_favorite(restaurant_id: int, db: DB, user: CurrentUser) -> None:
+    fav = db.get(Favorite, (user.id, restaurant_id))
+    if not fav:
+        return
+    db.delete(fav)
     db.commit()

@@ -8,11 +8,20 @@ from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
 router = APIRouter(prefix="/restaurants", tags=["restaurants"])
 
 
+def _order(sort: str):
+    return {
+        "rating": Restaurant.rating.desc(),
+        "eta": Restaurant.delivery_time_min.asc(),
+        "fee": Restaurant.delivery_fee.asc(),
+    }[sort]
+
+
 @router.get("", response_model=list[RestaurantOut])
 def list_restaurants(
     db: DB,
     cuisine: str | None = None,
     q: str | None = Query(default=None, min_length=1),
+    sort: str = Query(default="rating", pattern="^(rating|eta|fee)$"),
 ) -> list[Restaurant]:
     stmt = select(Restaurant).where(Restaurant.is_open.is_(True))
     if cuisine:
@@ -26,7 +35,7 @@ def list_restaurants(
                 exists().where(MenuItem.restaurant_id == Restaurant.id, MenuItem.name.ilike(like)),
             )
         )
-    return list(db.scalars(stmt.order_by(Restaurant.rating.desc())))
+    return list(db.scalars(stmt.order_by(_order(sort), Restaurant.id)))
 
 
 @router.get("/cuisines", response_model=list[str])

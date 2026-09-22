@@ -35,20 +35,23 @@ class _PressableState extends State<Pressable> {
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTapCancel: () => setState(() => _pressed = false),
-        onTap: widget.onTap,
-        child: AnimatedScale(
-          scale: _target,
-          duration: Motion.of(context, Motion.fast),
-          curve: _pressed ? Curves.easeOut : Motion.pop,
-          child: widget.child,
+    return Semantics(
+      button: widget.onTap != null,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => setState(() => _pressed = true),
+          onTapUp: (_) => setState(() => _pressed = false),
+          onTapCancel: () => setState(() => _pressed = false),
+          onTap: widget.onTap,
+          child: AnimatedScale(
+            scale: _target,
+            duration: Motion.of(context, Motion.fast),
+            curve: _pressed ? Curves.easeOut : Motion.pop,
+            child: widget.child,
+          ),
         ),
       ),
     );

@@ -25,9 +25,9 @@ The public API stores data in Neon Postgres. Register a customer account there. 
 | Browse by cuisine, search, save restaurants, sort by distance | Pick up confirmed orders, live map | Confirm / advance / cancel any order |
 | Cart with sizes/extras, schedule, promo, cash checkout | Advance step by step to *delivered* | Add restaurants, toggle open/closed |
 | Live order tracking, rate after delivery, order chat | Live "ready for pickup" banners, order chat | Menu editor, floor plan, table QR, promo codes |
-| Scan a table QR, or pick up without a courier | | Plans, staff, kitchen board, table QR |
+| Scan a table QR, pick up, or book a table | | Plans, staff, kitchen board, reservations |
 
-Every status change is pushed over WebSocket to whoever cares — the customer, the assigned courier, all staff — and surfaces as an in-app banner. If the app is paused, the same event fires a local notification. Remote FCM is a no-op until `FCM_SERVER_KEY` is set.
+Every status change is pushed over WebSocket to whoever cares — the customer, the assigned courier, all staff — and surfaces as an in-app banner. If the app is paused, the same event fires a local notification. Remote FCM is a no-op until HTTP v1 credentials exist. A legacy `FCM_SERVER_KEY` will not work.
 
 <details>
 <summary><b>More screens</b> (light + dark)</summary>
@@ -45,7 +45,7 @@ food-delivery/
 │   │   ├── api/v1/          # auth, me, restaurants, orders, admin, ws
 │   │   ├── core/            # config, security, events, geo, billing, push
 │   │   ├── db/              # session, seed
-│   │   ├── models/          # User, Address, Restaurant, MenuItem, Order, OrderItem, DeviceToken, Promo, OrderMessage
+│   │   ├── models/          # User, Address, Restaurant, MenuItem, Order, OrderItem, DeviceToken, Promo, OrderMessage, Reservation
 │   │   ├── schemas/         # Pydantic I/O
 │   │   ├── services/        # order_service (pricing, status machine, rating)
 │   │   └── main.py
@@ -54,7 +54,7 @@ food-delivery/
 └── mobile/                  # Flutter 3.47, Riverpod 3, go_router, dio, flutter_animate
     └── lib/
         ├── core/            # api client + WS stream, router, theme + motion tokens, widgets
-        └── features/        # auth, restaurants, cart, orders, courier, admin, profile, notifications
+        └── features/        # auth, restaurants, cart, orders, reservations, courier, admin, profile, notifications
 ```
 
 ## Run
@@ -84,6 +84,11 @@ Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim h
 | GET | /api/v1/restaurants?q=&cuisine= | – |
 | GET | /api/v1/restaurants/{id} | – |
 | GET | /api/v1/restaurants/{id}/promo?code=&subtotal= | – |
+| GET | /api/v1/restaurants/{id}/tables | – (plan must include `reservations`) |
+| POST/GET | /api/v1/reservations | user |
+| POST | /api/v1/reservations/{id}/cancel | customer |
+| GET/POST | /api/v1/admin/restaurants/{id}/reservations | admin / kitchen |
+| PATCH | /api/v1/admin/reservations/{id} | admin / kitchen |
 | POST | /api/v1/orders | user |
 | GET | /api/v1/orders | user; kitchen: `?restaurant_id=` |
 | GET | /api/v1/orders/{id} | user / kitchen |
@@ -113,6 +118,9 @@ Android emulator hits `10.0.2.2:8000` in debug if you skip the define; iOS sim h
 | GET | /api/v1/admin/floors/{id}/objects/{oid}/qr | admin / member |
 | GET | /api/v1/qr/{token} | – |
 | GET | /api/v1/billing/plans | – |
+| GET | /api/v1/billing/config | – |
+| POST | /api/v1/billing/stripe/webhook | Stripe |
+| POST | /api/v1/orders/{id}/pay/sync | user |
 | GET | /api/v1/platform/overview | admin |
 | GET | /api/v1/admin/restaurants/{id}/workspace | admin / member |
 | GET/POST/DELETE | /api/v1/admin/restaurants/{id}/staff[/{user_id}] | admin / member |
@@ -129,7 +137,7 @@ Live updates: `WS /api/v1/ws?token=<jwt>` streams `{"type":"order.updated","caus
 
 Map: Flutter draws Carto/OSM tiles. Search, reverse geocode, and driving routes go through the API (Photon + Nominatim + OSRM) so one User-Agent hits OSM. Default camera is Almaty. Address picker uses a center pin (2GIS-style). Courier GPS is real; we do not fake motion.
 
-Checkout: `pay_method=cash` creates an unpaid order (pay the courier / counter). `pay_method=online` is 409 until a card provider is wired — we do not fake a charge. Menu lines can carry `option_ids`; the ticket stores a modifier snapshot and the unit price includes deltas. Empty `option_ids` apply each group's defaults. `scheduled_for` is 30 minutes–48 hours ahead (table QR is now-only). Couriers do not see a scheduled drop-off until 40 minutes before the slot. One restaurant promo code per order; demo venues have `BAO10`, `PIZZA500`, `SMASH500`. Each order has a chat thread (`GET/POST /orders/{id}/messages`) for the customer, kitchen, and assigned courier. It closes when the ticket is delivered or cancelled.
+Checkout: `pay_method=cash` creates an unpaid order (pay the courier / counter). `pay_method=online` opens Stripe Checkout when `STRIPE_SECRET_KEY` is set; the ticket stays `pending` until Stripe reports paid. Without a key it is 409 — we do not fake a charge. Kaspi is not wired. Menu lines can carry `option_ids`; the ticket stores a modifier snapshot and the unit price includes deltas. Empty `option_ids` apply each group's defaults. `scheduled_for` is 30 minutes–48 hours ahead (table QR is now-only). Couriers do not see a scheduled drop-off until 40 minutes before the slot. One restaurant promo code per order; demo venues have `BAO10`, `PIZZA500`, `SMASH500`. Each order has a chat thread (`GET/POST /orders/{id}/messages`) for the customer, kitchen, and assigned courier. It closes when the ticket is delivered or cancelled. Pro restaurants expose table booking (`POST /reservations`) against floor-plan tables; overlap is 409.
 
 Login and refresh are rate-limited. Access tokens last 60 minutes; a 30-day refresh token issues a new access token. The app refuses to start in `ENV=prod` with a short/default `SECRET_KEY`, `CORS_ORIGINS=*` (unless `CORS_ORIGIN_REGEX` is set), or a sqlite `DATABASE_URL` (unless `ALLOW_EPHEMERAL_DB=1` for a throwaway demo). `/docs` is off in prod. `python -m app.db.seed` in prod (or `--catalog-only`) inserts restaurants only and mints random staff passwords — it will not create `admin123` / `user123`.
 
@@ -205,5 +213,7 @@ cd mobile && flutter test
 - [x] Scheduled delivery / pickup
 - [x] Restaurant promo codes
 - [x] Order chat (customer / kitchen / assigned courier)
-- [ ] Push via FCM (`FCM_SERVER_KEY`)
-- [ ] Card payments (Kaspi / Stripe)
+- [x] Table reservations (floor objects, overlap, kitchen sheet)
+- [x] Stripe Checkout (secret stays in env, order is pending until Stripe says paid)
+- [ ] Push via FCM HTTP v1 (web config is not enough; need a service account JSON)
+- [ ] Kaspi Pay

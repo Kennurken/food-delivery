@@ -143,6 +143,92 @@ def ensure_floor_plan_tables() -> None:
         model.__table__.create(bind=engine, checkfirst=True)
 
 
+# Demo dining rooms. Tables are FloorObjects — there is no separate Table entity.
+_DEMO_FLOORS: dict[str, list[tuple[str, str, float, float, int]]] = {
+    # restaurant name -> (table name, kind, x, y, seats)
+    "Bao Bar": [
+        ("T1", "table_round", 200, 200, 2),
+        ("T2", "table_round", 520, 200, 2),
+        ("T3", "table_square", 840, 200, 4),
+        ("T4", "table_square", 200, 560, 4),
+        ("T5", "table_rect", 560, 560, 6),
+        ("T6", "table_large", 960, 560, 8),
+    ],
+    "Pizza Roma": [
+        ("1", "table_square", 220, 220, 4),
+        ("2", "table_square", 560, 220, 4),
+        ("3", "table_rect", 900, 220, 6),
+        ("4", "table_round", 220, 600, 2),
+        ("5", "table_large", 620, 600, 10),
+    ],
+    "Burger Lab": [
+        ("A", "table_round", 240, 240, 2),
+        ("B", "table_round", 540, 240, 2),
+        ("C", "table_square", 840, 240, 4),
+        ("D", "table_rect", 380, 600, 6),
+    ],
+}
+
+
+def ensure_demo_floor_plan() -> int:
+    """Give each demo restaurant one dining room, so tables/QR/reservations have something real."""
+    from app.models.floor_plan import Floor, FloorObject, FloorZone
+    from app.models.restaurant import Restaurant
+
+    ensure_floor_plan_tables()
+    made = 0
+    with SessionLocal() as db:
+        for name, tables in _DEMO_FLOORS.items():
+            restaurant = db.scalar(select(Restaurant).where(Restaurant.name == name))
+            if restaurant is None:
+                continue
+            if db.scalar(select(Floor).where(Floor.restaurant_id == restaurant.id)):
+                continue
+            floor = Floor(
+                restaurant_id=restaurant.id,
+                name="Main hall",
+                sort_order=0,
+                width_cm=1400,
+                height_cm=900,
+                grid_cm=40,
+            )
+            db.add(floor)
+            db.flush()
+            zone = FloorZone(
+                floor_id=floor.id,
+                name="Hall",
+                kind="hall",
+                x=80,
+                y=80,
+                width=1240,
+                height=740,
+            )
+            db.add(zone)
+            db.flush()
+            for table_name, kind, x, y, seats in tables:
+                size = 120 if seats <= 2 else 160 if seats <= 4 else 220
+                db.add(
+                    FloorObject(
+                        floor_id=floor.id,
+                        zone_id=zone.id,
+                        kind=kind,
+                        name=table_name,
+                        x=x,
+                        y=y,
+                        width=size,
+                        height=size if kind != "table_rect" else size * 0.62,
+                        capacity=seats,
+                        min_guests=1,
+                        max_guests=seats,
+                        status="available",
+                        mergeable=seats <= 4,
+                    )
+                )
+            made += 1
+        db.commit()
+    return made
+
+
 def ensure_favorites_table() -> None:
     """Prod deploys skip alembic; create the favorites table if missing."""
     from app.db.session import engine
@@ -379,6 +465,8 @@ def ensure_checkout_schema() -> None:
     _add("order_items", "modifiers", json_typ)
     _add("orders", "pay_method", "VARCHAR(20) DEFAULT 'cash'")
     _add("orders", "pay_status", "VARCHAR(20) DEFAULT 'unpaid'")
+    _add("orders", "pay_ref", "VARCHAR(120)")
+    _add("orders", "checkout_url", "VARCHAR(500)")
 
 
 def ensure_offers_schema() -> None:
@@ -415,6 +503,14 @@ def ensure_chat_schema() -> None:
     from app.models.message import OrderMessage
 
     OrderMessage.__table__.create(bind=engine, checkfirst=True)
+
+
+def ensure_reservations_schema() -> None:
+    """Prod deploys skip alembic; table bookings."""
+    from app.db.session import engine
+    from app.models.reservation import Reservation
+
+    Reservation.__table__.create(bind=engine, checkfirst=True)
 
 
 DEMO_PROMOS = (
@@ -560,6 +656,10 @@ def seed() -> None:
     ensure_offers_schema()
     ensure_demo_promos()
     ensure_chat_schema()
+    ensure_reservations_schema()
+    floors = ensure_demo_floor_plan()
+    if floors:
+        print(f"Floor plans: seeded {floors}")
     print("Already seeded" if added == 0 else "Seeded: 3 users, 3 restaurants, 9 menu items")
 
 
@@ -584,7 +684,11 @@ if __name__ == "__main__":
         ensure_offers_schema()
         ensure_demo_promos()
         ensure_chat_schema()
+        ensure_reservations_schema()
+        floors = ensure_demo_floor_plan()
         print(f"Catalog: {'seeded' if n else 'already present'}")
+        if floors:
+            print(f"Floor plans: seeded {floors}")
         if photos:
             print(f"Menu photos: backfilled {photos}")
         killed = disable_known_demo_accounts()

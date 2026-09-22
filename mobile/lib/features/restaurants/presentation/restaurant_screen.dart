@@ -94,6 +94,17 @@ class RestaurantScreen extends ConsumerWidget {
                               CachedNetworkImage(
                                 imageUrl: r.imageUrl!,
                                 fit: BoxFit.cover,
+                                placeholder: (_, _) => ColoredBox(
+                                  color: scheme.surfaceContainerHighest,
+                                ),
+                                errorWidget: (_, _, _) => ColoredBox(
+                                  color: scheme.surfaceContainerHighest,
+                                  child: Icon(
+                                    Icons.restaurant,
+                                    size: 64,
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
                               ),
                               const DecoratedBox(
                                 decoration: BoxDecoration(
@@ -195,6 +206,15 @@ class RestaurantScreen extends ConsumerWidget {
                         ),
                       ],
                     ).stagger(idx++),
+                    if (r.allowsReservations) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () =>
+                            context.push('/restaurants/${r.id}/book'),
+                        icon: const Icon(Icons.event_seat_outlined),
+                        label: Text(t.bookTable),
+                      ).stagger(idx++),
+                    ],
                     if (r.hasPin) ...[
                       const SizedBox(height: 16),
                       RestaurantMapPreview(

@@ -34,7 +34,6 @@ class CityMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
     final retina = MediaQuery.devicePixelRatioOf(context) > 1.2;
     return FlutterMap(
       mapController: controller,
@@ -53,10 +52,9 @@ class CityMap extends StatelessWidget {
       ),
       children: [
         TileLayer(
-          urlTemplate: dark
-              ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-              : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-          subdomains: const ['a', 'b', 'c', 'd'],
+          // Carto public basemaps now require an API key and render
+          // "API KEY REQUIRED" tiles. OSM raster tiles stay keyless.
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: mapUserAgent,
           retinaMode: retina,
           maxNativeZoom: 19,
@@ -64,7 +62,7 @@ class CityMap extends StatelessWidget {
         ...layers,
         if (attribution)
           SimpleAttributionWidget(
-            source: const Text('OpenStreetMap · CARTO'),
+            source: const Text('OpenStreetMap'),
             alignment: Alignment.bottomLeft,
             backgroundColor: Theme.of(context).colorScheme.surface
                 .withValues(alpha: 0.78),

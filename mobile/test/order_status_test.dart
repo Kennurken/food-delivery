@@ -24,12 +24,15 @@ void main() {
     expect(OrderStatus.cancelled.adminNext, isEmpty);
   });
 
-  test('courier advances confirmed → preparing → on_the_way → delivered', () {
-    expect(OrderStatus.confirmed.courierNext, OrderStatus.preparing);
+  test('courier advances preparing → on_the_way → delivered', () {
     expect(OrderStatus.preparing.courierNext, OrderStatus.onTheWay);
     expect(OrderStatus.onTheWay.courierNext, OrderStatus.delivered);
     expect(OrderStatus.pending.courierNext, isNull);
     expect(OrderStatus.delivered.courierNext, isNull);
+  });
+
+  test('only the kitchen starts cooking, never the courier', () {
+    expect(OrderStatus.confirmed.courierNext, isNull);
   });
 
   test('parse maps wire values including on_the_way', () {

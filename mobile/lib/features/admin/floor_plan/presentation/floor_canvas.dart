@@ -371,28 +371,36 @@ class _FloorCanvasState extends State<FloorCanvas> {
                 ? SystemMouseCursors.precise
                 : (_space ? SystemMouseCursors.grab : SystemMouseCursors.basic),
             child: ClipRect(
-              child: Stack(
-                children: [
-                  ColoredBox(color: PlanTheme.canvas(context)),
-                  if (d != null)
-                    CustomPaint(
-                      painter: _PlanPainter(
-                        doc: d,
-                        origin: _origin,
-                        scale: _scale,
-                        selected: e.selected,
-                        selectedZone: e.selectedZone,
-                        preview: e.preview,
-                        dark: Theme.of(context).brightness == Brightness.dark,
-                        warnIds: {for (final w in e.warnings) w.objectId},
-                        guides: e.guides,
-                      ),
-                      child: const SizedBox.expand(),
-                    ),
-                  if (_marquee0 != null && _marquee1 != null) _marquee(),
-                  if (!e.preview) _hud(),
-                  if (!e.preview) _minimap(d),
-                ],
+              // LayoutBuilder gives the viewport size during build; context.size
+              // is not available yet at this point and asserts.
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final viewSize = constraints.biggest;
+                  return Stack(
+                    children: [
+                      ColoredBox(color: PlanTheme.canvas(context)),
+                      if (d != null)
+                        CustomPaint(
+                          painter: _PlanPainter(
+                            doc: d,
+                            origin: _origin,
+                            scale: _scale,
+                            selected: e.selected,
+                            selectedZone: e.selectedZone,
+                            preview: e.preview,
+                            dark:
+                                Theme.of(context).brightness == Brightness.dark,
+                            warnIds: {for (final w in e.warnings) w.objectId},
+                            guides: e.guides,
+                          ),
+                          child: const SizedBox.expand(),
+                        ),
+                      if (_marquee0 != null && _marquee1 != null) _marquee(),
+                      if (!e.preview) _hud(),
+                      if (!e.preview) _minimap(d, viewSize),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -471,8 +479,8 @@ class _FloorCanvasState extends State<FloorCanvas> {
     );
   }
 
-  Widget _minimap(FloorDoc? d) {
-    if (d == null) return const SizedBox.shrink();
+  Widget _minimap(FloorDoc? d, Size viewSize) {
+    if (d == null || viewSize.isEmpty) return const SizedBox.shrink();
     return Positioned(
       right: 12,
       bottom: 12,
@@ -480,15 +488,11 @@ class _FloorCanvasState extends State<FloorCanvas> {
         doc: d,
         origin: _origin,
         scale: _scale,
-        viewSize: context.size ?? Size.zero,
-        onTapWorld: (w) {
-          final size = context.size;
-          if (size == null) return;
-          setState(
-            () =>
-                _origin = Offset(size.width / 2, size.height / 2) - w * _scale,
-          );
-        },
+        viewSize: viewSize,
+        onTapWorld: (w) => setState(
+          () => _origin =
+              Offset(viewSize.width / 2, viewSize.height / 2) - w * _scale,
+        ),
       ),
     );
   }

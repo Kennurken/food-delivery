@@ -113,7 +113,13 @@ def test_courier_flow(client, auth, courier, admin):
     # second accept refused
     assert client.post(f"/api/v1/orders/{oid}/accept", headers=courier).status_code == 409
 
-    for expected in ("preparing", "on_the_way", "delivered"):
+    # the courier holds a confirmed ticket but cannot start the kitchen's work
+    waiting = client.post(f"/api/v1/orders/{oid}/advance", headers=courier)
+    assert waiting.status_code == 409
+    assert "kitchen" in waiting.json()["detail"].lower()
+    client.patch(f"/api/v1/orders/{oid}/status", json={"status": "preparing"}, headers=admin)
+
+    for expected in ("on_the_way", "delivered"):
         r = client.post(f"/api/v1/orders/{oid}/advance", headers=courier)
         assert r.status_code == 200, r.text
         assert r.json()["status"] == expected
@@ -244,7 +250,8 @@ def test_rate_order_updates_restaurant(client, auth, admin, courier):
 
     client.patch(f"/api/v1/orders/{oid}/status", json={"status": "confirmed"}, headers=admin)
     client.post(f"/api/v1/orders/{oid}/accept", headers=courier)
-    for _ in range(3):
+    client.patch(f"/api/v1/orders/{oid}/status", json={"status": "preparing"}, headers=admin)
+    for _ in range(2):
         client.post(f"/api/v1/orders/{oid}/advance", headers=courier)
 
     r = client.post(f"/api/v1/orders/{oid}/rate", json={"rating": 5}, headers=auth)
@@ -391,8 +398,10 @@ def test_login_rate_limited(client, monkeypatch):
 
 def test_floor_plan_admin_only(client, auth, admin):
     assert client.get("/api/v1/admin/restaurants/1/floors", headers=auth).status_code == 403
-    empty = client.get("/api/v1/admin/restaurants/1/floors", headers=admin)
-    assert empty.status_code == 200 and empty.json() == []
+    before = client.get("/api/v1/admin/restaurants/1/floors", headers=admin)
+    assert before.status_code == 200
+    # The demo seed ships a dining room; count floors instead of assuming none.
+    started_with = len(before.json())
     created = client.post(
         "/api/v1/admin/restaurants/1/floors",
         json={"name": "1st Floor", "template": "cafe"},
@@ -401,6 +410,8 @@ def test_floor_plan_admin_only(client, auth, admin):
     assert created.status_code == 201, created.text
     floor = created.json()
     assert floor["name"] == "1st Floor"
+    listed = client.get("/api/v1/admin/restaurants/1/floors", headers=admin).json()
+    assert len(listed) == started_with + 1
     assert len(floor["objects"]) >= 6
     fid = floor["id"]
     loaded = client.get(f"/api/v1/admin/floors/{fid}", headers=admin).json()

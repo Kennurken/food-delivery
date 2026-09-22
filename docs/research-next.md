@@ -22,7 +22,9 @@ Do **not** rebuild as a Firebase clone. The stack (Flutter + FastAPI + Neon, thr
 
 **Shipped 22 Sep 2026 (chat):** one thread per order. Customer, kitchen, assigned courier, platform admin. Closed when the ticket is final. Same WebSocket; `order.chat` does not refetch the kitchen board. Card/FCM still blocked on keys.
 
-**Next:** reservations if we want the next no-key slice. Card/FCM stay blocked on keys.
+**Shipped 22 Sep 2026 (reservations):** book a floor table 30 min–14 days out. Overlap 409. Auto-confirm if a table is picked. Kitchen confirm/seat/cancel; walk-in now. Card/FCM still blocked on keys.
+
+**Next:** FCM HTTP v1 + Stripe/Kaspi after real keys. Do not put a legacy `FCM_SERVER_KEY` in Vercel — Google shut that API down.
 
 ## What we already have
 
@@ -85,6 +87,7 @@ Clones almost never implement: Uber One / Glovo Prime / Wolt+; scheduled slots; 
 | Scheduled slot | Cart picker; `scheduled_for` on the ticket | Yes | Done |
 | Promo code | One per order, restaurant-scoped, `promotions` entitlement | Yes | Done |
 | In-app chat | One thread per order; ops can see it | Medium | Done |
+| Reservations | Floor tables; one sitting per table | Medium | Done |
 | Maps / FCM / Kaspi | Blocked until keys | No | Maps done; FCM/Kaspi wait |
 
 UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md). Flutter web canvaskit still ignores programmatic input (a11y tree ≠ `TextEditingController`).
@@ -103,5 +106,6 @@ UI guidelines: [Vercel Web Interface Guidelines](https://raw.githubusercontent.c
 10. ~~Item options.~~ Medusa workflow steps stay our status machine — keep WebSocket.
 11. ~~Scheduled checkout + restaurant promo codes.~~
 12. ~~Order chat (kitchen / courier / customer).~~
-13. FCM / Kaspi / Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
-14. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.
+13. ~~Table reservations (floor objects, overlap, kitchen sheet).~~
+14. FCM HTTP v1 / Kaspi / Stripe — after keys. Enatega/Deliverzler as checklists, not code to paste.
+15. Later, if we want Glovo not just food: Wanyue grab-order + Anything; Siam/Satisfecho if we care about restaurant POS.

@@ -33,6 +33,7 @@ class AdminScreen extends ConsumerWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
+              tooltip: t.logOut,
               onPressed: () =>
                   ref.read(authControllerProvider.notifier).logout(),
             ),

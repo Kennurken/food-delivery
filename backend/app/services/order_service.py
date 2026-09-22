@@ -400,15 +400,22 @@ def accept_order(db: Session, courier: User, order: Order) -> Order:
 
 
 def advance_order(db: Session, courier: User, order: Order) -> Order:
-    """Courier moves own order one step: preparing -> on_the_way -> delivered."""
+    """Courier moves own order one step: preparing -> on_the_way -> delivered.
+
+    A courier may accept a ticket that is still `confirmed`, but only the kitchen
+    says when cooking started. Advancing from `confirmed` is the kitchen's call.
+    """
     if order.courier_id != courier.id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Not your order")
     next_status = {
-        OrderStatus.confirmed: OrderStatus.preparing,
         OrderStatus.preparing: OrderStatus.on_the_way,
         OrderStatus.on_the_way: OrderStatus.delivered,
     }.get(order.status)
     if next_status is None:
+        if order.status == OrderStatus.confirmed:
+            raise HTTPException(
+                status.HTTP_409_CONFLICT, "Waiting for the kitchen to start this order"
+            )
         raise HTTPException(status.HTTP_409_CONFLICT, f"Cannot advance from {order.status.value}")
     return update_status(db, order, next_status)
 

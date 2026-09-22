@@ -101,8 +101,9 @@ enum OrderStatus {
   bool get canReorder => isFinal;
 
   /// Next step a courier can push this order to, or null.
+  /// The kitchen owns `confirmed -> preparing`; a courier holding a confirmed
+  /// ticket simply waits for the food.
   OrderStatus? get courierNext => switch (this) {
-    confirmed => preparing,
     preparing => onTheWay,
     onTheWay => delivered,
     _ => null,

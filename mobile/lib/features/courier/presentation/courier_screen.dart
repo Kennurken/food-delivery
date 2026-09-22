@@ -137,7 +137,7 @@ class _MineTab extends ConsumerWidget {
               OrderStatus.delivered => Icons.done_all,
               _ => Icons.arrow_forward,
             }),
-            label: Text(next.actionLabel(context.l10n)),
+            label: Text(o.courierActionLabel(next, context.l10n)),
           ),
         );
       },

@@ -81,6 +81,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  /// Drop a point onto an address that was saved as text only.
+  Future<void> _pinAddress(Address a) async {
+    final q = <String, String>{if (a.line.isNotEmpty) 'line': a.line};
+    final uri = Uri(path: '/map/pick', queryParameters: q.isEmpty ? null : q);
+    final place = await context.push<MapPlace>(uri.toString());
+    if (place == null || !mounted) return;
+    try {
+      await ref
+          .read(profileRepositoryProvider)
+          .setPoint(a.id, lat: place.lat, lng: place.lng, line: place.line);
+      Haptics.success();
+      ref.invalidate(addressesProvider);
+    } catch (e) {
+      if (mounted) _toast(errorMessage(e));
+    }
+  }
+
   Future<void> _addAddress() async {
     final result = await showModalBottomSheet<AddressDraft>(
       context: context,
@@ -304,7 +321,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                subtitle: Text(a.display(t)),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(a.display(t)),
+                                    // Without a point the courier gets text and
+                                    // delivery is priced off a guess, so say so
+                                    // and offer the one tap that fixes it.
+                                    if (!a.hasPin)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 4),
+                                        child: InkWell(
+                                          onTap: () => _pinAddress(a),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.wrong_location_outlined,
+                                                size: 14,
+                                                color: scheme.error,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                t.addressNeedsPin,
+                                                style: text.labelSmall
+                                                    ?.copyWith(
+                                                      color: scheme.error,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                isThreeLine: !a.hasPin,
                                 trailing: a.isDefault
                                     ? Text(
                                         t.default_,

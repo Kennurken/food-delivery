@@ -939,4 +939,7 @@ class L10nKk extends L10n {
   String outOfDeliveryRange(String km) {
     return 'Тым алыс — мейрамхана $km км дейін жеткізеді.';
   }
+
+  @override
+  String get addressNeedsPin => 'Картада нүкте жоқ — басып белгілеңіз';
 }

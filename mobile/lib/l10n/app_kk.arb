@@ -357,5 +357,6 @@
   "rating": "Рейтинг",
   "billingConnected": "Картамен төлеу — {provider}",
   "deliveryDistance": "Асханадан {km} км",
-  "outOfDeliveryRange": "Тым алыс — мейрамхана {km} км дейін жеткізеді."
+  "outOfDeliveryRange": "Тым алыс — мейрамхана {km} км дейін жеткізеді.",
+  "addressNeedsPin": "Картада нүкте жоқ — басып белгілеңіз"
 }

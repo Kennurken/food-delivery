@@ -1850,6 +1850,12 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Too far — this restaurant delivers up to {km} km.'**
   String outOfDeliveryRange(String km);
+
+  /// No description provided for @addressNeedsPin.
+  ///
+  /// In en, this message translates to:
+  /// **'No map point — tap to set'**
+  String get addressNeedsPin;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

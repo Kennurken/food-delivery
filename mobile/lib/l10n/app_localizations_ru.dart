@@ -940,4 +940,7 @@ class L10nRu extends L10n {
   String outOfDeliveryRange(String km) {
     return 'Слишком далеко — ресторан возит до $km км.';
   }
+
+  @override
+  String get addressNeedsPin => 'Нет точки на карте — нажмите, чтобы указать';
 }

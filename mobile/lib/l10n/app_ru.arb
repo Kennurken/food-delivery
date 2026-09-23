@@ -357,5 +357,6 @@
   "rating": "Рейтинг",
   "billingConnected": "Оплата картой через {provider}",
   "deliveryDistance": "{km} км от кухни",
-  "outOfDeliveryRange": "Слишком далеко — ресторан возит до {km} км."
+  "outOfDeliveryRange": "Слишком далеко — ресторан возит до {km} км.",
+  "addressNeedsPin": "Нет точки на карте — нажмите, чтобы указать"
 }

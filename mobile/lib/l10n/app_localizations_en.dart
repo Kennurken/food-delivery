@@ -940,4 +940,7 @@ class L10nEn extends L10n {
   String outOfDeliveryRange(String km) {
     return 'Too far — this restaurant delivers up to $km km.';
   }
+
+  @override
+  String get addressNeedsPin => 'No map point — tap to set';
 }

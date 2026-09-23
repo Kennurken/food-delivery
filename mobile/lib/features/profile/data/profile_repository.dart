@@ -63,6 +63,20 @@ class ProfileRepository {
 
   Future<void> deleteAddress(int id) => _dio.delete('/api/v1/me/addresses/$id');
 
+  /// Pin a point onto an address that was only ever text.
+  Future<Address> setPoint(
+    int id, {
+    required double lat,
+    required double lng,
+    String? line,
+  }) async {
+    final r = await _dio.patch(
+      '/api/v1/me/addresses/$id',
+      data: {'lat': lat, 'lng': lng, 'line': ?line},
+    );
+    return Address.fromJson(r.data);
+  }
+
   Future<Address> setDefault(int id) async {
     final r = await _dio.patch(
       '/api/v1/me/addresses/$id',

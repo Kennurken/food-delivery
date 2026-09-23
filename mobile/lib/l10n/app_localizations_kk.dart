@@ -1057,4 +1057,22 @@ class L10nKk extends L10n {
 
   @override
   String get pickVenue => 'Мекемені таңдаңыз';
+
+  @override
+  String get stopList => 'Тоқтату тізімі';
+
+  @override
+  String get stopListEmpty => 'Бәрі сатылымда';
+
+  @override
+  String get stopListEmptyHint => 'Алынған тағамдар осында шығады';
+
+  @override
+  String get restoreAll => 'Бәрін қайтару';
+
+  @override
+  String get stopDish => 'Алу';
+
+  @override
+  String get restoreDish => 'Қайтару';
 }

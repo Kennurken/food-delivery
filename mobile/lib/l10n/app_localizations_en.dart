@@ -1059,4 +1059,22 @@ class L10nEn extends L10n {
 
   @override
   String get pickVenue => 'Choose a venue';
+
+  @override
+  String get stopList => 'Stop list';
+
+  @override
+  String get stopListEmpty => 'Everything is on sale';
+
+  @override
+  String get stopListEmptyHint => 'Dishes you stop appear here';
+
+  @override
+  String get restoreAll => 'Restore all';
+
+  @override
+  String get stopDish => 'Stop';
+
+  @override
+  String get restoreDish => 'Restore';
 }

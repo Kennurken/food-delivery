@@ -408,5 +408,11 @@
       }
     }
   },
-  "pickVenue": "Мекемені таңдаңыз"
+  "pickVenue": "Мекемені таңдаңыз",
+  "stopList": "Тоқтату тізімі",
+  "stopListEmpty": "Бәрі сатылымда",
+  "stopListEmptyHint": "Алынған тағамдар осында шығады",
+  "restoreAll": "Бәрін қайтару",
+  "stopDish": "Алу",
+  "restoreDish": "Қайтару"
 }

@@ -1,6 +1,7 @@
 """Admin-only management endpoints. Order status changes live in orders.py (PATCH /status)."""
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from app.api.deps import DB, AdminUser, CurrentUser
@@ -106,8 +107,10 @@ def update_restaurant(
     response_model=MenuItemOut,
     status_code=status.HTTP_201_CREATED,
 )
-def create_menu_item(restaurant_id: int, data: MenuItemCreate, db: DB, _: AdminUser) -> MenuItem:
-    _restaurant_or_404(db, restaurant_id)
+def create_menu_item(
+    restaurant_id: int, data: MenuItemCreate, db: DB, user: CurrentUser
+) -> MenuItem:
+    require_restaurant(db, user, restaurant_id, "menu.write")
     item = MenuItem(restaurant_id=restaurant_id, **data.model_dump())
     db.add(item)
     db.commit()
@@ -116,11 +119,18 @@ def create_menu_item(restaurant_id: int, data: MenuItemCreate, db: DB, _: AdminU
 
 
 @router.patch("/menu/{item_id}", response_model=MenuItemOut)
-def update_menu_item(item_id: int, data: MenuItemUpdate, db: DB, _: AdminUser) -> MenuItem:
+def update_menu_item(
+    item_id: int, data: MenuItemUpdate, db: DB, user: CurrentUser
+) -> MenuItem:
     item = db.get(MenuItem, item_id)
     if not item:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Menu item not found")
-    for k, v in data.model_dump(exclude_unset=True).items():
+    fields = data.model_dump(exclude_unset=True)
+    # Stopping a dish is a shift action; changing its price or name is not.
+    # Someone with only the former must not be able to smuggle the latter in.
+    needed = "menu.availability" if set(fields) <= {"is_available"} else "menu.write"
+    require_restaurant(db, user, item.restaurant_id, needed)
+    for k, v in fields.items():
         setattr(item, k, v)
     db.commit()
     db.refresh(item)
@@ -128,19 +138,23 @@ def update_menu_item(item_id: int, data: MenuItemUpdate, db: DB, _: AdminUser) -
 
 
 @router.delete("/menu/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_menu_item(item_id: int, db: DB, _: AdminUser) -> None:
+def delete_menu_item(item_id: int, db: DB, user: CurrentUser) -> None:
     item = db.get(MenuItem, item_id)
     if not item:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Menu item not found")
+    require_restaurant(db, user, item.restaurant_id, "menu.write")
     db.delete(item)
     db.commit()
 
 
 @router.put("/menu/{item_id}/modifiers", response_model=MenuItemOut)
-def replace_modifiers(item_id: int, data: list[ModifierGroupIn], db: DB, _: AdminUser) -> MenuItem:
+def replace_modifiers(
+    item_id: int, data: list[ModifierGroupIn], db: DB, user: CurrentUser
+) -> MenuItem:
     item = db.get(MenuItem, item_id)
     if not item:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Menu item not found")
+    require_restaurant(db, user, item.restaurant_id, "menu.write")
     item.modifier_groups.clear()
     db.flush()
     for group in data:
@@ -298,3 +312,49 @@ def restaurant_customers(
             for row in rows
         ],
     }
+
+
+class StopListIn(BaseModel):
+    item_ids: list[int] = Field(min_length=1, max_length=200)
+    available: bool
+
+
+@router.get("/restaurants/{restaurant_id}/stop-list", response_model=list[MenuItemOut])
+def stop_list(restaurant_id: int, db: DB, user: CurrentUser) -> list[MenuItem]:
+    """Everything currently off sale. A shift starts by looking at this."""
+    require_restaurant(db, user, restaurant_id, "menu.read")
+    return list(
+        db.scalars(
+            select(MenuItem)
+            .where(MenuItem.restaurant_id == restaurant_id, MenuItem.is_available.is_(False))
+            .order_by(MenuItem.category, MenuItem.name)
+        )
+    )
+
+
+@router.post("/restaurants/{restaurant_id}/stop-list", response_model=list[MenuItemOut])
+def set_availability(
+    restaurant_id: int, data: StopListIn, db: DB, user: CurrentUser
+) -> list[MenuItem]:
+    """Stop or restore several dishes at once.
+
+    Bringing a menu back one dish at a time at the start of every shift is how
+    a dish stays off by accident for a week.
+    """
+    require_restaurant(db, user, restaurant_id, "menu.availability")
+    items = list(
+        db.scalars(
+            select(MenuItem).where(
+                MenuItem.id.in_(data.item_ids),
+                # Scoped to this restaurant: an id from someone else's menu is
+                # simply not found here, never silently flipped.
+                MenuItem.restaurant_id == restaurant_id,
+            )
+        )
+    )
+    for item in items:
+        item.is_available = data.available
+    db.commit()
+    for item in items:
+        db.refresh(item)
+    return items

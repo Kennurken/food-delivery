@@ -408,5 +408,11 @@
       }
     }
   },
-  "pickVenue": "Выберите заведение"
+  "pickVenue": "Выберите заведение",
+  "stopList": "Стоп-лист",
+  "stopListEmpty": "Всё в продаже",
+  "stopListEmptyHint": "Снятые блюда появятся здесь",
+  "restoreAll": "Вернуть всё",
+  "stopDish": "Снять",
+  "restoreDish": "Вернуть"
 }

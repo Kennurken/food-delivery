@@ -14,6 +14,10 @@ PERMISSIONS = frozenset(
     {
         "menu.read",
         "menu.write",
+        # Flipping a dish on or off is a shift-floor action, not menu authoring.
+        # A cook who runs out of salmon must be able to stop it without being
+        # able to rewrite prices.
+        "menu.availability",
         "orders.read",
         "orders.manage",
         "tables.read",
@@ -37,6 +41,7 @@ ROLE_PERMS: dict[str, frozenset[str]] = {
         {
             "menu.read",
             "menu.write",
+            "menu.availability",
             "orders.read",
             "orders.manage",
             "tables.read",
@@ -46,9 +51,22 @@ ROLE_PERMS: dict[str, frozenset[str]] = {
             "restaurant.settings.write",
         }
     ),
-    "cashier": frozenset({"orders.read", "orders.manage", "tables.read", "menu.read"}),
-    "waiter": frozenset({"orders.read", "orders.manage", "tables.read", "tables.write", "menu.read"}),
-    "kitchen": frozenset({"orders.read", "orders.manage", "menu.read"}),
+    "cashier": frozenset(
+        {"orders.read", "orders.manage", "tables.read", "menu.read", "menu.availability"}
+    ),
+    "waiter": frozenset(
+        {
+            "orders.read",
+            "orders.manage",
+            "tables.read",
+            "tables.write",
+            "menu.read",
+            "menu.availability",
+        }
+    ),
+    "kitchen": frozenset(
+        {"orders.read", "orders.manage", "menu.read", "menu.availability"}
+    ),
     "delivery_manager": frozenset({"orders.read", "orders.manage", "analytics.read"}),
     "delivery_courier": frozenset({"orders.read"}),
     "accountant": frozenset({"analytics.read", "billing.read", "orders.read"}),

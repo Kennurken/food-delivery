@@ -2072,6 +2072,42 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Choose a venue'**
   String get pickVenue;
+
+  /// No description provided for @stopList.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop list'**
+  String get stopList;
+
+  /// No description provided for @stopListEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is on sale'**
+  String get stopListEmpty;
+
+  /// No description provided for @stopListEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dishes you stop appear here'**
+  String get stopListEmptyHint;
+
+  /// No description provided for @restoreAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore all'**
+  String get restoreAll;
+
+  /// No description provided for @stopDish.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get stopDish;
+
+  /// No description provided for @restoreDish.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreDish;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

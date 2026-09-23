@@ -1058,4 +1058,22 @@ class L10nRu extends L10n {
 
   @override
   String get pickVenue => 'Выберите заведение';
+
+  @override
+  String get stopList => 'Стоп-лист';
+
+  @override
+  String get stopListEmpty => 'Всё в продаже';
+
+  @override
+  String get stopListEmptyHint => 'Снятые блюда появятся здесь';
+
+  @override
+  String get restoreAll => 'Вернуть всё';
+
+  @override
+  String get stopDish => 'Снять';
+
+  @override
+  String get restoreDish => 'Вернуть';
 }

@@ -39,6 +39,28 @@ class AdminRepository {
     return MenuItem.fromJson(r.data);
   }
 
+  /// Dishes currently off sale.
+  Future<List<MenuItem>> stopList(int restaurantId) async {
+    final r = await _dio.get(
+      '/api/v1/admin/restaurants/$restaurantId/stop-list',
+    );
+    return (r.data as List).map((e) => MenuItem.fromJson(e)).toList();
+  }
+
+  /// Stop or restore several dishes in one call — bringing a menu back one
+  /// dish at a time is how something stays off for a week.
+  Future<void> setAvailability(
+    int restaurantId,
+    List<int> itemIds, {
+    required bool available,
+  }) async {
+    if (itemIds.isEmpty) return;
+    await _dio.post(
+      '/api/v1/admin/restaurants/$restaurantId/stop-list',
+      data: {'item_ids': itemIds, 'available': available},
+    );
+  }
+
   Future<MenuItem> createMenuItem(
     int restaurantId,
     Map<String, dynamic> data,
@@ -148,6 +170,11 @@ final adminRepositoryProvider = Provider(
 
 final adminRestaurantsProvider = FutureProvider<List<Restaurant>>(
   (ref) => ref.watch(adminRepositoryProvider).restaurants(),
+);
+
+final stopListProvider = FutureProvider.family<List<MenuItem>, int>(
+  (ref, restaurantId) =>
+      ref.watch(adminRepositoryProvider).stopList(restaurantId),
 );
 
 final adminRestaurantProvider = FutureProvider.family<Restaurant, int>(

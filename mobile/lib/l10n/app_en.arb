@@ -513,5 +513,11 @@
       }
     }
   },
-  "pickVenue": "Choose a venue"
+  "pickVenue": "Choose a venue",
+  "stopList": "Stop list",
+  "stopListEmpty": "Everything is on sale",
+  "stopListEmptyHint": "Dishes you stop appear here",
+  "restoreAll": "Restore all",
+  "stopDish": "Stop",
+  "restoreDish": "Restore"
 }

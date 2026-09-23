@@ -15,6 +15,7 @@ import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
 import '../../orders/presentation/orders_screen.dart';
 import 'admin_reservations_sheet.dart';
+import 'stop_list_sheet.dart';
 
 class KitchenScreen extends ConsumerWidget {
   const KitchenScreen({super.key, required this.restaurantId});
@@ -48,6 +49,11 @@ class KitchenScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(t.kitchen),
         actions: [
+          IconButton(
+            tooltip: t.stopList,
+            onPressed: () => showStopList(context, ref, restaurantId),
+            icon: const Icon(Icons.do_not_disturb_on_outlined),
+          ),
           IconButton(
             tooltip: t.reservations,
             onPressed: () => editReservations(context, ref, restaurantId),

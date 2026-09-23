@@ -1075,4 +1075,32 @@ class L10nKk extends L10n {
 
   @override
   String get restoreDish => 'Қайтару';
+
+  @override
+  String get venueSettings => 'Баптаулар';
+
+  @override
+  String get planLabel => 'Тариф';
+
+  @override
+  String get limitsLabel => 'Шектеулер';
+
+  @override
+  String get featuresLabel => 'Мүмкіндіктер';
+
+  @override
+  String get byPlan => 'Тариф бойынша';
+
+  @override
+  String get forcedOn => 'Қосулы';
+
+  @override
+  String get forcedOff => 'Өшірулі';
+
+  @override
+  String get unlimited => 'Шектеусіз';
+
+  @override
+  String get overriddenNote =>
+      'Мәжбүрлі жалаушалар тарифке ермейді, оларды алып тастағанша.';
 }

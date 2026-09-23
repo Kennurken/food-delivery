@@ -519,5 +519,14 @@
   "stopListEmptyHint": "Dishes you stop appear here",
   "restoreAll": "Restore all",
   "stopDish": "Stop",
-  "restoreDish": "Restore"
+  "restoreDish": "Restore",
+  "venueSettings": "Settings",
+  "planLabel": "Plan",
+  "limitsLabel": "Limits",
+  "featuresLabel": "Features",
+  "byPlan": "By plan",
+  "forcedOn": "On",
+  "forcedOff": "Off",
+  "unlimited": "Unlimited",
+  "overriddenNote": "Forced flags ignore the plan until you clear them."
 }

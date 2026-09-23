@@ -10,6 +10,7 @@ import '../../../core/widgets/list_skeleton.dart';
 import '../../../core/widgets/stagger.dart';
 import '../data/admin_repository.dart';
 import '../domain/platform_venue.dart';
+import 'venue_settings_screen.dart';
 
 /// One tenant in full: contacts you can actually dial, staff, and recent trade.
 class PlatformVenueScreen extends ConsumerWidget {
@@ -22,7 +23,20 @@ class PlatformVenueScreen extends ConsumerWidget {
     final t = context.l10n;
     final venue = ref.watch(platformVenueProvider(id));
     return Scaffold(
-      appBar: AppBar(title: Text(venue.value?.name ?? t.venue)),
+      appBar: AppBar(
+        title: Text(venue.value?.name ?? t.venue),
+        actions: [
+          IconButton(
+            tooltip: t.venueSettings,
+            icon: const Icon(Icons.tune),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => VenueSettingsScreen(restaurantId: id),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: venue.when(
         loading: () => const ListSkeleton(),
         error: (e, _) => EmptyState(

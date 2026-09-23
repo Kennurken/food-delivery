@@ -1076,4 +1076,32 @@ class L10nRu extends L10n {
 
   @override
   String get restoreDish => 'Вернуть';
+
+  @override
+  String get venueSettings => 'Настройки';
+
+  @override
+  String get planLabel => 'Тариф';
+
+  @override
+  String get limitsLabel => 'Лимиты';
+
+  @override
+  String get featuresLabel => 'Возможности';
+
+  @override
+  String get byPlan => 'По тарифу';
+
+  @override
+  String get forcedOn => 'Включено';
+
+  @override
+  String get forcedOff => 'Выключено';
+
+  @override
+  String get unlimited => 'Без лимита';
+
+  @override
+  String get overriddenNote =>
+      'Принудительные флаги не следуют за тарифом, пока их не снять.';
 }

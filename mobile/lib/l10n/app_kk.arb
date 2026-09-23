@@ -414,5 +414,14 @@
   "stopListEmptyHint": "Алынған тағамдар осында шығады",
   "restoreAll": "Бәрін қайтару",
   "stopDish": "Алу",
-  "restoreDish": "Қайтару"
+  "restoreDish": "Қайтару",
+  "venueSettings": "Баптаулар",
+  "planLabel": "Тариф",
+  "limitsLabel": "Шектеулер",
+  "featuresLabel": "Мүмкіндіктер",
+  "byPlan": "Тариф бойынша",
+  "forcedOn": "Қосулы",
+  "forcedOff": "Өшірулі",
+  "unlimited": "Шектеусіз",
+  "overriddenNote": "Мәжбүрлі жалаушалар тарифке ермейді, оларды алып тастағанша."
 }

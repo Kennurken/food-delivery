@@ -1077,4 +1077,32 @@ class L10nEn extends L10n {
 
   @override
   String get restoreDish => 'Restore';
+
+  @override
+  String get venueSettings => 'Settings';
+
+  @override
+  String get planLabel => 'Plan';
+
+  @override
+  String get limitsLabel => 'Limits';
+
+  @override
+  String get featuresLabel => 'Features';
+
+  @override
+  String get byPlan => 'By plan';
+
+  @override
+  String get forcedOn => 'On';
+
+  @override
+  String get forcedOff => 'Off';
+
+  @override
+  String get unlimited => 'Unlimited';
+
+  @override
+  String get overriddenNote =>
+      'Forced flags ignore the plan until you clear them.';
 }

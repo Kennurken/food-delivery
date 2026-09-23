@@ -39,6 +39,31 @@ class AdminRepository {
     return MenuItem.fromJson(r.data);
   }
 
+  Future<VenueSettings> venueSettings(int restaurantId) async {
+    final r = await _dio.get(
+      '/api/v1/admin/restaurants/$restaurantId/features',
+    );
+    return VenueSettings.fromJson(Map<String, dynamic>.from(r.data as Map));
+  }
+
+  Future<void> setFeature(
+    int restaurantId,
+    String key, {
+    required bool enabled,
+  }) => _dio.put(
+    '/api/v1/admin/restaurants/$restaurantId/features',
+    data: {'key': key, 'enabled': enabled},
+  );
+
+  /// Drop the override so the flag follows the plan again.
+  Future<void> clearFeature(int restaurantId, String key) =>
+      _dio.delete('/api/v1/admin/restaurants/$restaurantId/features/$key');
+
+  Future<void> setPlan(int restaurantId, String planCode) => _dio.patch(
+    '/api/v1/admin/restaurants/$restaurantId',
+    data: {'plan_code': planCode},
+  );
+
   /// Dishes currently off sale.
   Future<List<MenuItem>> stopList(int restaurantId) async {
     final r = await _dio.get(
@@ -213,4 +238,61 @@ final platformVenuesProvider =
 
 final platformVenueProvider = FutureProvider.family<PlatformVenue, int>(
   (ref, id) => ref.watch(adminRepositoryProvider).platformVenue(id),
+);
+
+/// One feature key for one venue: what the plan gives, what was forced, and
+/// what is therefore in effect.
+class VenueFeature {
+  const VenueFeature({
+    required this.key,
+    required this.inPlan,
+    required this.override,
+    required this.enabled,
+  });
+
+  final String key;
+  final bool inPlan;
+
+  /// null = follows the plan. true/false = forced on or off for this venue.
+  final bool? override;
+  final bool enabled;
+
+  factory VenueFeature.fromJson(Map<String, dynamic> json) => VenueFeature(
+    key: json['key'] as String? ?? '',
+    inPlan: json['in_plan'] as bool? ?? false,
+    override: json['override'] as bool?,
+    enabled: json['enabled'] as bool? ?? false,
+  );
+}
+
+class VenueSettings {
+  const VenueSettings({
+    required this.planCode,
+    required this.limits,
+    required this.features,
+  });
+
+  final String planCode;
+  final Map<String, int?> limits;
+  final List<VenueFeature> features;
+
+  factory VenueSettings.fromJson(Map<String, dynamic> json) {
+    final rawLimits = (json['limits'] as Map?) ?? const {};
+    return VenueSettings(
+      planCode: json['plan_code'] as String? ?? '',
+      limits: {
+        for (final entry in rawLimits.entries)
+          entry.key.toString(): (entry.value as num?)?.toInt(),
+      },
+      features: ((json['features'] as List?) ?? const [])
+          .map(
+            (e) => VenueFeature.fromJson(Map<String, dynamic>.from(e as Map)),
+          )
+          .toList(growable: false),
+    );
+  }
+}
+
+final venueSettingsProvider = FutureProvider.family<VenueSettings, int>(
+  (ref, id) => ref.watch(adminRepositoryProvider).venueSettings(id),
 );

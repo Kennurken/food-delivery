@@ -10,7 +10,13 @@ from app.api.deps import DB, AdminUser, CurrentUser
 from app.core import audit
 from app.core.access import require_restaurant, valid_staff_role
 from app.core.billing import parse_webhook, public_config
-from app.core.features import entitlements, public_plans
+from app.core.features import (
+    DEFAULT_PLAN,
+    FEATURE_KEYS,
+    entitlements,
+    plan_of,
+    public_plans,
+)
 from app.models import MenuItem, Order, Restaurant, User
 from app.models.audit import AuditLog
 from app.models.feature_flag import FeatureOverride
@@ -197,6 +203,62 @@ def set_feature(restaurant_id: int, data: FeaturePatch, db: DB, _: AdminUser) ->
     db.commit()
     flags = entitlements(db, restaurant)
     return {"key": data.key, "enabled": data.enabled, "features": sorted(flags.features)}
+
+
+@router.get("/admin/restaurants/{restaurant_id}/features")
+def list_features(restaurant_id: int, db: DB, _: AdminUser) -> dict:
+    """Every feature key, split into what the plan gives and what was overridden.
+
+    The workspace endpoint returns the effective set, which cannot tell a
+    settings screen whether a flag is on because of the plan or because someone
+    forced it — and therefore cannot offer to put it back.
+    """
+    restaurant = db.get(Restaurant, restaurant_id)
+    if not restaurant:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
+    spec = plan_of(restaurant.plan_code)
+    from_plan = set(spec["features"])
+    overrides = {
+        row.key: row.enabled
+        for row in db.scalars(
+            select(FeatureOverride).where(FeatureOverride.restaurant_id == restaurant_id)
+        )
+    }
+    return {
+        "plan_code": restaurant.plan_code or DEFAULT_PLAN,
+        "limits": dict(spec["limits"]),
+        "features": [
+            {
+                "key": key,
+                "in_plan": key in from_plan,
+                "override": overrides.get(key),
+                "enabled": overrides.get(key, key in from_plan),
+            }
+            for key in FEATURE_KEYS
+        ],
+    }
+
+
+@router.delete(
+    "/admin/restaurants/{restaurant_id}/features/{key}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def clear_feature(restaurant_id: int, key: str, db: DB, _: AdminUser) -> None:
+    """Drop an override so the flag follows the plan again.
+
+    Without this an override is permanent: a feature switched on for one venue
+    during a trial would stay on through every later plan change, and nobody
+    could see why.
+    """
+    row = db.scalar(
+        select(FeatureOverride).where(
+            FeatureOverride.restaurant_id == restaurant_id,
+            FeatureOverride.key == key,
+        )
+    )
+    if row:
+        db.delete(row)
+        db.commit()
 
 
 @router.get("/platform/restaurants")

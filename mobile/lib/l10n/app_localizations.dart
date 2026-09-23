@@ -2108,6 +2108,60 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Restore'**
   String get restoreDish;
+
+  /// No description provided for @venueSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get venueSettings;
+
+  /// No description provided for @planLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get planLabel;
+
+  /// No description provided for @limitsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Limits'**
+  String get limitsLabel;
+
+  /// No description provided for @featuresLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Features'**
+  String get featuresLabel;
+
+  /// No description provided for @byPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'By plan'**
+  String get byPlan;
+
+  /// No description provided for @forcedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get forcedOn;
+
+  /// No description provided for @forcedOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get forcedOff;
+
+  /// No description provided for @unlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get unlimited;
+
+  /// No description provided for @overriddenNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Forced flags ignore the plan until you clear them.'**
+  String get overriddenNote;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

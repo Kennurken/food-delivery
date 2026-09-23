@@ -414,5 +414,14 @@
   "stopListEmptyHint": "Снятые блюда появятся здесь",
   "restoreAll": "Вернуть всё",
   "stopDish": "Снять",
-  "restoreDish": "Вернуть"
+  "restoreDish": "Вернуть",
+  "venueSettings": "Настройки",
+  "planLabel": "Тариф",
+  "limitsLabel": "Лимиты",
+  "featuresLabel": "Возможности",
+  "byPlan": "По тарифу",
+  "forcedOn": "Включено",
+  "forcedOff": "Выключено",
+  "unlimited": "Без лимита",
+  "overriddenNote": "Принудительные флаги не следуют за тарифом, пока их не снять."
 }

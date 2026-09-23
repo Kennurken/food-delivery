@@ -129,6 +129,11 @@ def create_checkout_session(
     stripe.api_key = secret
     payload: dict = {
         "mode": "payment",
+        # Ask for cards by name instead of letting Stripe pick from the dashboard.
+        # Dynamic payment methods resolve against the account's enabled set, and in
+        # tenge that set can come back empty — "No valid payment method types for
+        # this Checkout Session". A card is the only thing this app can take anyway.
+        "payment_method_types": ["card"],
         "success_url": f"{base}/orders/{order_id}?paid=1",
         "cancel_url": f"{base}/orders/{order_id}?paid=0",
         "client_reference_id": str(order_id),

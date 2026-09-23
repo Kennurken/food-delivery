@@ -228,6 +228,36 @@ def test_stripe_amount_uses_two_decimals_for_tenge():
     assert _stripe_amount(19.99, "USD") == 1999
 
 
+def test_checkout_asks_for_cards_by_name(monkeypatch):
+    """Dynamic payment methods came back empty in tenge. Name the card explicitly."""
+    import stripe
+
+    from app.core import billing
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "stripe_secret_key", "sk_test_fake")
+    seen: dict = {}
+
+    def fake_create(**payload):
+        seen.update(payload)
+        return {"id": "cs_test_1", "url": "https://checkout.stripe.com/c/pay/cs_test_1"}
+
+    monkeypatch.setattr(stripe.checkout.Session, "create", fake_create)
+
+    result = billing.create_checkout_session(
+        amount=2900,
+        currency="KZT",
+        description="Order #1",
+        order_id=1,
+        origin=None,
+        idempotency_key="k",
+    )
+
+    assert result.status == "pending"
+    assert seen["payment_method_types"] == ["card"]
+    assert seen["line_items"][0]["price_data"]["unit_amount"] == 290000
+
+
 def test_cancelling_a_paid_card_order_refunds_it(client, auth, admin, monkeypatch):
     """Money must move back when the kitchen cancels a ticket the customer paid."""
     from app.services import order_service

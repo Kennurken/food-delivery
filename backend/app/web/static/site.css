@@ -51,7 +51,11 @@ h3.section { font-size: 18px; font-weight: 800; margin: 26px 0 12px; }
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
-.bar-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+.bar-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
+/* The links live on their own row. Hiding them on small screens left a phone
+   with no way to sign in, reach an order or read the delivery terms — and a
+   food-delivery site is mostly phones. */
+.nav-row { display: flex; justify-content: flex-end; padding-bottom: 8px; }
 .brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 800; }
 .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--brand); }
 .nav { display: flex; align-items: center; gap: 18px; font-weight: 600; }
@@ -130,7 +134,9 @@ code { background: var(--line); padding: 2px 7px; border-radius: 6px; font-size:
 
 @media (max-width: 760px) {
   .venue-inner { grid-template-columns: 1fr; }
-  .nav a:not(.cta) { display: none; }
+  /* Links wrap to the left on a phone rather than disappearing. */
+  .nav-row { justify-content: flex-start; overflow-x: auto; }
+  .nav { gap: 14px; font-size: 14px; white-space: nowrap; }
 }
 
 /* ---------------------------------------------------- ordering on the site */

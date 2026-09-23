@@ -156,3 +156,32 @@ def test_a_restaurant_created_in_the_admin_gets_a_public_page(client, admin):
     assert page.status_code == 200
     assert "Чайхана Навват" in _visible(page.text)
     assert "/r/chaihana-navvat/" in client.get("/sitemap.xml").text
+
+
+def test_the_stylesheet_url_changes_when_the_file_does(client):
+    """Static files ship with an ETag and no max-age, so a browser is free to
+    keep a stale copy after a deploy. The URL has to move with the file."""
+    page = client.get("/").text
+
+    assert "/site/site.css?v=" in page
+    stamp = page.split("/site/site.css?v=")[1].split('"')[0]
+    assert stamp.isdigit() and int(stamp) > 0
+
+
+def test_the_404_page_is_styled_like_the_rest(client):
+    """It renders from a different code path, which is how it silently loses
+    the stylesheet."""
+    body = client.get("/r/no-such-place/").text
+
+    assert "/site/site.css?v=" in body
+    assert body.split("/site/site.css?v=")[1].split('"')[0].isdigit()
+
+
+def test_the_nav_survives_on_a_phone(client):
+    """Hiding these on small screens left a phone with no way to sign in, reach
+    an order, or read the delivery terms."""
+    page = client.get("/").text
+
+    assert "nav-row" in page
+    for link in ("/delivery/", "/about/", "/login/"):
+        assert f'href="{link}"' in page

@@ -17,6 +17,7 @@ from app.core.config import settings
 from app.core.events import hub
 from app.core.ratelimit import limiter
 from app.db.session import SessionLocal
+from app.web.site import ASSET_VERSION as site_asset_version
 from app.web.site import HERE as SITE_ROOT
 from app.web.site import router as site_router
 from app.web.site import templates as site_templates
@@ -131,6 +132,7 @@ async def _not_found(request: Request, exc: StarletteHTTPException):
             "title": "Страница не найдена",
             "description": "Такой страницы нет.",
             "app_url": settings.public_app_url.rstrip("/"),
+            "asset_version": site_asset_version,
         },
         status_code=404,
     )

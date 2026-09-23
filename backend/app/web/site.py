@@ -35,6 +35,23 @@ from app.web import session as web_session
 HERE = Path(__file__).parent
 templates = Jinja2Templates(directory=str(HERE / "templates"))
 
+
+def _asset_version() -> str:
+    """A stamp that changes when the stylesheet does.
+
+    Static files go out with an ETag and no max-age, so browsers fall back to
+    heuristic caching: a deployed CSS change can sit unseen behind a stale copy
+    for a returning visitor. Putting the file's own mtime in the URL makes a
+    changed file a different URL, which no cache can confuse with the old one.
+    """
+    try:
+        return str(int((HERE / "static" / "site.css").stat().st_mtime))
+    except OSError:
+        return "0"
+
+
+ASSET_VERSION = _asset_version()
+
 router = APIRouter(include_in_schema=False)
 
 DB = Depends(get_db)
@@ -69,6 +86,7 @@ def _render(
     context.setdefault("base_url", _base_url())
     context.setdefault("app_url", settings.public_app_url.rstrip("/"))
     context.setdefault("cart_count", _cart(request).count)
+    context.setdefault("asset_version", ASSET_VERSION)
     if db is not None:
         context.setdefault("viewer", _viewer(request, db))
     return templates.TemplateResponse(request, name, context, status_code=status_code)

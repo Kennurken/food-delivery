@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/site/site.css">
+<link rel="stylesheet" href="/site/site.css?v={{ asset_version }}">
 {% block head %}{% endblock %}
 </head>
 <body>
@@ -25,6 +25,11 @@
       <span class="dot"></span>
       Food Delivery
     </a>
+    <a class="cta" href="/cart/">
+      Корзина{% if cart_count %} · {{ cart_count }}{% endif %}
+    </a>
+  </div>
+  <div class="wrap nav-row">
     <nav class="nav">
       <a href="/delivery/">Доставка</a>
       <a href="/about/">О сервисе</a>
@@ -34,9 +39,6 @@
       {% else %}
         <a href="/login/">Войти</a>
       {% endif %}
-      <a class="cta" href="/cart/">
-        Корзина{% if cart_count %} · {{ cart_count }}{% endif %}
-      </a>
     </nav>
   </div>
 </header>

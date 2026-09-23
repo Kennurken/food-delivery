@@ -1898,6 +1898,72 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'This kitchen is at capacity. Try again in a few minutes.'**
   String get kitchenBusyHint;
+
+  /// No description provided for @earnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings'**
+  String get earnings;
+
+  /// No description provided for @earnedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Earned'**
+  String get earnedLabel;
+
+  /// No description provided for @cashToHandIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash to hand in'**
+  String get cashToHandIn;
+
+  /// No description provided for @cashToHandInHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You took this at the door. It belongs to the platform.'**
+  String get cashToHandInHint;
+
+  /// No description provided for @deliveriesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Deliveries'**
+  String get deliveriesLabel;
+
+  /// No description provided for @allTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get allTimeLabel;
+
+  /// No description provided for @noEarningsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing earned yet'**
+  String get noEarningsYet;
+
+  /// No description provided for @noEarningsYetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Close a delivery and it shows up here'**
+  String get noEarningsYetHint;
+
+  /// No description provided for @days7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get days7;
+
+  /// No description provided for @days30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get days30;
+
+  /// No description provided for @days90.
+  ///
+  /// In en, this message translates to:
+  /// **'90 days'**
+  String get days90;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

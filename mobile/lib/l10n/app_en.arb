@@ -470,5 +470,16 @@
   "cashCollected": "cash collected",
   "refunded": "refunded",
   "kitchenBusy": "Kitchen full",
-  "kitchenBusyHint": "This kitchen is at capacity. Try again in a few minutes."
+  "kitchenBusyHint": "This kitchen is at capacity. Try again in a few minutes.",
+  "earnings": "Earnings",
+  "earnedLabel": "Earned",
+  "cashToHandIn": "Cash to hand in",
+  "cashToHandInHint": "You took this at the door. It belongs to the platform.",
+  "deliveriesLabel": "Deliveries",
+  "allTimeLabel": "All time",
+  "noEarningsYet": "Nothing earned yet",
+  "noEarningsYetHint": "Close a delivery and it shows up here",
+  "days7": "7 days",
+  "days30": "30 days",
+  "days90": "90 days"
 }

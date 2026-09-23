@@ -15,6 +15,7 @@ from app.core.billing import (
     refund_session,
     session_is_paid,
 )
+from app.core.config import settings
 from app.core.events import hub
 from app.core.features import INACTIVE_BILLING, entitlements
 from app.core.geo import resolve_point, valid_coord
@@ -479,6 +480,20 @@ def settle_cash(order: Order) -> Order:
     return order
 
 
+def settle_courier_payout(order: Order) -> Order:
+    """Freeze what this delivery earned the courier.
+
+    Written once, when the ticket closes. Recomputing it later from the current
+    share would rewrite history every time the rate changes, and a courier who
+    was shown a number is owed that number.
+    """
+    if order.courier_id is None or order.courier_payout:
+        return order
+    share = max(0.0, min(1.0, settings.courier_fee_share))
+    order.courier_payout = round((order.delivery_fee or 0.0) * share, 2)
+    return order
+
+
 def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
     if not _allowed(order, new_status):
         raise HTTPException(
@@ -489,6 +504,7 @@ def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
         refund_if_paid(db, order)
     if new_status == OrderStatus.delivered:
         settle_cash(order)
+        settle_courier_payout(order)
     db.commit()
     db.refresh(order)
     notify(db, order)

@@ -966,4 +966,38 @@ class L10nEn extends L10n {
   @override
   String get kitchenBusyHint =>
       'This kitchen is at capacity. Try again in a few minutes.';
+
+  @override
+  String get earnings => 'Earnings';
+
+  @override
+  String get earnedLabel => 'Earned';
+
+  @override
+  String get cashToHandIn => 'Cash to hand in';
+
+  @override
+  String get cashToHandInHint =>
+      'You took this at the door. It belongs to the platform.';
+
+  @override
+  String get deliveriesLabel => 'Deliveries';
+
+  @override
+  String get allTimeLabel => 'All time';
+
+  @override
+  String get noEarningsYet => 'Nothing earned yet';
+
+  @override
+  String get noEarningsYetHint => 'Close a delivery and it shows up here';
+
+  @override
+  String get days7 => '7 days';
+
+  @override
+  String get days30 => '30 days';
+
+  @override
+  String get days90 => '90 days';
 }

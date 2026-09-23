@@ -350,6 +350,36 @@ def ensure_handover_schema() -> None:
             conn.execute(text("ALTER TABLE orders ADD COLUMN handover_code VARCHAR(8)"))
 
 
+def ensure_courier_payout_schema() -> None:
+    """Courier payout column for hosts that boot without alembic."""
+    from sqlalchemy import text
+
+    from app.db.session import engine
+
+    with engine.begin() as conn:
+        if engine.dialect.name == "sqlite":
+            have = {r[1] for r in conn.execute(text("PRAGMA table_info(orders)"))}
+        else:
+            have = {
+                r[0]
+                for r in conn.execute(
+                    text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_name = 'orders'"
+                    )
+                )
+            }
+        if "courier_payout" not in have:
+            conn.execute(
+                text(
+                    "ALTER TABLE orders ADD COLUMN courier_payout "
+                    "DOUBLE PRECISION NOT NULL DEFAULT 0"
+                    if engine.dialect.name != "sqlite"
+                    else "ALTER TABLE orders ADD COLUMN courier_payout FLOAT NOT NULL DEFAULT 0"
+                )
+            )
+
+
 def ensure_capacity_schema() -> None:
     """Kitchen cap column for hosts that boot without alembic."""
     from sqlalchemy import text

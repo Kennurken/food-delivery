@@ -46,6 +46,10 @@ class Order(Base):
     # Proof of delivery. The customer reads it out; the courier types it in.
     handover_code: Mapped[str | None] = mapped_column(String(8), nullable=True)
     checkout_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # What the courier earned on this delivery, frozen when it closed. Kept on the
+    # row rather than recomputed: changing the share later must not quietly rewrite
+    # what someone was already told they had earned.
+    courier_payout: Mapped[float] = mapped_column(Float, default=0, server_default="0")
     scheduled_for: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     promo_code: Mapped[str | None] = mapped_column(String(24), nullable=True)
     discount: Mapped[float] = mapped_column(Float, default=0)

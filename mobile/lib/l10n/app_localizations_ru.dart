@@ -965,4 +965,38 @@ class L10nRu extends L10n {
   @override
   String get kitchenBusyHint =>
       'Кухня сейчас перегружена. Попробуйте через несколько минут.';
+
+  @override
+  String get earnings => 'Заработок';
+
+  @override
+  String get earnedLabel => 'Заработано';
+
+  @override
+  String get cashToHandIn => 'Наличные к сдаче';
+
+  @override
+  String get cashToHandInHint =>
+      'Вы взяли их у двери. Эти деньги принадлежат платформе.';
+
+  @override
+  String get deliveriesLabel => 'Доставок';
+
+  @override
+  String get allTimeLabel => 'За всё время';
+
+  @override
+  String get noEarningsYet => 'Пока ничего не заработано';
+
+  @override
+  String get noEarningsYetHint => 'Закройте доставку — она появится здесь';
+
+  @override
+  String get days7 => '7 дней';
+
+  @override
+  String get days30 => '30 дней';
+
+  @override
+  String get days90 => '90 дней';
 }

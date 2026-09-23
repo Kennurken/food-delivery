@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from app.api.deps import DB, CurrentUser
+from app.api.deps import DB, CourierUser, CurrentUser
 from app.core.config import settings
 from app.core.push import drop_token, register_token
 from app.core.ratelimit import limiter
@@ -12,6 +12,7 @@ from app.models.member import RestaurantMember
 from app.schemas.address import AddressCreate, AddressOut, AddressUpdate
 from app.schemas.restaurant import RestaurantOut
 from app.schemas.user import DeviceIn, PasswordChange, UserOut, UserUpdate
+from app.services import courier_earnings
 from app.services.restaurant_view import to_out
 
 router = APIRouter(prefix="/me", tags=["me"])
@@ -152,3 +153,21 @@ def forget_device(
     db: DB, user: CurrentUser, token: str = Query(min_length=8, max_length=512)
 ) -> None:
     drop_token(db, user.id, token)
+
+
+@router.get("/earnings")
+def earnings(db: DB, courier: CourierUser, days: int = Query(7, ge=1, le=90)) -> dict:
+    """What this courier earned, and what cash they still owe the platform."""
+    data = courier_earnings.summary(db, courier, days=days)
+    return {
+        "days": data.days,
+        "deliveries": data.deliveries,
+        "earned": data.earned,
+        "cash_held": data.cash_held,
+        "earned_all_time": data.earned_all_time,
+        "deliveries_all_time": data.deliveries_all_time,
+        "by_day": [
+            {"day": row.day, "deliveries": row.deliveries, "earned": row.earned}
+            for row in data.by_day
+        ],
+    }

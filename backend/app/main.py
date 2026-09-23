@@ -30,6 +30,7 @@ async def lifespan(_: FastAPI):
             ensure_capacity_schema,
             ensure_chat_schema,
             ensure_checkout_schema,
+            ensure_courier_payout_schema,
             ensure_delivery_pricing_schema,
             ensure_demo_modifiers,
             ensure_demo_promos,
@@ -61,6 +62,7 @@ async def lifespan(_: FastAPI):
         ensure_delivery_pricing_schema()
         ensure_handover_schema()
         ensure_capacity_schema()
+        ensure_courier_payout_schema()
 
         # Now the data.
         seed_catalog()

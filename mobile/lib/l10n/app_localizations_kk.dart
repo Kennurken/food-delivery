@@ -964,4 +964,38 @@ class L10nKk extends L10n {
   @override
   String get kitchenBusyHint =>
       'Асхана қазір толы. Бірнеше минуттан кейін қайталаңыз.';
+
+  @override
+  String get earnings => 'Табыс';
+
+  @override
+  String get earnedLabel => 'Табылды';
+
+  @override
+  String get cashToHandIn => 'Тапсыратын қолма-қол';
+
+  @override
+  String get cashToHandInHint =>
+      'Есік алдында алдыңыз. Бұл ақша платформаға тиесілі.';
+
+  @override
+  String get deliveriesLabel => 'Жеткізу';
+
+  @override
+  String get allTimeLabel => 'Барлық уақыт';
+
+  @override
+  String get noEarningsYet => 'Әзірге табыс жоқ';
+
+  @override
+  String get noEarningsYetHint => 'Жеткізуді аяқтаңыз — осында шығады';
+
+  @override
+  String get days7 => '7 күн';
+
+  @override
+  String get days30 => '30 күн';
+
+  @override
+  String get days90 => '90 күн';
 }

@@ -365,5 +365,16 @@
   "cashCollected": "қолма-қол алынды",
   "refunded": "қайтарылды",
   "kitchenBusy": "Асхана бос емес",
-  "kitchenBusyHint": "Асхана қазір толы. Бірнеше минуттан кейін қайталаңыз."
+  "kitchenBusyHint": "Асхана қазір толы. Бірнеше минуттан кейін қайталаңыз.",
+  "earnings": "Табыс",
+  "earnedLabel": "Табылды",
+  "cashToHandIn": "Тапсыратын қолма-қол",
+  "cashToHandInHint": "Есік алдында алдыңыз. Бұл ақша платформаға тиесілі.",
+  "deliveriesLabel": "Жеткізу",
+  "allTimeLabel": "Барлық уақыт",
+  "noEarningsYet": "Әзірге табыс жоқ",
+  "noEarningsYetHint": "Жеткізуді аяқтаңыз — осында шығады",
+  "days7": "7 күн",
+  "days30": "30 күн",
+  "days90": "90 күн"
 }

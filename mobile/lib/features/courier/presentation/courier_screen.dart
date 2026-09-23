@@ -18,6 +18,7 @@ import '../../map/presentation/courier_locator.dart';
 import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
 import '../../orders/presentation/orders_screen.dart';
+import 'earnings_tab.dart';
 
 /// Courier home: pick up available orders, advance own orders.
 class CourierScreen extends ConsumerWidget {
@@ -29,7 +30,7 @@ class CourierScreen extends ConsumerWidget {
     final t = context.l10n;
     return CourierLocator(
       child: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           appBar: AppBar(
             title: Text(user?.name ?? t.courier),
@@ -41,9 +42,11 @@ class CourierScreen extends ConsumerWidget {
                     ref.read(authControllerProvider.notifier).logout(),
               ),
             ],
-            bottom: PillTabBar(tabs: [t.available, t.myDeliveries]),
+            bottom: PillTabBar(tabs: [t.available, t.myDeliveries, t.earnings]),
           ),
-          body: const TabBarView(children: [_AvailableTab(), _MineTab()]),
+          body: const TabBarView(
+            children: [_AvailableTab(), _MineTab(), EarningsTab()],
+          ),
         ),
       ),
     );

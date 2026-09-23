@@ -43,6 +43,8 @@ class Order(Base):
     pay_method: Mapped[str] = mapped_column(String(20), default="cash")
     pay_status: Mapped[str] = mapped_column(String(20), default="unpaid")
     pay_ref: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    # Proof of delivery. The customer reads it out; the courier types it in.
+    handover_code: Mapped[str | None] = mapped_column(String(8), nullable=True)
     checkout_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     scheduled_for: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     promo_code: Mapped[str | None] = mapped_column(String(24), nullable=True)

@@ -327,6 +327,29 @@ def ensure_demo_delivery_pricing() -> int:
     return changed
 
 
+def ensure_handover_schema() -> None:
+    """Proof-of-delivery column for hosts that boot without alembic."""
+    from sqlalchemy import text
+
+    from app.db.session import engine
+
+    with engine.begin() as conn:
+        if engine.dialect.name == "sqlite":
+            have = {r[1] for r in conn.execute(text("PRAGMA table_info(orders)"))}
+        else:
+            have = {
+                r[0]
+                for r in conn.execute(
+                    text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_name = 'orders'"
+                    )
+                )
+            }
+        if "handover_code" not in have:
+            conn.execute(text("ALTER TABLE orders ADD COLUMN handover_code VARCHAR(8)"))
+
+
 def ensure_favorites_table() -> None:
     """Prod deploys skip alembic; create the favorites table if missing."""
     from app.db.session import engine
@@ -754,6 +777,7 @@ def seed() -> None:
     ensure_offers_schema()
     ensure_demo_promos()
     ensure_chat_schema()
+    ensure_handover_schema()
     ensure_reservations_schema()
     floors = ensure_demo_floor_plan()
     if floors:
@@ -788,6 +812,7 @@ if __name__ == "__main__":
         ensure_offers_schema()
         ensure_demo_promos()
         ensure_chat_schema()
+        ensure_handover_schema()
         ensure_reservations_schema()
         floors = ensure_demo_floor_plan()
         ensure_delivery_pricing_schema()

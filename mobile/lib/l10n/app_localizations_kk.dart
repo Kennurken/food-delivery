@@ -942,4 +942,13 @@ class L10nKk extends L10n {
 
   @override
   String get addressNeedsPin => 'Картада нүкте жоқ — басып белгілеңіз';
+
+  @override
+  String get handoverTitle => 'Тапсыру коды';
+
+  @override
+  String get handoverHint => 'Клиенттен тапсырысындағы төрт санды сұраңыз.';
+
+  @override
+  String get handoverCustomerHint => 'Есікте курьерге айтыңыз';
 }

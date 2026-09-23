@@ -1856,6 +1856,24 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'No map point — tap to set'**
   String get addressNeedsPin;
+
+  /// No description provided for @handoverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Handover code'**
+  String get handoverTitle;
+
+  /// No description provided for @handoverHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the customer for the four digits shown in their order.'**
+  String get handoverHint;
+
+  /// No description provided for @handoverCustomerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Read it to the courier at the door'**
+  String get handoverCustomerHint;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

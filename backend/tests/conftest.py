@@ -43,3 +43,20 @@ def courier(client):
 @pytest.fixture
 def admin(client):
     return _login(client, "admin@food.dev", "admin123")
+
+
+def deliver(client, order_id: int, courier: dict, customer: dict) -> dict:
+    """Close a delivery the way a courier must: with the customer's handover code.
+
+    Tests that only care about a delivered ticket should not each re-learn the
+    proof-of-delivery dance.
+    """
+    code = client.get(f"/api/v1/orders/{order_id}/handover", headers=customer).json()["code"]
+    r = client.post(
+        f"/api/v1/orders/{order_id}/advance",
+        json={"code": code},
+        headers=courier,
+    )
+    assert r.status_code == 200, r.text
+    return r.json()
+

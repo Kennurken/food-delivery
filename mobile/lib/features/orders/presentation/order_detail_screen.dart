@@ -155,6 +155,14 @@ class OrderDetailScreen extends ConsumerWidget {
                     ),
                   ).stagger(idx++),
                 ],
+                // The code the courier will ask for at the door. Only worth
+                // showing while someone is actually on the way with the bag.
+                if (o.courier != null &&
+                    o.channel == 'delivery' &&
+                    !o.status.isFinal) ...[
+                  const SizedBox(height: 12),
+                  _HandoverCard(orderId: id).stagger(idx++),
+                ],
                 if (o.courier != null) ...[
                   const SizedBox(height: 12),
                   Card(
@@ -516,6 +524,66 @@ class _Row extends StatelessWidget {
           Text(label, style: style),
           Text(value, style: style),
         ],
+      ),
+    );
+  }
+}
+
+/// Shows the customer the four digits the courier must be told.
+class _HandoverCard extends ConsumerWidget {
+  const _HandoverCard({required this.orderId});
+
+  final int orderId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final code = ref.watch(handoverCodeProvider(orderId)).value;
+    if (code == null || code.isEmpty) return const SizedBox.shrink();
+    return Card(
+      color: scheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(
+              Icons.verified_user_outlined,
+              color: scheme.onPrimaryContainer,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    t.handoverTitle,
+                    style: text.labelMedium?.copyWith(
+                      color: scheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    t.handoverCustomerHint,
+                    style: text.bodySmall?.copyWith(
+                      color: scheme.onPrimaryContainer.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              code,
+              style: text.headlineSmall?.copyWith(
+                color: scheme.onPrimaryContainer,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 4,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -358,5 +358,8 @@
   "billingConnected": "Оплата картой через {provider}",
   "deliveryDistance": "{km} км от кухни",
   "outOfDeliveryRange": "Слишком далеко — ресторан возит до {km} км.",
-  "addressNeedsPin": "Нет точки на карте — нажмите, чтобы указать"
+  "addressNeedsPin": "Нет точки на карте — нажмите, чтобы указать",
+  "handoverTitle": "Код передачи",
+  "handoverHint": "Попросите у клиента четыре цифры из его заказа.",
+  "handoverCustomerHint": "Назовите его курьеру при получении"
 }

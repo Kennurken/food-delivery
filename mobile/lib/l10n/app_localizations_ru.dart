@@ -943,4 +943,13 @@ class L10nRu extends L10n {
 
   @override
   String get addressNeedsPin => 'Нет точки на карте — нажмите, чтобы указать';
+
+  @override
+  String get handoverTitle => 'Код передачи';
+
+  @override
+  String get handoverHint => 'Попросите у клиента четыре цифры из его заказа.';
+
+  @override
+  String get handoverCustomerHint => 'Назовите его курьеру при получении';
 }

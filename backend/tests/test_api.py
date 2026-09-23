@@ -1,5 +1,9 @@
+from tests.conftest import deliver
+
+
 def test_health(client):
     assert client.get("/health").json() == {"status": "ok"}
+
 
 
 def test_register_and_me(client):
@@ -119,10 +123,16 @@ def test_courier_flow(client, auth, courier, admin):
     assert "kitchen" in waiting.json()["detail"].lower()
     client.patch(f"/api/v1/orders/{oid}/status", json={"status": "preparing"}, headers=admin)
 
-    for expected in ("on_the_way", "delivered"):
-        r = client.post(f"/api/v1/orders/{oid}/advance", headers=courier)
-        assert r.status_code == 200, r.text
-        assert r.json()["status"] == expected
+    r = client.post(f"/api/v1/orders/{oid}/advance", headers=courier)
+    assert r.status_code == 200, r.text
+    assert r.json()["status"] == "on_the_way"
+
+    # A delivery closes only with the code the customer holds.
+    blind = client.post(f"/api/v1/orders/{oid}/advance", headers=courier)
+    assert blind.status_code == 400
+    assert "code" in blind.json()["detail"].lower()
+    assert client.get(f"/api/v1/orders/{oid}/handover", headers=courier).status_code == 403
+    assert deliver(client, oid, courier, auth)["status"] == "delivered"
 
     assert client.post(f"/api/v1/orders/{oid}/advance", headers=courier).status_code == 409
 
@@ -251,8 +261,8 @@ def test_rate_order_updates_restaurant(client, auth, admin, courier):
     client.patch(f"/api/v1/orders/{oid}/status", json={"status": "confirmed"}, headers=admin)
     client.post(f"/api/v1/orders/{oid}/accept", headers=courier)
     client.patch(f"/api/v1/orders/{oid}/status", json={"status": "preparing"}, headers=admin)
-    for _ in range(2):
-        client.post(f"/api/v1/orders/{oid}/advance", headers=courier)
+    client.post(f"/api/v1/orders/{oid}/advance", headers=courier)
+    deliver(client, oid, courier, auth)
 
     r = client.post(f"/api/v1/orders/{oid}/rate", json={"rating": 5}, headers=auth)
     assert r.status_code == 200 and r.json()["rating"] == 5

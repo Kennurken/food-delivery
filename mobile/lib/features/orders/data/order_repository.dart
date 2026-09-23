@@ -98,9 +98,19 @@ class OrderRepository {
     return Order.fromJson(r.data);
   }
 
-  Future<Order> advance(int id) async {
-    final r = await _dio.post('/api/v1/orders/$id/advance');
+  /// Closing a delivery carries the code the customer read out.
+  Future<Order> advance(int id, {String? handoverCode}) async {
+    final r = await _dio.post(
+      '/api/v1/orders/$id/advance',
+      data: handoverCode == null ? null : {'code': handoverCode},
+    );
     return Order.fromJson(r.data);
+  }
+
+  /// The four digits the customer shows at the door. Couriers get 403.
+  Future<String?> handoverCode(int orderId) async {
+    final r = await _dio.get('/api/v1/orders/$orderId/handover');
+    return (r.data as Map<String, dynamic>)['code'] as String?;
   }
 
   Future<List<ChatMessage>> messages(int orderId) async {
@@ -179,3 +189,9 @@ final kitchenOrdersProvider = FutureProvider.family<List<Order>, int>((
   });
   return ref.watch(orderRepositoryProvider).list(restaurantId: restaurantId);
 });
+
+/// The customer's copy of the handover code, fetched only when there is a
+/// courier on the way to show it to.
+final handoverCodeProvider = FutureProvider.autoDispose.family<String?, int>(
+  (ref, orderId) => ref.watch(orderRepositoryProvider).handoverCode(orderId),
+);

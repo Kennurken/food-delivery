@@ -1,4 +1,5 @@
 import logging
+import secrets
 from hashlib import sha256
 
 from fastapi import HTTPException, status
@@ -403,17 +404,25 @@ def accept_order(db: Session, courier: User, order: Order) -> Order:
     if not due_for_courier(locked.scheduled_for):
         raise HTTPException(status.HTTP_409_CONFLICT, "Order is scheduled later")
     locked.courier_id = courier.id
+    if not locked.handover_code:
+        # Four digits the customer reads out at the door.
+        locked.handover_code = f"{secrets.randbelow(10000):04d}"
     db.commit()
     db.refresh(locked)
     notify(db, locked)
     return locked
 
 
-def advance_order(db: Session, courier: User, order: Order) -> Order:
+def advance_order(
+    db: Session, courier: User, order: Order, *, handover_code: str | None = None
+) -> Order:
     """Courier moves own order one step: preparing -> on_the_way -> delivered.
 
     A courier may accept a ticket that is still `confirmed`, but only the kitchen
     says when cooking started. Advancing from `confirmed` is the kitchen's call.
+
+    Closing a delivery needs the code the customer reads out: "delivered" should
+    mean someone actually took the bag, not that a courier tapped a button.
     """
     if order.courier_id != courier.id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Not your order")
@@ -421,6 +430,12 @@ def advance_order(db: Session, courier: User, order: Order) -> Order:
         OrderStatus.preparing: OrderStatus.on_the_way,
         OrderStatus.on_the_way: OrderStatus.delivered,
     }.get(order.status)
+    closing = next_status is OrderStatus.delivered and order.handover_code
+    if closing and (handover_code or "").strip() != order.handover_code:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Wrong handover code. Ask the customer for the four digits.",
+        )
     if next_status is None:
         if order.status == OrderStatus.confirmed:
             raise HTTPException(

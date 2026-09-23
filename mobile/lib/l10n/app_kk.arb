@@ -358,5 +358,8 @@
   "billingConnected": "Картамен төлеу — {provider}",
   "deliveryDistance": "Асханадан {km} км",
   "outOfDeliveryRange": "Тым алыс — мейрамхана {km} км дейін жеткізеді.",
-  "addressNeedsPin": "Картада нүкте жоқ — басып белгілеңіз"
+  "addressNeedsPin": "Картада нүкте жоқ — басып белгілеңіз",
+  "handoverTitle": "Тапсыру коды",
+  "handoverHint": "Клиенттен тапсырысындағы төрт санды сұраңыз.",
+  "handoverCustomerHint": "Есікте курьерге айтыңыз"
 }

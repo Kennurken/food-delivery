@@ -8,7 +8,13 @@ from app.api.deps import DB, CourierUser, CurrentUser
 from app.core.access import require_restaurant
 from app.models import Order, OrderStatus, UserRole
 from app.schemas.chat import ChatMessageCreate, ChatMessageOut
-from app.schemas.order import OrderCreate, OrderOut, OrderRate, OrderStatusUpdate
+from app.schemas.order import (
+    HandoverProof,
+    OrderCreate,
+    OrderOut,
+    OrderRate,
+    OrderStatusUpdate,
+)
 from app.services import chat as chat_service
 from app.services import order_service
 from app.services.schedule import utcnow
@@ -89,9 +95,32 @@ def accept_order(order_id: int, db: DB, courier: CourierUser) -> Order:
     return order_service.accept_order(db, courier, _get_or_404(db, order_id))
 
 
+@router.get("/{order_id}/handover")
+def handover_code(order_id: int, db: DB, user: CurrentUser) -> dict:
+    """The four digits the customer reads out at the door.
+
+    Deliberately not part of the ticket: the courier must not be able to read
+    the code they are supposed to be told, or it proves nothing.
+    """
+    order = order_service.get_visible_order(db, user, order_id)
+    if user.role == UserRole.courier:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "The customer holds this code")
+    return {"code": order.handover_code}
+
+
 @router.post("/{order_id}/advance", response_model=OrderOut)
-def advance_order(order_id: int, db: DB, courier: CourierUser) -> Order:
-    return order_service.advance_order(db, courier, _get_or_404(db, order_id))
+def advance_order(
+    order_id: int,
+    db: DB,
+    courier: CourierUser,
+    proof: HandoverProof | None = None,
+) -> Order:
+    return order_service.advance_order(
+        db,
+        courier,
+        _get_or_404(db, order_id),
+        handover_code=proof.code if proof else None,
+    )
 
 
 @router.get("/{order_id}", response_model=OrderOut)

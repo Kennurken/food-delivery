@@ -101,3 +101,9 @@ class OrderStatusUpdate(BaseModel):
 
 class OrderRate(BaseModel):
     rating: int = Field(ge=1, le=5)
+
+
+class HandoverProof(BaseModel):
+    """What the courier types in at the door."""
+
+    code: str | None = Field(default=None, max_length=8)

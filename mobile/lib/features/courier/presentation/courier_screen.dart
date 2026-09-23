@@ -95,9 +95,23 @@ class _AvailableTab extends ConsumerWidget {
 class _MineTab extends ConsumerWidget {
   const _MineTab();
 
-  Future<void> _advance(BuildContext context, WidgetRef ref, int id) async {
+  Future<void> _advance(
+    BuildContext context,
+    WidgetRef ref,
+    Order o,
+    OrderStatus next,
+  ) async {
+    // Closing a delivery needs the four digits the customer reads out.
+    String? code;
+    if (next == OrderStatus.delivered && o.channel == 'delivery') {
+      code = await showDialog<String>(
+        context: context,
+        builder: (_) => const _HandoverDialog(),
+      );
+      if (code == null) return;
+    }
     try {
-      await ref.read(orderRepositoryProvider).advance(id);
+      await ref.read(orderRepositoryProvider).advance(o.id, handoverCode: code);
       Haptics.success();
       ref.invalidate(ordersProvider);
     } catch (e) {
@@ -127,10 +141,10 @@ class _MineTab extends ConsumerWidget {
         final next = o.status.courierNext;
         if (next == null) return const SizedBox.shrink();
         return Pressable(
-          onTap: () => _advance(context, ref, o.id),
+          onTap: () => _advance(context, ref, o, next),
           child: FilledButton.icon(
             style: AppButtons.inline,
-            onPressed: () => _advance(context, ref, o.id),
+            onPressed: () => _advance(context, ref, o, next),
             icon: Icon(switch (next) {
               OrderStatus.preparing => Icons.restaurant,
               OrderStatus.onTheWay => Icons.two_wheeler,
@@ -290,6 +304,74 @@ class _Line extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Asks the courier for the code the customer is holding.
+class _HandoverDialog extends StatefulWidget {
+  const _HandoverDialog();
+
+  @override
+  State<_HandoverDialog> createState() => _HandoverDialogState();
+}
+
+class _HandoverDialogState extends State<_HandoverDialog> {
+  final _code = TextEditingController();
+
+  @override
+  void dispose() {
+    _code.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final v = _code.text.trim();
+    if (v.length < 4) return;
+    Navigator.pop(context, v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    return AlertDialog(
+      title: Text(t.handoverTitle),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.handoverHint, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _code,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            maxLength: 4,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 8,
+            ),
+            decoration: const InputDecoration(
+              counterText: '',
+              hintText: '0000',
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(t.cancel),
+        ),
+        FilledButton(
+          style: AppButtons.inline,
+          onPressed: _submit,
+          child: Text(t.actionMarkDelivered),
+        ),
+      ],
     );
   }
 }

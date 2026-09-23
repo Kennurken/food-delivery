@@ -1,5 +1,7 @@
 """The platform admin's tenant directory: who runs each restaurant and how it trades."""
 
+from tests.conftest import deliver
+
 
 def _names(rows):
     return [r["name"] for r in rows]
@@ -65,8 +67,8 @@ def test_revenue_counts_only_money_that_actually_moved(client, auth, admin, cour
     client.patch(
         f"/api/v1/orders/{order_id}/status", json={"status": "preparing"}, headers=admin
     )
-    for _ in range(2):
-        client.post(f"/api/v1/orders/{order_id}/advance", headers=courier)
+    client.post(f"/api/v1/orders/{order_id}/advance", headers=courier)
+    deliver(client, order_id, courier, auth)
 
     after = next(
         r

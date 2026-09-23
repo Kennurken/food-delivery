@@ -943,4 +943,14 @@ class L10nEn extends L10n {
 
   @override
   String get addressNeedsPin => 'No map point — tap to set';
+
+  @override
+  String get handoverTitle => 'Handover code';
+
+  @override
+  String get handoverHint =>
+      'Ask the customer for the four digits shown in their order.';
+
+  @override
+  String get handoverCustomerHint => 'Read it to the courier at the door';
 }

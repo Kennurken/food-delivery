@@ -174,3 +174,86 @@ def detail(db: Session, restaurant_id: int, *, days: int = 30) -> dict | None:
         for o in recent
     ]
     return card
+
+
+def revenue(db: Session, *, days: int = 30) -> dict:
+    """Platform-wide money: what the venues turned over, what the couriers were
+    paid out of it, and how it splits by plan.
+
+    `gross` is what customers paid on tickets that actually earned. `payouts` is
+    what the platform owes couriers against those same tickets. The difference
+    is not profit — commission is not modelled yet — so it is deliberately not
+    called that.
+    """
+    since = _window_start(days)
+    window = (Order.created_at >= since) & _EARNED
+
+    totals = db.execute(
+        select(
+            func.coalesce(func.sum(Order.total), 0.0),
+            func.coalesce(func.sum(Order.courier_payout), 0.0),
+            func.count(Order.id),
+        ).where(window)
+    ).one()
+
+    day = func.date(Order.created_at)
+    by_day = db.execute(
+        select(day, func.count(Order.id), func.coalesce(func.sum(Order.total), 0.0))
+        .where(window)
+        .group_by(day)
+        .order_by(day.desc())
+    ).all()
+
+    by_plan = db.execute(
+        select(
+            Restaurant.plan_code,
+            func.count(func.distinct(Restaurant.id)),
+            func.coalesce(func.sum(Order.total), 0.0),
+        )
+        .select_from(Restaurant)
+        .join(Order, Order.restaurant_id == Restaurant.id, isouter=True)
+        .where((Order.id.is_(None)) | window)
+        .group_by(Restaurant.plan_code)
+    ).all()
+
+    top = db.execute(
+        select(
+            Restaurant.id,
+            Restaurant.name,
+            func.count(Order.id),
+            func.coalesce(func.sum(Order.total), 0.0),
+        )
+        .join(Order, Order.restaurant_id == Restaurant.id)
+        .where(window)
+        .group_by(Restaurant.id, Restaurant.name)
+        .order_by(func.sum(Order.total).desc())
+        .limit(10)
+    ).all()
+
+    return {
+        "days": days,
+        "orders": int(totals[2] or 0),
+        "gross": round(float(totals[0] or 0.0), 2),
+        "courier_payouts": round(float(totals[1] or 0.0), 2),
+        "by_day": [
+            {"day": str(d), "orders": int(n or 0), "gross": round(float(money or 0.0), 2)}
+            for d, n, money in by_day
+        ],
+        "by_plan": [
+            {
+                "plan_code": code,
+                "restaurants": int(count or 0),
+                "gross": round(float(money or 0.0), 2),
+            }
+            for code, count, money in by_plan
+        ],
+        "top_restaurants": [
+            {
+                "id": int(rid),
+                "name": name,
+                "orders": int(count or 0),
+                "gross": round(float(money or 0.0), 2),
+            }
+            for rid, name, count, money in top
+        ],
+    }

@@ -1,10 +1,11 @@
 """Admin-only management endpoints. Order status changes live in orders.py (PATCH /status)."""
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from sqlalchemy import select
 
-from app.api.deps import DB, AdminUser
+from app.api.deps import DB, AdminUser, CurrentUser
 from app.core import audit
+from app.core.access import require_restaurant
 from app.core.features import DEFAULT_PLAN, PLANS, entitlements
 from app.models import MenuItem, ModifierGroup, ModifierOption, Promo, Restaurant
 from app.schemas.admin import (
@@ -18,6 +19,7 @@ from app.schemas.admin import (
     RestaurantUpdate,
 )
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
+from app.services import restaurant_stats as restaurant_stats_service
 from app.services.restaurant_view import to_detail, to_out
 from app.services.slugs import unique_slug
 
@@ -243,3 +245,56 @@ def delete_promo(promo_id: int, db: DB, _: AdminUser) -> None:
     _require_promos(db, row.restaurant)
     db.delete(row)
     db.commit()
+
+
+@router.get("/restaurants/{restaurant_id}/stats")
+def restaurant_stats(
+    restaurant_id: int, db: DB, user: CurrentUser, days: int = Query(30, ge=1, le=365)
+) -> dict:
+    """Own-venue numbers. The requested window is clamped to what the plan buys
+    rather than refused — a Basic owner asking for a year gets their week, not
+    an error they can do nothing about."""
+    restaurant = require_restaurant(db, user, restaurant_id, "analytics.read")
+    flags = entitlements(db, restaurant)
+    data = restaurant_stats_service.summary(db, restaurant, days=days, flags=flags)
+    return {
+        "days": data.days,
+        "window_limit": data.window_limit,
+        "orders": data.orders,
+        "revenue": data.revenue,
+        "average_check": data.average_check,
+        "cancelled": data.cancelled,
+        "cancel_rate": data.cancel_rate,
+        "by_day": [
+            {"day": row.day, "orders": row.orders, "revenue": row.revenue} for row in data.by_day
+        ],
+        "top_dishes": [
+            {"name": row.name, "quantity": row.quantity, "revenue": row.revenue}
+            for row in data.top_dishes
+        ],
+        "by_channel": data.by_channel,
+        "by_pay_method": data.by_pay_method,
+    }
+
+
+@router.get("/restaurants/{restaurant_id}/customers")
+def restaurant_customers(
+    restaurant_id: int, db: DB, user: CurrentUser, days: int = Query(90, ge=1, le=365)
+) -> dict:
+    restaurant = require_restaurant(db, user, restaurant_id, "analytics.read")
+    flags = entitlements(db, restaurant)
+    rows = restaurant_stats_service.customers(db, restaurant, days=days, flags=flags)
+    return {
+        "days": restaurant_stats_service.clamp_days(days, flags),
+        "customers": [
+            {
+                "user_id": row.user_id,
+                "name": row.name,
+                "phone": row.phone,
+                "orders": row.orders,
+                "spent": row.spent,
+                "last_order_at": row.last_order_at.isoformat() if row.last_order_at else None,
+            }
+            for row in rows
+        ],
+    }

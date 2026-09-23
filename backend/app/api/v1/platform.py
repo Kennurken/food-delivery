@@ -247,3 +247,9 @@ def list_audit(
         }
         for r in rows
     ]
+
+
+@router.get("/platform/revenue")
+def platform_revenue(db: DB, _: AdminUser, days: int = Query(30, ge=1, le=365)) -> dict:
+    """Money across every venue. Admin only — this is the platform's own books."""
+    return platform_directory.revenue(db, days=days)

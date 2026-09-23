@@ -45,23 +45,29 @@ async def lifespan(_: FastAPI):
             seed_catalog,
         )
 
-        seed_catalog()
-        ensure_menu_images()
+        # Shape the schema before touching a single row. These run on hosts
+        # without alembic, and anything below here selects through the ORM —
+        # which asks for every column the models declare, including the ones
+        # this block is here to add.
         ensure_address_columns()
         ensure_favorites_table()
         ensure_floor_plan_tables()
         ensure_saas_schema()
         ensure_geo_schema()
-        ensure_restaurant_coords()
         ensure_checkout_schema()
-        ensure_demo_modifiers()
         ensure_offers_schema()
-        ensure_demo_promos()
         ensure_chat_schema()
         ensure_reservations_schema()
         ensure_delivery_pricing_schema()
         ensure_handover_schema()
         ensure_capacity_schema()
+
+        # Now the data.
+        seed_catalog()
+        ensure_menu_images()
+        ensure_restaurant_coords()
+        ensure_demo_modifiers()
+        ensure_demo_promos()
     # Sync endpoints run in a threadpool; hub needs the main loop to push WS frames.
     hub.bind_loop(asyncio.get_running_loop())
     yield

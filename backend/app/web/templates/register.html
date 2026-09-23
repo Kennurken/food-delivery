@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block narrow">
+  <h1>Регистрация</h1>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="/register/" class="form">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label>Имя
+      <input type="text" name="name" value="{{ name or '' }}" required autocomplete="name">
+    </label>
+    <label>Почта
+      <input type="email" name="email" value="{{ email or '' }}" required autocomplete="email">
+    </label>
+    <label>Телефон
+      <input type="tel" name="phone" value="{{ phone or '' }}" autocomplete="tel" placeholder="+7 700 000 00 00">
+    </label>
+    <label>Пароль
+      <input type="password" name="password" required minlength="8" autocomplete="new-password">
+      <span class="hint">Не короче 8 символов</span>
+    </label>
+    <button class="btn" type="submit">Создать аккаунт</button>
+  </form>
+  <p class="muted">Уже есть аккаунт? <a class="under" href="/login/?next={{ next }}">Войти</a></p>
+</section>
+{% endblock %}

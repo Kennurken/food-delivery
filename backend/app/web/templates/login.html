@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block narrow">
+  <h1>Вход</h1>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="/login/" class="form">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label>Почта
+      <input type="email" name="email" value="{{ email or '' }}" required autocomplete="email">
+    </label>
+    <label>Пароль
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <button class="btn" type="submit">Войти</button>
+  </form>
+  <p class="muted">Нет аккаунта? <a class="under" href="/register/?next={{ next }}">Зарегистрироваться</a></p>
+</section>
+{% endblock %}

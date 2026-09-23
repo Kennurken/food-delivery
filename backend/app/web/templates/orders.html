@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block">
+  <h1>Мои заказы</h1>
+  {% if not orders %}
+    <p class="muted">Заказов пока нет.</p>
+    <div class="hero-actions"><a class="btn" href="/">Выбрать ресторан</a></div>
+  {% else %}
+  <div class="lines">
+    {% for o in orders %}
+    <a class="line as-link" href="/orders/{{ o.id }}/">
+      <div class="line-main">
+        <p class="card-title">Заказ #{{ o.id }} · {{ o.restaurant_name }}</p>
+        <p class="muted">{{ o.created_at.strftime('%d.%m.%Y %H:%M') }} · {{ o.status.value }}</p>
+      </div>
+      <p class="price">{{ o.total|round|int }} ₸</p>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

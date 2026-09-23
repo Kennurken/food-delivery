@@ -28,7 +28,15 @@
     <nav class="nav">
       <a href="/delivery/">Доставка</a>
       <a href="/about/">О сервисе</a>
-      <a class="cta" href="{{ app_url }}/#/">Заказать</a>
+      {% if viewer %}
+        <a href="/orders/">Заказы</a>
+        <form method="post" action="/logout/" class="inline"><button class="link-btn">Выйти</button></form>
+      {% else %}
+        <a href="/login/">Войти</a>
+      {% endif %}
+      <a class="cta" href="/cart/">
+        Корзина{% if cart_count %} · {{ cart_count }}{% endif %}
+      </a>
     </nav>
   </div>
 </header>
@@ -45,6 +53,7 @@
       <a href="/">Главная</a>
       <a href="/delivery/">Доставка и оплата</a>
       <a href="/about/">О сервисе</a>
+      <a href="/cart/">Корзина</a>
       <a href="{{ app_url }}/#/">Открыть приложение</a>
     </nav>
   </div>

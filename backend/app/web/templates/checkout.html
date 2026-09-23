@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block">
+  <h1>Оформление заказа</h1>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+  <div class="checkout">
+    <form method="post" action="/checkout/" class="form">
+      <fieldset>
+        <legend>Как получить</legend>
+        <label class="radio">
+          <input type="radio" name="channel" value="delivery" {% if channel != 'pickup' %}checked{% endif %}>
+          Доставка
+        </label>
+        <label class="radio">
+          <input type="radio" name="channel" value="pickup" {% if channel == 'pickup' %}checked{% endif %}>
+          Самовывоз
+        </label>
+      </fieldset>
+
+      <label>Адрес доставки
+        <input type="text" name="address" value="{{ address or '' }}" placeholder="Улица, дом, квартира">
+        <span class="hint">Для самовывоза адрес не нужен. Стоимость доставки считается от расстояния.</span>
+      </label>
+
+      <label>Комментарий
+        <input type="text" name="comment" value="{{ comment or '' }}" maxlength="500" placeholder="Код домофона, этаж">
+      </label>
+
+      <label>Промокод
+        <input type="text" name="promo_code" value="{{ promo_code or '' }}" maxlength="24">
+      </label>
+
+      <fieldset>
+        <legend>Оплата</legend>
+        <label class="radio">
+          <input type="radio" name="pay_method" value="cash" {% if pay_method != 'online' %}checked{% endif %}>
+          Наличными при получении
+        </label>
+        <label class="radio{% if not card_enabled %} off{% endif %}">
+          <input type="radio" name="pay_method" value="online" {% if pay_method == 'online' %}checked{% endif %}
+                 {% if not card_enabled %}disabled{% endif %}>
+          Картой онлайн
+          {% if not card_enabled %}<span class="hint">Сейчас недоступно</span>{% endif %}
+        </label>
+      </fieldset>
+
+      <button class="btn" type="submit">Подтвердить заказ</button>
+    </form>
+
+    <aside class="summary">
+      <p class="card-title">{{ restaurant.name if restaurant else '' }}</p>
+      {% for line in lines %}
+      <div class="total-row small">
+        <span>{{ line.item.name }} × {{ line.quantity }}</span>
+        <span>{{ line.total|round|int }} ₸</span>
+      </div>
+      {% endfor %}
+      <div class="total-row">
+        <span>Блюда</span><strong>{{ subtotal|round|int }} ₸</strong>
+      </div>
+      <p class="muted">Доставка добавится после проверки адреса.</p>
+      <a class="under" href="/cart/">Изменить состав</a>
+    </aside>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block">
+  <h1>Корзина</h1>
+  {% if not lines %}
+    <p class="muted">Пока пусто.</p>
+    <div class="hero-actions"><a class="btn" href="/">Выбрать ресторан</a></div>
+  {% else %}
+    <p class="muted">Заказ из «{{ restaurant.name }}»</p>
+    <div class="lines">
+      {% for line in lines %}
+      <div class="line">
+        <div class="line-main">
+          <p class="card-title">{{ line.item.name }}</p>
+          <p class="muted">{{ line.item.price|round|int }} ₸ × {{ line.quantity }}</p>
+        </div>
+        <p class="price">{{ line.total|round|int }} ₸</p>
+        <form method="post" action="/cart/update" class="qty">
+          <input type="hidden" name="item_id" value="{{ line.item.id }}">
+          <button class="chip" name="quantity" value="{{ line.quantity - 1 }}" aria-label="Меньше">−</button>
+          <button class="chip" name="quantity" value="{{ line.quantity + 1 }}" aria-label="Больше">+</button>
+          <button class="chip danger" name="quantity" value="0" aria-label="Убрать">×</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="total-row">
+      <span>Блюда</span><strong>{{ subtotal|round|int }} ₸</strong>
+    </div>
+    <p class="muted">Стоимость доставки посчитается на следующем шаге — она зависит от адреса.</p>
+    <div class="hero-actions">
+      <a class="btn" href="/checkout/">Оформить</a>
+      <a class="btn ghost" href="/r/{{ restaurant.slug }}/">Добавить ещё</a>
+    </div>
+    <form method="post" action="/cart/clear" class="mt">
+      <button class="link-btn">Очистить корзину</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

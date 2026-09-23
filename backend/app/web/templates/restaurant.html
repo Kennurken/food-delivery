@@ -39,13 +39,14 @@
       <p class="notice">Сейчас закрыто. Меню и цены актуальны.</p>
       {% endif %}
       <div class="hero-actions">
-        <a class="btn" href="{{ app_url }}/#/r/{{ restaurant.id }}">Заказать</a>
+        <a class="btn" href="#menu">Смотреть меню</a>
+        {% if cart_count %}<a class="btn ghost" href="/cart/">В корзине · {{ cart_count }}</a>{% endif %}
       </div>
     </div>
   </div>
 </section>
 
-<section class="wrap block">
+<section class="wrap block" id="menu">
   <h2>Меню{% if item_count %} · {{ item_count }} блюд{% endif %}</h2>
   {% for section in sections %}
   <h3 class="section">{{ section.name }}</h3>
@@ -58,7 +59,16 @@
       <div class="card-body">
         <p class="card-title">{{ item.name }}</p>
         {% if item.description %}<p class="muted">{{ item.description }}</p>{% endif %}
-        <p class="price">{{ item.price|round|int }} ₸</p>
+        <div class="buy">
+          <p class="price">{{ item.price|round|int }} ₸</p>
+          {% if restaurant.is_open %}
+          <form method="post" action="/cart/add">
+            <input type="hidden" name="restaurant_id" value="{{ restaurant.id }}">
+            <input type="hidden" name="item_id" value="{{ item.id }}">
+            <button class="chip add" type="submit">В корзину</button>
+          </form>
+          {% endif %}
+        </div>
       </div>
     </article>
     {% endfor %}

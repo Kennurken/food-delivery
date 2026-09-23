@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block narrow">
+  <p class="kicker">{{ order.restaurant_name }}</p>
+  <h1>Заказ #{{ order.id }}</h1>
+
+  <ol class="track">
+    {% set steps = [('pending','Принят'),('confirmed','Подтверждён'),('preparing','Готовится'),('on_the_way','В пути'),('delivered','Доставлен')] %}
+    {% set order_index = {'pending':0,'confirmed':1,'preparing':2,'on_the_way':3,'delivered':4,'cancelled':-1} %}
+    {% set now = order_index.get(order.status.value, 0) %}
+    {% for code, label in steps %}
+    <li class="{% if now >= loop.index0 and now >= 0 %}done{% endif %}">{{ label }}</li>
+    {% endfor %}
+  </ol>
+  {% if order.status.value == 'cancelled' %}
+  <p class="error">Заказ отменён.</p>
+  {% endif %}
+
+  <div class="lines">
+    {% for item in order.items %}
+    <div class="line">
+      <div class="line-main">
+        <p class="card-title">{{ item.name }}</p>
+        <p class="muted">{{ item.price|round|int }} ₸ × {{ item.quantity }}</p>
+      </div>
+      <p class="price">{{ (item.price * item.quantity)|round|int }} ₸</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="total-row small"><span>Блюда</span><span>{{ order.subtotal|round|int }} ₸</span></div>
+  {% if order.discount %}<div class="total-row small"><span>Скидка</span><span>−{{ order.discount|round|int }} ₸</span></div>{% endif %}
+  <div class="total-row small"><span>Доставка</span><span>{{ order.delivery_fee|round|int }} ₸</span></div>
+  <div class="total-row"><span>Итого</span><strong>{{ order.total|round|int }} ₸</strong></div>
+
+  <p class="muted">
+    Оплата: {% if order.pay_method == 'online' %}картой{% else %}наличными{% endif %} ·
+    {% if order.pay_status == 'paid' %}оплачен{% elif order.pay_status == 'collected' %}деньги получены{% elif order.pay_status == 'refunded' %}возвращён{% else %}не оплачен{% endif %}
+  </p>
+
+  {% if order.checkout_url and order.pay_status == 'pending' %}
+  <div class="hero-actions"><a class="btn" href="{{ order.checkout_url }}">Оплатить</a></div>
+  {% endif %}
+
+  <p class="muted">Код передачи и карта курьера — в приложении.</p>
+  <div class="hero-actions">
+    <a class="btn ghost" href="{{ app_url }}/#/orders/{{ order.id }}">Открыть в приложении</a>
+  </div>
+</section>
+{% endblock %}

@@ -53,6 +53,7 @@ async def lifespan(_: FastAPI):
             ensure_restaurant_slugs,
             ensure_saas_schema,
             ensure_slug_schema,
+            ensure_subscription_schema,
             seed_catalog,
         )
 
@@ -74,6 +75,7 @@ async def lifespan(_: FastAPI):
         ensure_capacity_schema()
         ensure_courier_payout_schema()
         ensure_slug_schema()
+        ensure_subscription_schema()
 
         # Now the data.
         seed_catalog()

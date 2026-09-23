@@ -423,6 +423,37 @@ def ensure_restaurant_slugs() -> int:
     return filled
 
 
+def ensure_subscription_schema() -> None:
+    """Stripe Billing columns for hosts that boot without alembic."""
+    from sqlalchemy import text
+
+    from app.db.session import engine
+
+    with engine.begin() as conn:
+        if engine.dialect.name == "sqlite":
+            have = {r[1] for r in conn.execute(text("PRAGMA table_info(restaurants)"))}
+        else:
+            have = {
+                r[0]
+                for r in conn.execute(
+                    text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_name = 'restaurants'"
+                    )
+                )
+            }
+        if "stripe_customer_id" not in have:
+            conn.execute(
+                text("ALTER TABLE restaurants ADD COLUMN stripe_customer_id VARCHAR(80)")
+            )
+        if "stripe_subscription_id" not in have:
+            conn.execute(
+                text("ALTER TABLE restaurants ADD COLUMN stripe_subscription_id VARCHAR(80)")
+            )
+        if "plan_renews_at" not in have:
+            conn.execute(text("ALTER TABLE restaurants ADD COLUMN plan_renews_at TIMESTAMP"))
+
+
 def ensure_capacity_schema() -> None:
     """Kitchen cap column for hosts that boot without alembic."""
     from sqlalchemy import text
@@ -886,6 +917,7 @@ def seed() -> None:
     if tariffs:
         print(f"Delivery tariffs: set {tariffs}")
     ensure_slug_schema()
+    ensure_subscription_schema()
     slugs = ensure_restaurant_slugs()
     if slugs:
         print(f"Public slugs: filled {slugs}")

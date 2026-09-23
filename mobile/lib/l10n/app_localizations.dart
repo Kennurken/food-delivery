@@ -2162,6 +2162,72 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Forced flags ignore the plan until you clear them.'**
   String get overriddenNote;
+
+  /// No description provided for @billing.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing'**
+  String get billing;
+
+  /// No description provided for @currentPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Current plan'**
+  String get currentPlan;
+
+  /// No description provided for @perMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'/month'**
+  String get perMonth;
+
+  /// No description provided for @renewsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews {date}'**
+  String renewsOn(String date);
+
+  /// No description provided for @subscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe'**
+  String get subscribe;
+
+  /// No description provided for @cancelPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel plan'**
+  String get cancelPlan;
+
+  /// No description provided for @freePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get freePlan;
+
+  /// No description provided for @billingRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment failed — the card is being retried. Your venue keeps working.'**
+  String get billingRetry;
+
+  /// No description provided for @billingBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription inactive. New orders are refused until it is restored.'**
+  String get billingBlocked;
+
+  /// No description provided for @billingOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions are not connected on this platform yet.'**
+  String get billingOff;
+
+  /// No description provided for @cancelPlanAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop renewing? The plan stays until the paid period ends, then drops to Free.'**
+  String get cancelPlanAsk;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

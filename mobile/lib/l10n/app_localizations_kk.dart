@@ -1103,4 +1103,42 @@ class L10nKk extends L10n {
   @override
   String get overriddenNote =>
       'Мәжбүрлі жалаушалар тарифке ермейді, оларды алып тастағанша.';
+
+  @override
+  String get billing => 'Төлем';
+
+  @override
+  String get currentPlan => 'Ағымдағы тариф';
+
+  @override
+  String get perMonth => '/айына';
+
+  @override
+  String renewsOn(String date) {
+    return 'Жаңару $date';
+  }
+
+  @override
+  String get subscribe => 'Қосу';
+
+  @override
+  String get cancelPlan => 'Тарифті өшіру';
+
+  @override
+  String get freePlan => 'Тегін';
+
+  @override
+  String get billingRetry =>
+      'Төлем өтпеді — карта қайталануда. Мекеме жұмысын жалғастырады.';
+
+  @override
+  String get billingBlocked =>
+      'Жазылым белсенді емес. Қалпына келтірілгенше жаңа тапсырыс қабылданбайды.';
+
+  @override
+  String get billingOff => 'Платформада жазылым әлі қосылмаған.';
+
+  @override
+  String get cancelPlanAsk =>
+      'Жаңартуды тоқтату керек пе? Тариф төленген кезең соңына дейін жұмыс істейді.';
 }

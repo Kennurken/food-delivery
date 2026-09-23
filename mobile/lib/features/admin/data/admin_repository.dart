@@ -64,6 +64,35 @@ class AdminRepository {
     data: {'plan_code': planCode},
   );
 
+  Future<VenueBilling> billing(int restaurantId) async {
+    final r = await _dio.get('/api/v1/admin/restaurants/$restaurantId/billing');
+    return VenueBilling.fromJson(Map<String, dynamic>.from(r.data as Map));
+  }
+
+  /// Opens Stripe Checkout. The plan does not move until the webhook lands —
+  /// returning a URL is the whole of what this does.
+  Future<String> subscribe(int restaurantId, String planCode) async {
+    final r = await _dio.post(
+      '/api/v1/admin/restaurants/$restaurantId/billing/subscribe',
+      data: {'plan_code': planCode},
+    );
+    return (r.data as Map)['checkout_url'] as String;
+  }
+
+  Future<VenueBilling> cancelSubscription(int restaurantId) async {
+    final r = await _dio.post(
+      '/api/v1/admin/restaurants/$restaurantId/billing/cancel',
+    );
+    return VenueBilling.fromJson(Map<String, dynamic>.from(r.data as Map));
+  }
+
+  Future<List<BillingPlan>> plans() async {
+    final r = await _dio.get('/api/v1/billing/plans');
+    return (r.data as List)
+        .map((e) => BillingPlan.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList(growable: false);
+  }
+
   /// Dishes currently off sale.
   Future<List<MenuItem>> stopList(int restaurantId) async {
     final r = await _dio.get(
@@ -295,4 +324,76 @@ class VenueSettings {
 
 final venueSettingsProvider = FutureProvider.family<VenueSettings, int>(
   (ref, id) => ref.watch(adminRepositoryProvider).venueSettings(id),
+);
+
+/// What a venue pays the platform, and where that stands.
+class VenueBilling {
+  const VenueBilling({
+    required this.planCode,
+    required this.planName,
+    required this.monthlyPrice,
+    required this.billed,
+    required this.billingStatus,
+    required this.renewsAt,
+    required this.hasSubscription,
+    required this.billingEnabled,
+  });
+
+  final String planCode;
+  final String planName;
+  final double monthlyPrice;
+  final bool billed;
+  final String billingStatus;
+  final DateTime? renewsAt;
+  final bool hasSubscription;
+
+  /// False when the platform has no Stripe keys: subscribing would fail, so
+  /// the screen says so rather than offering a button that cannot work.
+  final bool billingEnabled;
+
+  factory VenueBilling.fromJson(Map<String, dynamic> json) => VenueBilling(
+    planCode: json['plan_code'] as String? ?? '',
+    planName: json['plan_name'] as String? ?? '',
+    monthlyPrice: (json['monthly_price'] as num?)?.toDouble() ?? 0,
+    billed: json['billed'] as bool? ?? false,
+    billingStatus: json['billing_status'] as String? ?? '',
+    renewsAt: DateTime.tryParse(json['renews_at'] as String? ?? ''),
+    hasSubscription: json['has_subscription'] as bool? ?? false,
+    billingEnabled: json['billing_enabled'] as bool? ?? false,
+  );
+
+  /// Stripe is retrying the card. The venue keeps working — this is a warning,
+  /// not a closure.
+  bool get isRetrying => billingStatus == 'past_due';
+  bool get isBlocked =>
+      const {'suspended', 'cancelled', 'expired'}.contains(billingStatus);
+}
+
+class BillingPlan {
+  const BillingPlan({
+    required this.code,
+    required this.name,
+    required this.monthlyPrice,
+    required this.billed,
+  });
+
+  final String code;
+  final String name;
+  final double monthlyPrice;
+  final bool billed;
+
+  factory BillingPlan.fromJson(Map<String, dynamic> json) => BillingPlan(
+    code: json['code'] as String? ?? '',
+    name: json['name'] as String? ?? '',
+    monthlyPrice: (json['monthly_price'] as num?)?.toDouble() ?? 0,
+    billed: json['billed'] as bool? ?? false,
+  );
+}
+
+final venueBillingProvider = FutureProvider.family<VenueBilling, int>(
+  (ref, id) => ref.watch(adminRepositoryProvider).billing(id),
+);
+
+final billingPlansProvider = FutureProvider<List<BillingPlan>>(
+  (ref) => ref.watch(adminRepositoryProvider).plans(),
 );

@@ -1,4 +1,14 @@
-from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text
+from datetime import datetime
+
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -29,6 +39,11 @@ class Restaurant(Base):
     # Restaurant is the tenant. Plan codes are keys in app.core.features.PLANS.
     plan_code: Mapped[str] = mapped_column(String(20), default="pro")
     billing_status: Mapped[str] = mapped_column(String(20), default="active")
+    # Stripe Billing. A subscription is only ever written here from a webhook:
+    # the processor decides whether someone has paid, never this process.
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    stripe_subscription_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    plan_renews_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     lng: Mapped[float | None] = mapped_column(Float, nullable=True)
 

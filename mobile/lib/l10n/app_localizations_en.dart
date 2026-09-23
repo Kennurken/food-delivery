@@ -1105,4 +1105,43 @@ class L10nEn extends L10n {
   @override
   String get overriddenNote =>
       'Forced flags ignore the plan until you clear them.';
+
+  @override
+  String get billing => 'Billing';
+
+  @override
+  String get currentPlan => 'Current plan';
+
+  @override
+  String get perMonth => '/month';
+
+  @override
+  String renewsOn(String date) {
+    return 'Renews $date';
+  }
+
+  @override
+  String get subscribe => 'Subscribe';
+
+  @override
+  String get cancelPlan => 'Cancel plan';
+
+  @override
+  String get freePlan => 'Free';
+
+  @override
+  String get billingRetry =>
+      'Payment failed — the card is being retried. Your venue keeps working.';
+
+  @override
+  String get billingBlocked =>
+      'Subscription inactive. New orders are refused until it is restored.';
+
+  @override
+  String get billingOff =>
+      'Subscriptions are not connected on this platform yet.';
+
+  @override
+  String get cancelPlanAsk =>
+      'Stop renewing? The plan stays until the paid period ends, then drops to Free.';
 }

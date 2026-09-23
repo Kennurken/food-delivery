@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy import func, select
 
 from app.api.deps import DB, AdminUser, CurrentUser
-from app.core import audit
+from app.core import audit, subscriptions
 from app.core.access import require_restaurant, valid_staff_role
 from app.core.billing import parse_webhook, public_config
 from app.core.features import (
@@ -53,6 +53,11 @@ async def stripe_webhook(request: Request, db: DB) -> dict:
 
     payload = await request.body()
     event = parse_webhook(payload, request.headers.get("stripe-signature") or "")
+    # One endpoint, two kinds of money: a customer paying for food and a venue
+    # paying for the platform. Both arrive signed by the same account.
+    venue = subscriptions.apply_event(db, event)
+    if venue is not None:
+        return {"ok": True, "restaurant_id": venue.id}
     order = apply_stripe_event(db, event)
     return {"ok": True, "order_id": None if order is None else order.id}
 
@@ -203,6 +208,43 @@ def set_feature(restaurant_id: int, data: FeaturePatch, db: DB, _: AdminUser) ->
     db.commit()
     flags = entitlements(db, restaurant)
     return {"key": data.key, "enabled": data.enabled, "features": sorted(flags.features)}
+
+
+class SubscribeIn(BaseModel):
+    plan_code: str
+
+
+@router.get("/admin/restaurants/{restaurant_id}/billing")
+def billing_state(restaurant_id: int, db: DB, user: CurrentUser) -> dict:
+    restaurant = require_restaurant(db, user, restaurant_id, "billing.read")
+    return subscriptions.describe(restaurant)
+
+
+@router.post("/admin/restaurants/{restaurant_id}/billing/subscribe")
+def start_subscription(
+    restaurant_id: int, data: SubscribeIn, db: DB, user: CurrentUser
+) -> dict:
+    """Open Stripe Checkout for a monthly plan.
+
+    The plan does not move here. It moves when the subscription webhook
+    arrives, which is the only moment anyone has actually paid.
+    """
+    restaurant = require_restaurant(db, user, restaurant_id, "billing.manage")
+    customer, url = subscriptions.subscribe(restaurant, data.plan_code, email=user.email)
+    if restaurant.stripe_customer_id != customer:
+        restaurant.stripe_customer_id = customer
+        db.commit()
+    return {"checkout_url": url}
+
+
+@router.post("/admin/restaurants/{restaurant_id}/billing/cancel")
+def stop_subscription(restaurant_id: int, db: DB, user: CurrentUser) -> dict:
+    """Stop renewing at the end of the paid period, not today."""
+    restaurant = require_restaurant(db, user, restaurant_id, "billing.manage")
+    stopped = subscriptions.cancel(restaurant)
+    if not stopped:
+        raise HTTPException(status.HTTP_409_CONFLICT, "No active subscription")
+    return subscriptions.describe(restaurant)
 
 
 @router.get("/admin/restaurants/{restaurant_id}/features")

@@ -1104,4 +1104,42 @@ class L10nRu extends L10n {
   @override
   String get overriddenNote =>
       'Принудительные флаги не следуют за тарифом, пока их не снять.';
+
+  @override
+  String get billing => 'Оплата';
+
+  @override
+  String get currentPlan => 'Текущий тариф';
+
+  @override
+  String get perMonth => '/мес';
+
+  @override
+  String renewsOn(String date) {
+    return 'Продление $date';
+  }
+
+  @override
+  String get subscribe => 'Подключить';
+
+  @override
+  String get cancelPlan => 'Отключить тариф';
+
+  @override
+  String get freePlan => 'Бесплатный';
+
+  @override
+  String get billingRetry =>
+      'Платёж не прошёл — карта повторяется. Заведение продолжает работать.';
+
+  @override
+  String get billingBlocked =>
+      'Подписка неактивна. Новые заказы не принимаются, пока она не восстановлена.';
+
+  @override
+  String get billingOff => 'Подписки на платформе пока не подключены.';
+
+  @override
+  String get cancelPlanAsk =>
+      'Остановить продление? Тариф действует до конца оплаченного периода, потом станет Бесплатным.';
 }

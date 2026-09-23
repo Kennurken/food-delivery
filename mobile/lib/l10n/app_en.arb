@@ -528,5 +528,23 @@
   "forcedOn": "On",
   "forcedOff": "Off",
   "unlimited": "Unlimited",
-  "overriddenNote": "Forced flags ignore the plan until you clear them."
+  "overriddenNote": "Forced flags ignore the plan until you clear them.",
+  "billing": "Billing",
+  "currentPlan": "Current plan",
+  "perMonth": "/month",
+  "renewsOn": "Renews {date}",
+  "@renewsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscribe": "Subscribe",
+  "cancelPlan": "Cancel plan",
+  "freePlan": "Free",
+  "billingRetry": "Payment failed — the card is being retried. Your venue keeps working.",
+  "billingBlocked": "Subscription inactive. New orders are refused until it is restored.",
+  "billingOff": "Subscriptions are not connected on this platform yet.",
+  "cancelPlanAsk": "Stop renewing? The plan stays until the paid period ends, then drops to Free."
 }

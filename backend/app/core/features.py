@@ -76,25 +76,29 @@ _PREMIUM = _PRO + (
     "ai",
 )
 
-# monthly_price is documentation until a PaymentProvider is wired.
+# Monthly price per venue, in tenge. `billed` plans need a live Stripe
+# subscription; a free plan never touches the processor.
 PLANS: dict[str, dict] = {
     "basic": {
         "name": "Basic",
         "features": _BASIC,
         "limits": {"branches.max": 1, "tables.max": 20, "staff.max": 5},
+        "monthly_price": 0,
         "billed": False,
     },
     "pro": {
         "name": "Pro",
         "features": _PRO,
         "limits": {"branches.max": 3, "tables.max": 100, "staff.max": 30},
-        "billed": False,
+        "monthly_price": 29000,
+        "billed": True,
     },
     "premium": {
         "name": "Premium",
         "features": _PREMIUM,
         "limits": {"branches.max": None, "tables.max": None, "staff.max": None},
-        "billed": False,
+        "monthly_price": 79000,
+        "billed": True,
     },
 }
 
@@ -126,6 +130,7 @@ def public_plans() -> list[dict]:
             "name": spec["name"],
             "features": list(spec["features"]),
             "limits": spec["limits"],
+            "monthly_price": spec["monthly_price"],
             "billed": spec["billed"],
         }
         for code, spec in PLANS.items()

@@ -12,6 +12,7 @@ admin panel stay in the app.
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -37,17 +38,21 @@ templates = Jinja2Templates(directory=str(HERE / "templates"))
 
 
 def _asset_version() -> str:
-    """A stamp that changes when the stylesheet does.
+    """A stamp that changes when the stylesheet does, and only then.
 
     Static files go out with an ETag and no max-age, so browsers fall back to
     heuristic caching: a deployed CSS change can sit unseen behind a stale copy
-    for a returning visitor. Putting the file's own mtime in the URL makes a
-    changed file a different URL, which no cache can confuse with the old one.
+    for a returning visitor. A changed file has to be a different URL.
+
+    The stamp is a hash of the contents, not the mtime. Vercel stamps every
+    built file with the same fixed date (1540000000), so an mtime-based version
+    is frozen across deploys — which is the one thing it must not be.
     """
     try:
-        return str(int((HERE / "static" / "site.css").stat().st_mtime))
+        data = (HERE / "static" / "site.css").read_bytes()
     except OSError:
         return "0"
+    return hashlib.sha256(data).hexdigest()[:12]
 
 
 ASSET_VERSION = _asset_version()

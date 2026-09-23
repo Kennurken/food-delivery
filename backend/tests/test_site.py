@@ -165,7 +165,10 @@ def test_the_stylesheet_url_changes_when_the_file_does(client):
 
     assert "/site/site.css?v=" in page
     stamp = page.split("/site/site.css?v=")[1].split('"')[0]
-    assert stamp.isdigit() and int(stamp) > 0
+    # A content hash, not an mtime: Vercel gives every built file the same
+    # fixed date, which would freeze the version across deploys.
+    assert len(stamp) == 12
+    assert all(c in "0123456789abcdef" for c in stamp)
 
 
 def test_the_404_page_is_styled_like_the_rest(client):
@@ -173,8 +176,8 @@ def test_the_404_page_is_styled_like_the_rest(client):
     the stylesheet."""
     body = client.get("/r/no-such-place/").text
 
-    assert "/site/site.css?v=" in body
-    assert body.split("/site/site.css?v=")[1].split('"')[0].isdigit()
+    stamp = body.split("/site/site.css?v=")[1].split('"')[0]
+    assert len(stamp) == 12
 
 
 def test_the_nav_survives_on_a_phone(client):

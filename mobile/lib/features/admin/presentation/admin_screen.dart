@@ -18,7 +18,9 @@ import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
 import '../../orders/presentation/orders_screen.dart';
 import '../data/admin_repository.dart';
+import 'platform_income_tab.dart';
 import 'platform_venues_screen.dart';
+import 'stats_tab.dart';
 
 class AdminScreen extends ConsumerWidget {
   const AdminScreen({super.key});
@@ -27,7 +29,7 @@ class AdminScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.l10n;
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text(t.admin),
@@ -39,10 +41,17 @@ class AdminScreen extends ConsumerWidget {
                   ref.read(authControllerProvider.notifier).logout(),
             ),
           ],
-          bottom: PillTabBar(tabs: [t.orders, t.restaurants, t.platform]),
+          bottom: PillTabBar(
+            tabs: [t.orders, t.restaurants, t.statistics, t.platform],
+          ),
         ),
         body: const TabBarView(
-          children: [_OrdersTab(), _RestaurantsTab(), _PlatformTab()],
+          children: [
+            _OrdersTab(),
+            _RestaurantsTab(),
+            StatsTab(),
+            _PlatformTab(),
+          ],
         ),
       ),
     );
@@ -363,18 +372,24 @@ class _PlatformTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.l10n;
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Column(
         children: [
           TabBar(
+            isScrollable: true,
             tabs: [
               Tab(text: t.overview),
               Tab(text: t.directory),
+              Tab(text: t.income),
             ],
           ),
           const Expanded(
             child: TabBarView(
-              children: [_PlatformOverview(), PlatformVenuesTab()],
+              children: [
+                _PlatformOverview(),
+                PlatformVenuesTab(),
+                PlatformIncomeTab(),
+              ],
             ),
           ),
         ],

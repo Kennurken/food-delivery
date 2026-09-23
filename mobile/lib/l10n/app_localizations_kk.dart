@@ -998,4 +998,63 @@ class L10nKk extends L10n {
 
   @override
   String get days90 => '90 күн';
+
+  @override
+  String get statistics => 'Статистика';
+
+  @override
+  String get customers => 'Клиенттер';
+
+  @override
+  String get income => 'Табыс';
+
+  @override
+  String get revenueLabel => 'Түсім';
+
+  @override
+  String get ordersLabel => 'Тапсырыс';
+
+  @override
+  String get averageCheck => 'Орташа чек';
+
+  @override
+  String get cancelledLabel => 'Бас тартылды';
+
+  @override
+  String get topDishes => 'Үздік тағамдар';
+
+  @override
+  String get noStatsYet => 'Әзірге дерек жоқ';
+
+  @override
+  String get noStatsYetHint => 'Жеткізілген тапсырыстардан кейін көрінеді';
+
+  @override
+  String planWindowNote(int days) {
+    return 'Тарифіңіз $days күнге дейін көрсетеді';
+  }
+
+  @override
+  String get grossLabel => 'Айналым';
+
+  @override
+  String get courierPayoutsLabel => 'Курьерлерге төлем';
+
+  @override
+  String get byPlanLabel => 'Тариф бойынша';
+
+  @override
+  String get topVenues => 'Үздік мекемелер';
+
+  @override
+  String get notProfitNote =>
+      'Айналым минус төлем — пайда емес: комиссия әлі есептелмеген.';
+
+  @override
+  String customerOrders(int count) {
+    return '$count тапсырыс';
+  }
+
+  @override
+  String get pickVenue => 'Мекемені таңдаңыз';
 }

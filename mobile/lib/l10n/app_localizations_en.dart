@@ -1000,4 +1000,63 @@ class L10nEn extends L10n {
 
   @override
   String get days90 => '90 days';
+
+  @override
+  String get statistics => 'Statistics';
+
+  @override
+  String get customers => 'Customers';
+
+  @override
+  String get income => 'Income';
+
+  @override
+  String get revenueLabel => 'Revenue';
+
+  @override
+  String get ordersLabel => 'Orders';
+
+  @override
+  String get averageCheck => 'Average check';
+
+  @override
+  String get cancelledLabel => 'Cancelled';
+
+  @override
+  String get topDishes => 'Top dishes';
+
+  @override
+  String get noStatsYet => 'No data yet';
+
+  @override
+  String get noStatsYetHint => 'Numbers appear once orders are delivered';
+
+  @override
+  String planWindowNote(int days) {
+    return 'Your plan shows up to $days days';
+  }
+
+  @override
+  String get grossLabel => 'Gross';
+
+  @override
+  String get courierPayoutsLabel => 'Courier payouts';
+
+  @override
+  String get byPlanLabel => 'By plan';
+
+  @override
+  String get topVenues => 'Top venues';
+
+  @override
+  String get notProfitNote =>
+      'Gross minus payouts is not profit — commission is not modelled yet.';
+
+  @override
+  String customerOrders(int count) {
+    return '$count orders';
+  }
+
+  @override
+  String get pickVenue => 'Choose a venue';
 }

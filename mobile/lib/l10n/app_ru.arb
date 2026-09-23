@@ -376,5 +376,37 @@
   "noEarningsYetHint": "Закройте доставку — она появится здесь",
   "days7": "7 дней",
   "days30": "30 дней",
-  "days90": "90 дней"
+  "days90": "90 дней",
+  "statistics": "Статистика",
+  "customers": "Клиенты",
+  "income": "Доход",
+  "revenueLabel": "Выручка",
+  "ordersLabel": "Заказов",
+  "averageCheck": "Средний чек",
+  "cancelledLabel": "Отменено",
+  "topDishes": "Топ блюд",
+  "noStatsYet": "Пока нет данных",
+  "noStatsYetHint": "Цифры появятся после доставленных заказов",
+  "planWindowNote": "Ваш тариф показывает до {days} дней",
+  "@planWindowNote": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "grossLabel": "Оборот",
+  "courierPayoutsLabel": "Выплаты курьерам",
+  "byPlanLabel": "По тарифам",
+  "topVenues": "Топ заведений",
+  "notProfitNote": "Оборот минус выплаты — это не прибыль: комиссия ещё не заложена.",
+  "customerOrders": "{count} заказов",
+  "@customerOrders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pickVenue": "Выберите заведение"
 }

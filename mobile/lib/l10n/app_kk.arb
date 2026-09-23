@@ -376,5 +376,37 @@
   "noEarningsYetHint": "Жеткізуді аяқтаңыз — осында шығады",
   "days7": "7 күн",
   "days30": "30 күн",
-  "days90": "90 күн"
+  "days90": "90 күн",
+  "statistics": "Статистика",
+  "customers": "Клиенттер",
+  "income": "Табыс",
+  "revenueLabel": "Түсім",
+  "ordersLabel": "Тапсырыс",
+  "averageCheck": "Орташа чек",
+  "cancelledLabel": "Бас тартылды",
+  "topDishes": "Үздік тағамдар",
+  "noStatsYet": "Әзірге дерек жоқ",
+  "noStatsYetHint": "Жеткізілген тапсырыстардан кейін көрінеді",
+  "planWindowNote": "Тарифіңіз {days} күнге дейін көрсетеді",
+  "@planWindowNote": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "grossLabel": "Айналым",
+  "courierPayoutsLabel": "Курьерлерге төлем",
+  "byPlanLabel": "Тариф бойынша",
+  "topVenues": "Үздік мекемелер",
+  "notProfitNote": "Айналым минус төлем — пайда емес: комиссия әлі есептелмеген.",
+  "customerOrders": "{count} тапсырыс",
+  "@customerOrders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pickVenue": "Мекемені таңдаңыз"
 }

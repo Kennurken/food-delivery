@@ -1964,6 +1964,114 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'90 days'**
   String get days90;
+
+  /// No description provided for @statistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get statistics;
+
+  /// No description provided for @customers.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get customers;
+
+  /// No description provided for @income.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get income;
+
+  /// No description provided for @revenueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get revenueLabel;
+
+  /// No description provided for @ordersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get ordersLabel;
+
+  /// No description provided for @averageCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Average check'**
+  String get averageCheck;
+
+  /// No description provided for @cancelledLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get cancelledLabel;
+
+  /// No description provided for @topDishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Top dishes'**
+  String get topDishes;
+
+  /// No description provided for @noStatsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get noStatsYet;
+
+  /// No description provided for @noStatsYetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbers appear once orders are delivered'**
+  String get noStatsYetHint;
+
+  /// No description provided for @planWindowNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan shows up to {days} days'**
+  String planWindowNote(int days);
+
+  /// No description provided for @grossLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross'**
+  String get grossLabel;
+
+  /// No description provided for @courierPayoutsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier payouts'**
+  String get courierPayoutsLabel;
+
+  /// No description provided for @byPlanLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'By plan'**
+  String get byPlanLabel;
+
+  /// No description provided for @topVenues.
+  ///
+  /// In en, this message translates to:
+  /// **'Top venues'**
+  String get topVenues;
+
+  /// No description provided for @notProfitNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross minus payouts is not profit — commission is not modelled yet.'**
+  String get notProfitNote;
+
+  /// No description provided for @customerOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders'**
+  String customerOrders(int count);
+
+  /// No description provided for @pickVenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a venue'**
+  String get pickVenue;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

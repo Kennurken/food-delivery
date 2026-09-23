@@ -999,4 +999,63 @@ class L10nRu extends L10n {
 
   @override
   String get days90 => '90 дней';
+
+  @override
+  String get statistics => 'Статистика';
+
+  @override
+  String get customers => 'Клиенты';
+
+  @override
+  String get income => 'Доход';
+
+  @override
+  String get revenueLabel => 'Выручка';
+
+  @override
+  String get ordersLabel => 'Заказов';
+
+  @override
+  String get averageCheck => 'Средний чек';
+
+  @override
+  String get cancelledLabel => 'Отменено';
+
+  @override
+  String get topDishes => 'Топ блюд';
+
+  @override
+  String get noStatsYet => 'Пока нет данных';
+
+  @override
+  String get noStatsYetHint => 'Цифры появятся после доставленных заказов';
+
+  @override
+  String planWindowNote(int days) {
+    return 'Ваш тариф показывает до $days дней';
+  }
+
+  @override
+  String get grossLabel => 'Оборот';
+
+  @override
+  String get courierPayoutsLabel => 'Выплаты курьерам';
+
+  @override
+  String get byPlanLabel => 'По тарифам';
+
+  @override
+  String get topVenues => 'Топ заведений';
+
+  @override
+  String get notProfitNote =>
+      'Оборот минус выплаты — это не прибыль: комиссия ещё не заложена.';
+
+  @override
+  String customerOrders(int count) {
+    return '$count заказов';
+  }
+
+  @override
+  String get pickVenue => 'Выберите заведение';
 }

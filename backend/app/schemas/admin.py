@@ -21,6 +21,7 @@ class RestaurantUpdate(BaseModel):
     delivery_free_km: float | None = Field(default=None, ge=0, le=100)
     delivery_max_km: float | None = Field(default=None, ge=0, le=500)
     delivery_time_min: int | None = Field(default=None, ge=1, le=240)
+    max_active_orders: int | None = Field(default=None, ge=1, le=500)
     plan_code: str | None = None
     billing_status: str | None = None
     lat: float | None = Field(default=None, ge=-90, le=90)

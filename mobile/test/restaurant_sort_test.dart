@@ -72,4 +72,39 @@ void main() {
   test('spotlight is the top-rated slice', () {
     expect(spotlightOf(list, take: 2).map((e) => e.name), ['Bao', 'Pizza']);
   });
+
+  group('kitchen load on a restaurant card', () {
+    Restaurant make({bool isOpen = true, bool? accepting, bool busy = false}) =>
+        Restaurant.fromJson({
+          'id': 1,
+          'name': 'Bao Bar',
+          'description': '',
+          'cuisine': 'Asian',
+          'rating': 4.6,
+          'rating_count': 11,
+          'delivery_fee': 500.0,
+          'delivery_time_min': 25,
+          'is_open': isOpen,
+          'accepting_orders': ?accepting,
+          'kitchen_busy': busy,
+        });
+
+    test('a full kitchen is still open but not accepting', () {
+      final r = make(accepting: false, busy: true);
+      expect(r.isOpen, isTrue);
+      expect(r.kitchenBusy, isTrue);
+      expect(r.acceptingOrders, isFalse);
+    });
+
+    test('a quiet kitchen accepts', () {
+      final r = make(accepting: true);
+      expect(r.acceptingOrders, isTrue);
+      expect(r.kitchenBusy, isFalse);
+    });
+
+    test('an older payload without the fields still accepts', () {
+      expect(make().acceptingOrders, isTrue);
+      expect(make().kitchenBusy, isFalse);
+    });
+  });
 }

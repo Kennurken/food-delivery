@@ -129,6 +129,33 @@ class RestaurantScreen extends ConsumerWidget {
                 sliver: SliverList.list(
                   children: [
                     Text(r.description, style: text.bodyMedium).stagger(idx++),
+                    if (r.isOpen && r.kitchenBusy) ...[
+                      const SizedBox(height: 12),
+                      Material(
+                        color: scheme.tertiaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.local_fire_department_outlined,
+                                color: scheme.onTertiaryContainer,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  t.kitchenBusyHint,
+                                  style: text.bodyMedium?.copyWith(
+                                    color: scheme.onTertiaryContainer,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ).stagger(idx++),
+                    ],
                     if (!r.isOpen) ...[
                       const SizedBox(height: 12),
                       Material(
@@ -234,7 +261,7 @@ class RestaurantScreen extends ConsumerWidget {
                       for (final m in entry.value)
                         _MenuTile(
                           m,
-                          restaurantOpen: r.isOpen,
+                          restaurantOpen: r.acceptingOrders,
                           tableToken: tableToken,
                         ).stagger(idx++),
                       const SizedBox(height: 16),

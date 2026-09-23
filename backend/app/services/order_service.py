@@ -25,7 +25,7 @@ from app.models.floor_plan import FloorObject
 from app.models.idempotency import IdempotencyRecord
 from app.models.member import RestaurantMember
 from app.schemas.order import OrderCreate, OrderOut
-from app.services import delivery_pricing
+from app.services import delivery_pricing, kitchen_load
 from app.services import promo as promo_service
 from app.services.schedule import due_for_courier, parse_slot
 
@@ -179,6 +179,11 @@ def create_order(
     origin: str | None = None,
 ) -> Order:
     restaurant = db.get(Restaurant, data.restaurant_id)
+    if restaurant and restaurant.is_open and kitchen_load.load_of(db, restaurant).overloaded:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"{restaurant.name} has a full kitchen right now. Try again in a few minutes.",
+        )
     if not restaurant or not restaurant.is_open:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found or closed")
     if restaurant.billing_status in INACTIVE_BILLING:

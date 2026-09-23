@@ -11,6 +11,8 @@ class Restaurant {
     required this.deliveryFee,
     required this.deliveryTimeMin,
     required this.isOpen,
+    this.acceptingOrders = true,
+    this.kitchenBusy = false,
     this.imageUrl,
     this.menu = const [],
     this.planCode,
@@ -30,6 +32,11 @@ class Restaurant {
   final double deliveryFee;
   final int deliveryTimeMin;
   final bool isOpen;
+
+  /// Open with room on the stove. A busy kitchen is still 'open' — the owner
+  /// did not close it — but it cannot take another ticket right now.
+  final bool acceptingOrders;
+  final bool kitchenBusy;
   final String? planCode;
   final List<String> channels;
   final bool reservations;
@@ -60,6 +67,8 @@ class Restaurant {
     deliveryFee: (json['delivery_fee'] as num).toDouble(),
     deliveryTimeMin: json['delivery_time_min'] as int,
     isOpen: json['is_open'] as bool,
+    acceptingOrders: json['accepting_orders'] as bool? ?? true,
+    kitchenBusy: json['kitchen_busy'] as bool? ?? false,
     planCode: json['plan_code'] as String?,
     channels: [
       for (final c in json['channels'] as List<dynamic>? ?? ['delivery'])

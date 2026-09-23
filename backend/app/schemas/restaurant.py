@@ -52,6 +52,10 @@ class RestaurantOut(BaseModel):
     delivery_max_km: float | None = None
     delivery_time_min: int
     is_open: bool
+    # Open *and* with room on the stove. The storefront greys out a full kitchen
+    # instead of letting someone build a cart it will refuse.
+    accepting_orders: bool = True
+    kitchen_busy: bool = False
     plan_code: str = "pro"
     channels: list[str] = Field(default_factory=lambda: ["delivery"])
     reservations: bool = False

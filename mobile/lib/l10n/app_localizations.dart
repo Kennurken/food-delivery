@@ -1886,6 +1886,18 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'refunded'**
   String get refunded;
+
+  /// No description provided for @kitchenBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen full'**
+  String get kitchenBusy;
+
+  /// No description provided for @kitchenBusyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This kitchen is at capacity. Try again in a few minutes.'**
+  String get kitchenBusyHint;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

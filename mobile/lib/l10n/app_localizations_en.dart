@@ -959,4 +959,11 @@ class L10nEn extends L10n {
 
   @override
   String get refunded => 'refunded';
+
+  @override
+  String get kitchenBusy => 'Kitchen full';
+
+  @override
+  String get kitchenBusyHint =>
+      'This kitchen is at capacity. Try again in a few minutes.';
 }

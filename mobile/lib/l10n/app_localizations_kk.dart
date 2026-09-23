@@ -957,4 +957,11 @@ class L10nKk extends L10n {
 
   @override
   String get refunded => 'қайтарылды';
+
+  @override
+  String get kitchenBusy => 'Асхана бос емес';
+
+  @override
+  String get kitchenBusyHint =>
+      'Асхана қазір толы. Бірнеше минуттан кейін қайталаңыз.';
 }

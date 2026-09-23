@@ -19,6 +19,8 @@ class Restaurant(Base):
     delivery_fee_per_km: Mapped[float] = mapped_column(Float, default=0.0)
     delivery_free_km: Mapped[float] = mapped_column(Float, default=0.0)
     delivery_max_km: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Tickets the kitchen will hold at once. None = no cap.
+    max_active_orders: Mapped[int | None] = mapped_column(Integer, nullable=True)
     delivery_time_min: Mapped[int] = mapped_column(Integer, default=30)
     is_open: Mapped[bool] = mapped_column(Boolean, default=True)
     # Restaurant is the tenant. Plan codes are keys in app.core.features.PLANS.

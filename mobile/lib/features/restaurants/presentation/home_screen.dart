@@ -542,6 +542,15 @@ class _RestaurantCard extends StatelessWidget {
                           icon: Icons.storefront,
                           label: context.l10n.closed,
                         ),
+                      )
+                    else if (r.kitchenBusy)
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: _Pill(
+                          icon: Icons.local_fire_department_outlined,
+                          label: context.l10n.kitchenBusy,
+                        ),
                       ),
                   ],
                 ),

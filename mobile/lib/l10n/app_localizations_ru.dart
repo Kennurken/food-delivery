@@ -958,4 +958,11 @@ class L10nRu extends L10n {
 
   @override
   String get refunded => 'возвращено';
+
+  @override
+  String get kitchenBusy => 'Кухня загружена';
+
+  @override
+  String get kitchenBusyHint =>
+      'Кухня сейчас перегружена. Попробуйте через несколько минут.';
 }

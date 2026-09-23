@@ -24,7 +24,7 @@ Do **not** rebuild as a Firebase clone. The stack (Flutter + FastAPI + Neon, thr
 
 **Shipped 22 Sep 2026 (reservations):** book a floor table 30 min–14 days out. Overlap 409. Auto-confirm if a table is picked. Kitchen confirm/seat/cancel; walk-in now. Card/FCM still blocked on keys.
 
-**Next:** FCM HTTP v1 + Stripe/Kaspi after real keys. Do not put a legacy `FCM_SERVER_KEY` in Vercel — Google shut that API down.
+**Next:** Stripe/Kaspi after real keys. FCM HTTP v1 transport is written; it needs a service-account JSON in `FCM_CREDENTIALS_JSON` (raw or base64) plus a Firebase client in the Flutter app. Do not put a legacy `FCM_SERVER_KEY` in Vercel — Google shut that API down.
 
 ## What we already have
 

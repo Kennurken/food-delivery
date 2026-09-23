@@ -33,7 +33,7 @@ Tiles render in Flutter (`flutter_map` + Carto Voyager / Dark Matter). Geocoding
 
 `price_line` applies modifier groups on `MenuItem`. Empty `option_ids` pick each group's defaults so older clients still price Regular. The ticket stores `{group, option_id, name, price}` on `OrderItem.modifiers`; unit `price` already includes deltas.
 
-`pay_method=cash` → unpaid. `pay_method=online` without a card key → 409. Device tokens live on `device_tokens`. `app.core.push.fanout` is a no-op unless `FCM_SERVER_KEY` is set; it never fails an order.
+`pay_method=cash` → unpaid. `pay_method=online` without a card key → 409. Device tokens live on `device_tokens`. `app.core.push.fanout` speaks FCM HTTP v1 and is a no-op unless `FCM_CREDENTIALS_JSON` holds a service account; it never fails an order, and it drops tokens Google reports as `UNREGISTERED`.
 
 ## Offers
 

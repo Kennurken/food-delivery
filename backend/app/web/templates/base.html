@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} — Food Delivery</title>
+<meta name="description" content="{{ description }}">
+{% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ description }}">
+{% if canonical %}<meta property="og:url" content="{{ canonical }}">{% endif %}
+{% if og_image %}<meta property="og:image" content="{{ og_image }}">{% endif %}
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site/site.css">
+{% block head %}{% endblock %}
+</head>
+<body>
+<header class="bar">
+  <div class="wrap bar-inner">
+    <a class="brand" href="/">
+      <span class="dot"></span>
+      Food Delivery
+    </a>
+    <nav class="nav">
+      <a href="/delivery/">Доставка</a>
+      <a href="/about/">О сервисе</a>
+      <a class="cta" href="{{ app_url }}/#/">Заказать</a>
+    </nav>
+  </div>
+</header>
+
+{% block content %}{% endblock %}
+
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <div>
+      <p class="foot-brand">Food Delivery</p>
+      <p class="muted">Доставка еды в Алматы</p>
+    </div>
+    <nav class="foot-nav">
+      <a href="/">Главная</a>
+      <a href="/delivery/">Доставка и оплата</a>
+      <a href="/about/">О сервисе</a>
+      <a href="{{ app_url }}/#/">Открыть приложение</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

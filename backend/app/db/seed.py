@@ -380,6 +380,49 @@ def ensure_courier_payout_schema() -> None:
             )
 
 
+def ensure_slug_schema() -> None:
+    """Public-URL slug column for hosts that boot without alembic."""
+    from sqlalchemy import text
+
+    from app.db.session import engine
+
+    with engine.begin() as conn:
+        if engine.dialect.name == "sqlite":
+            have = {r[1] for r in conn.execute(text("PRAGMA table_info(restaurants)"))}
+        else:
+            have = {
+                r[0]
+                for r in conn.execute(
+                    text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_name = 'restaurants'"
+                    )
+                )
+            }
+        if "slug" not in have:
+            conn.execute(text("ALTER TABLE restaurants ADD COLUMN slug VARCHAR(80)"))
+            conn.execute(
+                text("CREATE UNIQUE INDEX IF NOT EXISTS ix_restaurants_slug ON restaurants (slug)")
+            )
+
+
+def ensure_restaurant_slugs() -> int:
+    """Give every restaurant a slug. Existing ones keep theirs — a slug that has
+    been crawled or shared is a promise, not a cache."""
+    from app.models.restaurant import Restaurant
+    from app.services.slugs import unique_slug
+
+    filled = 0
+    with SessionLocal() as db:
+        for restaurant in db.scalars(select(Restaurant).where(Restaurant.slug.is_(None))):
+            restaurant.slug = unique_slug(db, Restaurant, restaurant.name, skip_id=restaurant.id)
+            db.flush()
+            filled += 1
+        if filled:
+            db.commit()
+    return filled
+
+
 def ensure_capacity_schema() -> None:
     """Kitchen cap column for hosts that boot without alembic."""
     from sqlalchemy import text
@@ -842,6 +885,10 @@ def seed() -> None:
     tariffs = ensure_demo_delivery_pricing()
     if tariffs:
         print(f"Delivery tariffs: set {tariffs}")
+    ensure_slug_schema()
+    slugs = ensure_restaurant_slugs()
+    if slugs:
+        print(f"Public slugs: filled {slugs}")
     print("Already seeded" if added == 0 else "Seeded: 3 users, 3 restaurants, 9 menu items")
 
 

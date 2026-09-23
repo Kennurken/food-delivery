@@ -3,10 +3,13 @@ from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import Response
 
 from app.api.v1.router import api_router
@@ -14,6 +17,11 @@ from app.core.config import settings
 from app.core.events import hub
 from app.core.ratelimit import limiter
 from app.db.session import SessionLocal
+from app.web.site import HERE as SITE_ROOT
+from app.web.site import router as site_router
+from app.web.site import templates as site_templates
+
+SITE_STATIC = SITE_ROOT / "static"
 
 
 @asynccontextmanager
@@ -42,7 +50,9 @@ async def lifespan(_: FastAPI):
             ensure_offers_schema,
             ensure_reservations_schema,
             ensure_restaurant_coords,
+            ensure_restaurant_slugs,
             ensure_saas_schema,
+            ensure_slug_schema,
             seed_catalog,
         )
 
@@ -63,6 +73,7 @@ async def lifespan(_: FastAPI):
         ensure_handover_schema()
         ensure_capacity_schema()
         ensure_courier_payout_schema()
+        ensure_slug_schema()
 
         # Now the data.
         seed_catalog()
@@ -70,6 +81,7 @@ async def lifespan(_: FastAPI):
         ensure_restaurant_coords()
         ensure_demo_modifiers()
         ensure_demo_promos()
+        ensure_restaurant_slugs()
     # Sync endpoints run in a threadpool; hub needs the main loop to push WS frames.
     hub.bind_loop(asyncio.get_running_loop())
     yield
@@ -96,6 +108,30 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+
+# The public site. Mounted after the API so /api/v1 keeps its paths, and the
+# static bundle sits under /site so it cannot collide with a restaurant slug.
+app.mount("/site", StaticFiles(directory=str(SITE_STATIC)), name="site")
+app.include_router(site_router)
+
+
+@app.exception_handler(StarletteHTTPException)
+async def _not_found(request: Request, exc: StarletteHTTPException):
+    """A stranger who mistypes a restaurant URL should land on a page, not on
+    a JSON blob. API paths keep the machine-readable answer."""
+    wants_json = request.url.path.startswith(("/api/", "/health", "/docs", "/openapi"))
+    if wants_json or exc.status_code != 404:
+        return await http_exception_handler(request, exc)
+    return site_templates.TemplateResponse(
+        request,
+        "404.html",
+        {
+            "title": "Страница не найдена",
+            "description": "Такой страницы нет.",
+            "app_url": settings.public_app_url.rstrip("/"),
+        },
+        status_code=404,
+    )
 
 
 @app.middleware("http")

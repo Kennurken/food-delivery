@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  "name": {{ restaurant.name|tojson }},
+  "servesCuisine": {{ restaurant.cuisine|tojson }},
+  "image": {{ (restaurant.image_url or '')|tojson }},
+  "url": {{ canonical|tojson }},
+  "address": {"@type": "PostalAddress", "addressLocality": "Алматы", "addressCountry": "KZ"},
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": {{ '%.1f'|format(restaurant.rating) }},
+    "reviewCount": {{ restaurant.rating_count }}
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="venue">
+  <div class="wrap venue-inner">
+    {% if restaurant.image_url %}
+    <img class="venue-photo" src="{{ restaurant.image_url }}" alt="{{ restaurant.name }}" width="520" height="340">
+    {% endif %}
+    <div>
+      <p class="kicker">{{ restaurant.cuisine }} · Алматы</p>
+      <h1>{{ restaurant.name }}</h1>
+      {% if restaurant.description %}<p class="lede">{{ restaurant.description }}</p>{% endif %}
+      <p class="meta">
+        <span class="rate">★ {{ '%.1f'|format(restaurant.rating) }}</span>
+        <span class="muted">{{ restaurant.rating_count }} оценок</span>
+        <span class="muted">· {{ restaurant.delivery_time_min }} мин</span>
+        <span class="muted">· доставка от {{ restaurant.delivery_fee|round|int }} ₸</span>
+      </p>
+      {% if not restaurant.is_open %}
+      <p class="notice">Сейчас закрыто. Меню и цены актуальны.</p>
+      {% endif %}
+      <div class="hero-actions">
+        <a class="btn" href="{{ app_url }}/#/r/{{ restaurant.id }}">Заказать</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap block">
+  <h2>Меню{% if item_count %} · {{ item_count }} блюд{% endif %}</h2>
+  {% for section in sections %}
+  <h3 class="section">{{ section.name }}</h3>
+  <div class="grid cards">
+    {% for item in section.items %}
+    <article class="card dish">
+      <div class="thumb">
+        {% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.name }}" loading="lazy" width="400" height="260">{% endif %}
+      </div>
+      <div class="card-body">
+        <p class="card-title">{{ item.name }}</p>
+        {% if item.description %}<p class="muted">{{ item.description }}</p>{% endif %}
+        <p class="price">{{ item.price|round|int }} ₸</p>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">Меню обновляется.</p>
+  {% endfor %}
+</section>
+{% endblock %}

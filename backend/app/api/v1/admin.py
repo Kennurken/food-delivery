@@ -19,6 +19,7 @@ from app.schemas.admin import (
 )
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
 from app.services.restaurant_view import to_detail, to_out
+from app.services.slugs import unique_slug
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -41,6 +42,10 @@ def create_restaurant(
     payload = data.model_dump()
     r = Restaurant(**payload, plan_code=DEFAULT_PLAN)
     db.add(r)
+    db.flush()
+    # Without this the venue has no public page and never reaches the sitemap:
+    # it would exist in the app and be invisible on the site.
+    r.slug = unique_slug(db, Restaurant, r.name, skip_id=r.id)
     db.flush()
     audit.record(
         db,

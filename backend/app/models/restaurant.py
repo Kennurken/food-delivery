@@ -9,6 +9,9 @@ class Restaurant(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(150), index=True)
+    # Part of the public URL (/r/<slug>/) and of the sitemap, so it is stored
+    # rather than derived: a rename must not break links already shared.
+    slug: Mapped[str | None] = mapped_column(String(80), unique=True, index=True, nullable=True)
     description: Mapped[str] = mapped_column(Text, default="")
     cuisine: Mapped[str] = mapped_column(String(50), index=True)
     image_url: Mapped[str | None] = mapped_column(String(500))

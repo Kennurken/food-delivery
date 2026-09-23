@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     stripe_publishable_key: str = ""  # pk_test_ / pk_live_; returned to the client
     stripe_webhook_secret: str = ""  # whsec_… for POST /billing/stripe/webhook
     public_app_url: str = "https://food-delivery-drab-theta.vercel.app"
+    # Where the server-rendered site lives. Goes into canonical links, OG tags
+    # and the sitemap, so a wrong value quietly poisons every one of them.
+    public_site_url: str = "https://food-delivery-api-jet.vercel.app"
     # Share of the delivery fee the courier keeps. The rest covers the platform.
     courier_fee_share: float = 0.8
     firebase_project_id: str = ""  # web client id; FCM send still needs a service account

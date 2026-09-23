@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+  <div class="wrap">
+    <p class="kicker">Алматы</p>
+    <h1>Доставка еды в г. Алматы</h1>
+    <p class="lede">Паназиатская кухня, пицца и бургеры из местных ресторанов.
+      Оплата картой или наличными, бронь столика, доставка по расстоянию —
+      цену видно до оформления.</p>
+    <div class="hero-actions">
+      <a class="btn" href="{{ app_url }}/#/">Выбрать ресторан</a>
+      <a class="btn ghost" href="/delivery/">Как работает доставка</a>
+    </div>
+  </div>
+</section>
+
+<section class="wrap block">
+  <h2>Рестораны</h2>
+  <div class="grid cards">
+    {% for r in restaurants %}
+    <a class="card{% if not r.is_open %} closed{% endif %}" href="/r/{{ r.slug }}/">
+      <div class="thumb">
+        {% if r.image_url %}<img src="{{ r.image_url }}" alt="{{ r.name }}" loading="lazy" width="400" height="260">{% endif %}
+        {% if not r.is_open %}<span class="badge">Закрыто</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <p class="card-title">{{ r.name }}</p>
+        <p class="muted">{{ r.cuisine }} · {{ r.delivery_time_min }} мин</p>
+        <p class="meta">
+          <span class="rate">★ {{ '%.1f'|format(r.rating) }}</span>
+          <span class="muted">доставка от {{ r.delivery_fee|round|int }} ₸</span>
+        </p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+{% if promos %}
+<section class="wrap block">
+  <h2>Акции</h2>
+  <div class="grid promos">
+    {% for p in promos %}
+    <article class="promo">
+      <p class="promo-value">
+        {% if p.kind == 'percent' %}−{{ p.value|round|int }}%{% else %}−{{ p.value|round|int }} ₸{% endif %}
+      </p>
+      <p class="card-title">{{ p.restaurant.name }}</p>
+      <p class="muted">Промокод <code>{{ p.code }}</code>{% if p.min_subtotal %} · от {{ p.min_subtotal|round|int }} ₸{% endif %}</p>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="wrap block band">
+  <div class="band-inner">
+    <div>
+      <h2>Приложение</h2>
+      <p class="muted">Заказы, статус курьера на карте и код передачи — в приложении.</p>
+    </div>
+    <a class="btn" href="{{ app_url }}/#/">Открыть</a>
+  </div>
+</section>
+{% endblock %}

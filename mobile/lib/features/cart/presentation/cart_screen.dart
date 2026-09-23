@@ -29,6 +29,7 @@ import '../../restaurants/presentation/restaurant_screen.dart'
     show QuantityStepper;
 import '../domain/schedule_slots.dart';
 import 'cart_controller.dart';
+import '../../../core/widgets/anim_icon.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -278,7 +279,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       return Scaffold(
         appBar: AppBar(title: Text(t.cart)),
         body: EmptyState(
-          icon: Icons.shopping_bag_outlined,
+          shape: AnimShape.bag,
           title: t.cartEmpty,
           hint: t.cartEmptyHint,
           action: FilledButton.tonal(

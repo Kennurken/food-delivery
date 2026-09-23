@@ -8,6 +8,7 @@ import '../../../core/widgets/list_skeleton.dart';
 import '../../cart/domain/schedule_slots.dart';
 import '../data/reservation_repository.dart';
 import '../domain/reservation.dart';
+import '../../../core/widgets/anim_icon.dart';
 
 class MyReservationsScreen extends ConsumerWidget {
   const MyReservationsScreen({super.key});
@@ -40,7 +41,7 @@ class MyReservationsScreen extends ConsumerWidget {
         data: (list) {
           if (list.isEmpty) {
             return EmptyState(
-              icon: Icons.event_seat_outlined,
+              shape: AnimShape.bell,
               title: t.noReservations,
               hint: t.noReservationsHint,
             );

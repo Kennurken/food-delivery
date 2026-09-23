@@ -8,6 +8,7 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/list_skeleton.dart';
 import '../data/stats_repository.dart';
 import 'stats_widgets.dart';
+import '../../../core/widgets/anim_icon.dart';
 
 /// The platform's own books, across every venue.
 class PlatformIncomeTab extends ConsumerWidget {
@@ -42,7 +43,7 @@ class PlatformIncomeTab extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 40),
                 child: EmptyState(
-                  icon: Icons.payments_outlined,
+                  shape: AnimShape.wallet,
                   title: t.noStatsYet,
                   hint: t.noStatsYetHint,
                 ),

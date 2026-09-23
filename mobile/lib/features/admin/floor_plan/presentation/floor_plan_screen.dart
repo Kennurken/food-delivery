@@ -11,6 +11,7 @@ import 'floor_canvas.dart';
 import 'object_palette.dart';
 import 'plan_theme.dart';
 import 'properties_panel.dart';
+import '../../../../core/widgets/anim_icon.dart';
 
 class FloorPlanScreen extends ConsumerWidget {
   const FloorPlanScreen({super.key, required this.restaurantId});
@@ -219,7 +220,7 @@ class _EditorScaffold extends StatelessWidget {
     }
     if (editor.doc == null) {
       return EmptyState(
-        icon: Icons.grid_on,
+        shape: AnimShape.grid,
         title: context.l10n.noFloorPlan,
         hint: context.l10n.noFloorPlanHint,
         action: FilledButton(

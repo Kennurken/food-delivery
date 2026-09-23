@@ -12,6 +12,7 @@ import '../data/admin_repository.dart';
 import '../data/stats_repository.dart';
 import '../domain/venue_stats.dart';
 import 'stats_widgets.dart';
+import '../../../core/widgets/anim_icon.dart';
 
 /// A venue's own numbers, plus the people behind them.
 class StatsTab extends ConsumerWidget {
@@ -130,7 +131,7 @@ class _Numbers extends ConsumerWidget {
       return Padding(
         padding: const EdgeInsets.only(top: 40),
         child: EmptyState(
-          icon: Icons.insights_outlined,
+          shape: AnimShape.chart,
           title: t.noStatsYet,
           hint: t.noStatsYetHint,
         ),

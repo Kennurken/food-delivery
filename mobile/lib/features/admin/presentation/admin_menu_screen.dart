@@ -6,6 +6,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
 
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/anim_icon.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../../core/widgets/stretch_switch.dart';
 import '../../restaurants/domain/menu_item.dart';
@@ -15,6 +16,7 @@ import 'admin_promos_sheet.dart';
 import 'admin_reservations_sheet.dart';
 import 'stop_list_sheet.dart';
 import 'billing_screen.dart';
+import 'manage_actions.dart';
 
 class AdminMenuScreen extends ConsumerWidget {
   const AdminMenuScreen({super.key, required this.restaurantId});
@@ -66,50 +68,10 @@ class AdminMenuScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final restaurant = ref.watch(adminRestaurantProvider(restaurantId));
     return Scaffold(
-      appBar: AppBar(
-        title: Text(restaurant.value?.name ?? context.l10n.menu),
-        actions: [
-          IconButton(
-            tooltip: context.l10n.billing,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => BillingScreen(restaurantId: restaurantId),
-              ),
-            ),
-            icon: const Icon(Icons.credit_card_outlined),
-          ),
-          IconButton(
-            tooltip: context.l10n.stopList,
-            onPressed: () => showStopList(context, ref, restaurantId),
-            icon: const Icon(Icons.do_not_disturb_on_outlined),
-          ),
-          IconButton(
-            tooltip: context.l10n.reservations,
-            onPressed: () => editReservations(context, ref, restaurantId),
-            icon: const Icon(Icons.event_seat_outlined),
-          ),
-          IconButton(
-            tooltip: context.l10n.promo,
-            onPressed: () => editPromos(context, ref, restaurantId),
-            icon: const Icon(Icons.local_offer_outlined),
-          ),
-          IconButton(
-            tooltip: context.l10n.kitchen,
-            onPressed: () =>
-                context.push('/admin/restaurants/$restaurantId/kitchen'),
-            icon: const Icon(Icons.soup_kitchen_outlined),
-          ),
-          TextButton.icon(
-            onPressed: () =>
-                context.push('/admin/restaurants/$restaurantId/floor'),
-            icon: const Icon(Icons.grid_on, size: 18),
-            label: Text(context.l10n.floorPlan),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(restaurant.value?.name ?? context.l10n.menu)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _edit(context, ref),
-        child: const Icon(Icons.add),
+        child: const AnimIcon(AnimShape.plus, play: AnimPlay.onAppear),
       ),
       body: restaurant.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -121,10 +83,61 @@ class AdminMenuScreen extends ConsumerWidget {
             itemCount: r.menu.length + 1,
             itemBuilder: (_, i) {
               if (i == 0) {
-                return setup.when(
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
-                  data: (ws) => _SetupCard(ws),
+                final t = context.l10n;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ManageActions(
+                      actions: [
+                        ManageAction(
+                          shape: AnimShape.pot,
+                          label: t.kitchen,
+                          onTap: () => context.push(
+                            '/admin/restaurants/$restaurantId/kitchen',
+                          ),
+                        ),
+                        ManageAction(
+                          shape: AnimShape.stop,
+                          label: t.stopList,
+                          onTap: () => showStopList(context, ref, restaurantId),
+                        ),
+                        ManageAction(
+                          shape: AnimShape.grid,
+                          label: t.floorPlan,
+                          onTap: () => context.push(
+                            '/admin/restaurants/$restaurantId/floor',
+                          ),
+                        ),
+                        ManageAction(
+                          shape: AnimShape.tag,
+                          label: t.promo,
+                          onTap: () => editPromos(context, ref, restaurantId),
+                        ),
+                        ManageAction(
+                          shape: AnimShape.bell,
+                          label: t.reservations,
+                          onTap: () =>
+                              editReservations(context, ref, restaurantId),
+                        ),
+                        ManageAction(
+                          shape: AnimShape.card,
+                          label: t.billing,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  BillingScreen(restaurantId: restaurantId),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    setup.when(
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
+                      data: (ws) => _SetupCard(ws),
+                    ),
+                  ],
                 );
               }
               final m = r.menu[i - 1];

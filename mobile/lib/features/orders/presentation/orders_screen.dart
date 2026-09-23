@@ -14,6 +14,7 @@ import '../../../core/widgets/stagger.dart';
 import '../data/order_repository.dart';
 import '../domain/order.dart';
 import 'reorder_action.dart';
+import '../../../core/widgets/anim_icon.dart';
 
 class OrdersScreen extends ConsumerWidget {
   const OrdersScreen({super.key});
@@ -42,7 +43,7 @@ class OrdersScreen extends ConsumerWidget {
             onRefresh: () => ref.refresh(ordersProvider.future),
             child: list.isEmpty
                 ? EmptyState(
-                    icon: Icons.receipt_long_outlined,
+                    shape: AnimShape.bag,
                     title: t.noOrdersYet,
                     hint: t.noOrdersHint,
                     action: FilledButton.tonal(

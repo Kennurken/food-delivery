@@ -3,19 +3,25 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../theme/buttons.dart';
 import '../theme/motion.dart';
+import 'anim_icon.dart';
 
 /// Centered icon-in-a-circle + title + optional hint/action. Scrollable so
 /// pull-to-refresh keeps working on empty lists.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
-    required this.icon,
+    this.icon,
+    this.shape,
     required this.title,
     this.hint,
     this.action,
-  });
+  }) : assert(icon != null || shape != null, 'give the state an icon');
 
-  final IconData icon;
+  final IconData? icon;
+
+  /// An animated mark instead of a flat glyph. Empty states are the one place
+  /// a drawing earns its keep: there is nothing else on screen to look at.
+  final AnimShape? shape;
   final String title;
   final String? hint;
   final Widget? action;
@@ -32,7 +38,11 @@ class EmptyState extends StatelessWidget {
         color: scheme.primaryContainer,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, size: 40, color: scheme.onPrimaryContainer),
+      child: Center(
+        child: shape != null
+            ? AnimIcon(shape!, size: 40, color: scheme.onPrimaryContainer)
+            : Icon(icon, size: 40, color: scheme.onPrimaryContainer),
+      ),
     );
     Widget heading = Text(
       title,

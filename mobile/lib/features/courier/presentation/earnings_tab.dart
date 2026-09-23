@@ -9,6 +9,7 @@ import '../../../core/widgets/sliding_number.dart';
 import '../../../core/widgets/stagger.dart';
 import '../data/earnings_repository.dart';
 import '../domain/courier_earnings.dart';
+import '../../../core/widgets/anim_icon.dart';
 
 /// Courier wallet: earnings on one side, cash owed back on the other.
 class EarningsTab extends ConsumerWidget {
@@ -53,7 +54,7 @@ class EarningsTab extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 40),
                 child: EmptyState(
-                  icon: Icons.account_balance_wallet_outlined,
+                  shape: AnimShape.wallet,
                   title: t.noEarningsYet,
                   hint: t.noEarningsYetHint,
                 ),

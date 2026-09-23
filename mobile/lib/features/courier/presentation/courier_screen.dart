@@ -19,6 +19,7 @@ import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
 import '../../orders/presentation/orders_screen.dart';
 import 'earnings_tab.dart';
+import '../../../core/widgets/anim_icon.dart';
 
 /// Courier home: pick up available orders, advance own orders.
 class CourierScreen extends ConsumerWidget {
@@ -134,7 +135,7 @@ class _MineTab extends ConsumerWidget {
     return _OrderList(
       orders: orders,
       empty: EmptyState(
-        icon: Icons.delivery_dining,
+        shape: AnimShape.scooter,
         title: context.l10n.noActiveDeliveries,
         hint: context.l10n.noActiveDeliveriesHint,
       ),

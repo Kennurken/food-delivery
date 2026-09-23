@@ -21,6 +21,7 @@ import '../data/admin_repository.dart';
 import 'platform_income_tab.dart';
 import 'platform_venues_screen.dart';
 import 'stats_tab.dart';
+import '../../../core/widgets/anim_icon.dart';
 
 class AdminScreen extends ConsumerWidget {
   const AdminScreen({super.key});
@@ -94,7 +95,7 @@ class _OrdersTab extends ConsumerWidget {
         onRefresh: () => ref.refresh(ordersProvider.future),
         child: list.isEmpty
             ? EmptyState(
-                icon: Icons.inbox_outlined,
+                shape: AnimShape.bag,
                 title: context.l10n.noOrdersYet,
                 hint: context.l10n.noOrdersAdminHint,
               )

@@ -37,9 +37,9 @@ _TIMEOUT = 6.0
 _MAX_TOKENS = 100
 # Google's access tokens last an hour. Renew early so a send never races expiry.
 _EARLY_REFRESH = 300
-# Only errors that are about the token itself. A bare INVALID_ARGUMENT usually
-# means *our* payload is wrong, and wiping every device over our own bug is
-# worse than letting the next send retry.
+# Errors that are about the token itself rather than the message we built.
+# A bare INVALID_ARGUMENT is not on this list: it usually means *our* payload is
+# wrong, and wiping every device over our own bug is worse than a retry.
 _DEAD_TOKEN_CODES = frozenset({"UNREGISTERED", "SENDER_ID_MISMATCH"})
 
 _lock = threading.Lock()
@@ -227,14 +227,16 @@ def _deliver(
                 elif _token_is_gone(res):
                     stale.append(token)
                 else:
-                    log.warning("fcm %s %s", res.status_code, res.text[:200])
+                    # 200 chars cut the body off right before `details`, which is
+                    # the only part that says what Google actually objected to.
+                    log.warning("fcm %s %s", res.status_code, res.text[:600])
     except Exception:
         log.exception("fcm send failed")
     return sent, stale
 
 
 def _token_is_gone(res: httpx.Response) -> bool:
-    if res.status_code not in (403, 404):
+    if res.status_code not in (400, 403, 404):
         return False
     try:
         error = res.json().get("error") or {}
@@ -243,4 +245,13 @@ def _token_is_gone(res: httpx.Response) -> bool:
     if error.get("status") == "NOT_FOUND":
         return True
     details = error.get("details") or []
-    return any((item.get("errorCode") or "") in _DEAD_TOKEN_CODES for item in details)
+    if any((item.get("errorCode") or "") in _DEAD_TOKEN_CODES for item in details):
+        return True
+    # A 400 is INVALID_ARGUMENT either way, so the status alone cannot tell a
+    # rotten token from a payload bug of ours. Google does name the offending
+    # field, though, and `message.token` means the token and nothing else.
+    return any(
+        violation.get("field") == "message.token"
+        for item in details
+        for violation in (item.get("fieldViolations") or [])
+    )

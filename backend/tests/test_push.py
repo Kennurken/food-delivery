@@ -212,6 +212,43 @@ def test_fanout_prunes_dead_tokens(monkeypatch, client, account, fake_http):
         db.close()
 
 
+def test_a_token_google_names_as_bad_is_dropped(monkeypatch, client, account, fake_http):
+    """A 400 is INVALID_ARGUMENT either way; `message.token` is what separates a
+    rotten token from a payload bug of ours. Seen in production against a
+    made-up token, which is what prompted this branch."""
+    monkeypatch.setattr(settings, "fcm_credentials_json", json.dumps(account))
+    push.reset_credentials_cache()
+    FakeClient.reply = lambda url, **kw: (
+        _token_grant(url, **kw)
+        if "oauth2" in url
+        else FakeResponse(
+            400,
+            {
+                "error": {
+                    "code": 400,
+                    "status": "INVALID_ARGUMENT",
+                    "message": "The registration token is not a valid FCM registration token",
+                    "details": [
+                        {"@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError",
+                         "errorCode": "INVALID_ARGUMENT"},
+                        {"@type": "type.googleapis.com/google.rpc.BadRequest",
+                         "fieldViolations": [{"field": "message.token"}]},
+                    ],
+                }
+            },
+        )
+    )
+
+    db = SessionLocal()
+    try:
+        push.register_token(db, 1, "malformed-token", "android")
+
+        assert push.fanout(db, {1}, title="t", body="b", data={}) == 0
+        assert db.query(DeviceToken).filter(DeviceToken.token == "malformed-token").count() == 0
+    finally:
+        db.close()
+
+
 def test_our_own_bad_payload_keeps_tokens(monkeypatch, client, account, fake_http):
     """A bare INVALID_ARGUMENT is usually our bug. Do not wipe the user's devices."""
     monkeypatch.setattr(settings, "fcm_credentials_json", json.dumps(account))

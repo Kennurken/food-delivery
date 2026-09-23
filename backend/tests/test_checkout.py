@@ -256,6 +256,9 @@ def test_checkout_asks_for_cards_by_name(monkeypatch):
     assert result.status == "pending"
     assert seen["payment_method_types"] == ["card"]
     assert seen["line_items"][0]["price_data"]["unit_amount"] == 290000
+    # The app routes on the fragment; a bare /orders/1 loses the ticket.
+    assert seen["success_url"].endswith("/#/orders/1?paid=1")
+    assert seen["cancel_url"].endswith("/#/orders/1?paid=0")
 
 
 def test_cancelling_a_paid_card_order_refunds_it(client, auth, admin, monkeypatch):

@@ -134,8 +134,12 @@ def create_checkout_session(
         # tenge that set can come back empty — "No valid payment method types for
         # this Checkout Session". A card is the only thing this app can take anyway.
         "payment_method_types": ["card"],
-        "success_url": f"{base}/orders/{order_id}?paid=1",
-        "cancel_url": f"{base}/orders/{order_id}?paid=0",
+        # The web app routes on the fragment (`/#/orders/7`). Sending the customer
+        # back to a bare `/orders/7` hands Vercel a path it rewrites to index.html,
+        # and the app boots on the home screen with no idea which ticket was paid —
+        # the payment lands, nobody notices. Return them to the hash.
+        "success_url": f"{base}/#/orders/{order_id}?paid=1",
+        "cancel_url": f"{base}/#/orders/{order_id}?paid=0",
         "client_reference_id": str(order_id),
         "line_items": [
             {

@@ -93,4 +93,45 @@ void main() {
     expect(o.needsCard, isTrue);
     expect(o.checkoutUrl, contains('checkout.stripe.com'));
   });
+
+  group('payment state on the ticket', () {
+    Order make(String method, String status) => Order.fromJson({
+      'id': 1,
+      'restaurant_id': 1,
+      'restaurant_name': 'Bao Bar',
+      'customer': {'id': 1, 'name': 'Test', 'email': 't@food.dev'},
+      'status': 'delivered',
+      'address': 'Abay 10',
+      'subtotal': 1500.0,
+      'delivery_fee': 500.0,
+      'total': 2000.0,
+      'created_at': '2026-09-23T05:00:00',
+      'items': <dynamic>[],
+      'pay_method': method,
+      'pay_status': status,
+    });
+
+    test('cash the courier took reads as collected, never as paid', () {
+      final o = make('cash', 'collected');
+      expect(o.isCollected, isTrue);
+      expect(o.isPaid, isFalse);
+      expect(o.isSettled, isTrue);
+    });
+
+    test('a card charge is paid and settled', () {
+      final o = make('online', 'paid');
+      expect(o.isPaid, isTrue);
+      expect(o.isSettled, isTrue);
+    });
+
+    test('cash not yet handed over is unsettled', () {
+      expect(make('cash', 'unpaid').isSettled, isFalse);
+    });
+
+    test('a refund is neither paid nor settled', () {
+      final o = make('online', 'refunded');
+      expect(o.isRefunded, isTrue);
+      expect(o.isSettled, isFalse);
+    });
+  });
 }

@@ -361,5 +361,7 @@
   "addressNeedsPin": "Картада нүкте жоқ — басып белгілеңіз",
   "handoverTitle": "Тапсыру коды",
   "handoverHint": "Клиенттен тапсырысындағы төрт санды сұраңыз.",
-  "handoverCustomerHint": "Есікте курьерге айтыңыз"
+  "handoverCustomerHint": "Есікте курьерге айтыңыз",
+  "cashCollected": "қолма-қол алынды",
+  "refunded": "қайтарылды"
 }

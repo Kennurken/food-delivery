@@ -361,5 +361,7 @@
   "addressNeedsPin": "Нет точки на карте — нажмите, чтобы указать",
   "handoverTitle": "Код передачи",
   "handoverHint": "Попросите у клиента четыре цифры из его заказа.",
-  "handoverCustomerHint": "Назовите его курьеру при получении"
+  "handoverCustomerHint": "Назовите его курьеру при получении",
+  "cashCollected": "наличные получены",
+  "refunded": "возвращено"
 }

@@ -951,4 +951,10 @@ class L10nKk extends L10n {
 
   @override
   String get handoverCustomerHint => 'Есікте курьерге айтыңыз';
+
+  @override
+  String get cashCollected => 'қолма-қол алынды';
+
+  @override
+  String get refunded => 'қайтарылды';
 }

@@ -1874,6 +1874,18 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Read it to the courier at the door'**
   String get handoverCustomerHint;
+
+  /// No description provided for @cashCollected.
+  ///
+  /// In en, this message translates to:
+  /// **'cash collected'**
+  String get cashCollected;
+
+  /// No description provided for @refunded.
+  ///
+  /// In en, this message translates to:
+  /// **'refunded'**
+  String get refunded;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

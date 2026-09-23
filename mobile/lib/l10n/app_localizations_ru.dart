@@ -952,4 +952,10 @@ class L10nRu extends L10n {
 
   @override
   String get handoverCustomerHint => 'Назовите его курьеру при получении';
+
+  @override
+  String get cashCollected => 'наличные получены';
+
+  @override
+  String get refunded => 'возвращено';
 }

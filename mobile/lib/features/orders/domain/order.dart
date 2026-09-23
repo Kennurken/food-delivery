@@ -177,6 +177,12 @@ class Order {
 
   bool get isCash => payMethod == 'cash';
   bool get isPaid => payStatus == 'paid';
+
+  /// Cash the courier or the counter took. Not a card charge, and the ticket
+  /// should not pretend otherwise.
+  bool get isCollected => payStatus == 'collected';
+  bool get isRefunded => payStatus == 'refunded';
+  bool get isSettled => isPaid || isCollected;
   bool get needsCard => payMethod == 'online' && payStatus == 'pending';
   bool get isScheduled => scheduledFor != null;
   bool get isLater {

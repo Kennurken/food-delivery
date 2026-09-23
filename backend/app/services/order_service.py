@@ -462,6 +462,18 @@ def refund_if_paid(db: Session, order: Order) -> Order:
     return order
 
 
+def settle_cash(order: Order) -> Order:
+    """Record that the cash was handed over when the ticket closes.
+
+    Deliberately not "paid": no card was charged and no processor saw this
+    money. A courier or a counter attested they took it, which is a different
+    fact and should stay readable as one.
+    """
+    if order.pay_method == "cash" and order.pay_status == "unpaid":
+        order.pay_status = "collected"
+    return order
+
+
 def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
     if not _allowed(order, new_status):
         raise HTTPException(
@@ -470,6 +482,8 @@ def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
     order.status = new_status
     if new_status == OrderStatus.cancelled:
         refund_if_paid(db, order)
+    if new_status == OrderStatus.delivered:
+        settle_cash(order)
     db.commit()
     db.refresh(order)
     notify(db, order)

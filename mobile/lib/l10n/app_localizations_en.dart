@@ -953,4 +953,10 @@ class L10nEn extends L10n {
 
   @override
   String get handoverCustomerHint => 'Read it to the courier at the door';
+
+  @override
+  String get cashCollected => 'cash collected';
+
+  @override
+  String get refunded => 'refunded';
 }

@@ -204,7 +204,9 @@ class _OrderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    final settled = o.payStatus == 'paid' || o.payMethod != 'online';
+    // Cash only counts once someone took it, not the moment it was ordered.
+    const settledStates = {'paid', 'collected'};
+    final settled = settledStates.contains(o.payStatus);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Card(

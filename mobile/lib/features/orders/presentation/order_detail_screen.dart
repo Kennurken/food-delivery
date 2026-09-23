@@ -261,7 +261,12 @@ class OrderDetailScreen extends ConsumerWidget {
                               [
                                 o.isCash ? t.payCash : t.payCard,
                                 if (o.isPaid) t.paid,
-                                if (!o.isPaid && !o.needsCard) t.unpaid,
+                                if (o.isCollected) t.cashCollected,
+                                if (o.isRefunded) t.refunded,
+                                if (!o.isSettled &&
+                                    !o.isRefunded &&
+                                    !o.needsCard)
+                                  t.unpaid,
                                 if (o.needsCard) t.waitingForCard,
                               ].join(' · '),
                             ),

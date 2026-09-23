@@ -466,5 +466,7 @@
   "addressNeedsPin": "No map point — tap to set",
   "handoverTitle": "Handover code",
   "handoverHint": "Ask the customer for the four digits shown in their order.",
-  "handoverCustomerHint": "Read it to the courier at the door"
+  "handoverCustomerHint": "Read it to the courier at the door",
+  "cashCollected": "cash collected",
+  "refunded": "refunded"
 }

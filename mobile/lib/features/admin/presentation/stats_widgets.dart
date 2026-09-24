@@ -153,11 +153,21 @@ class WindowPicker extends StatelessWidget {
 
 /// Bars, oldest on the left. The API hands days back newest first because that
 /// is what a list wants; a chart reads like a calendar.
+///
+/// Heights come from the box it is given rather than from constants: a fixed
+/// 170 with fixed bar heights overflowed on a 320px phone, and would again the
+/// moment someone turns large type on.
 class DayChart extends StatelessWidget {
-  const DayChart({super.key, required this.days, required this.peak});
+  const DayChart({
+    super.key,
+    required this.days,
+    required this.peak,
+    this.height = 170,
+  });
 
   final List<StatsDay> days;
   final double peak;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -165,46 +175,70 @@ class DayChart extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     final rows = days.reversed.toList(growable: false);
+    // The label gets a box that grows with the reader's text size, and shrinks
+    // its glyphs to fit rather than pushing the bars off the bottom.
+    final labelBox = MediaQuery.textScalerOf(context)
+        .scale(16)
+        .clamp(14.0, 34.0);
+    const gap = 6.0;
+
     return SizedBox(
-      height: 170,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          for (final row in rows)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: row.revenue / peak),
-                      duration: const Duration(milliseconds: 420),
-                      curve: Curves.easeOutCubic,
-                      builder: (_, factor, _) => Container(
-                        height: 6 + 110 * factor,
-                        decoration: BoxDecoration(
-                          color: row.revenue == 0
-                              ? scheme.surfaceContainerHighest
-                              : scheme.primary,
-                          borderRadius: BorderRadius.circular(5),
+      height: height,
+      child: LayoutBuilder(
+        builder: (_, box) {
+          final barMax = (box.maxHeight - labelBox - gap).clamp(
+            8.0,
+            box.maxHeight,
+          );
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              for (final row in rows)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(
+                            begin: 0,
+                            end: (row.revenue / peak).clamp(0, 1),
+                          ),
+                          duration: const Duration(milliseconds: 420),
+                          curve: Curves.easeOutCubic,
+                          builder: (_, factor, _) => Container(
+                            height: 6 + (barMax - 6) * factor,
+                            decoration: BoxDecoration(
+                              color: row.revenue == 0
+                                  ? scheme.surfaceContainerHighest
+                                  : scheme.primary,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: gap),
+                        SizedBox(
+                          height: labelBox,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              row.shortLabel,
+                              maxLines: 1,
+                              style: text.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      row.shortLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.labelSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

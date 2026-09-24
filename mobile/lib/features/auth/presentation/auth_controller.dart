@@ -32,6 +32,16 @@ class AuthController extends AsyncNotifier<User?> {
     }
   }
 
+  /// Signs in as a table guest if nobody is signed in. Does nothing when
+  /// somebody already is — a regular customer scanning a QR keeps their own
+  /// account and their order history with it.
+  Future<void> ensureGuest(String qrToken) async {
+    if (state.value != null) return;
+    state = await AsyncValue.guard(
+      () => ref.read(authRepositoryProvider).guest(qrToken),
+    );
+  }
+
   Future<void> register({
     required String email,
     required String name,

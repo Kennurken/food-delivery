@@ -23,6 +23,9 @@ class UserOut(BaseModel):
     name: str
     phone: str | None
     role: UserRole
+    # A table session has no mailbox and no password: the app uses this to stop
+    # offering account settings that cannot mean anything.
+    is_guest: bool = False
 
 
 class UserUpdate(BaseModel):

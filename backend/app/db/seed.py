@@ -532,6 +532,35 @@ def ensure_demo_offers() -> int:
     return made
 
 
+def ensure_guest_schema() -> None:
+    """Guest flag on users for hosts that boot without alembic."""
+    from sqlalchemy import text
+
+    from app.db.session import engine
+
+    with engine.begin() as conn:
+        if engine.dialect.name == "sqlite":
+            have = {r[1] for r in conn.execute(text("PRAGMA table_info(users)"))}
+        else:
+            have = {
+                r[0]
+                for r in conn.execute(
+                    text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_name = 'users'"
+                    )
+                )
+            }
+        if "is_guest" not in have:
+            conn.execute(
+                text(
+                    "ALTER TABLE users ADD COLUMN is_guest BOOLEAN NOT NULL DEFAULT FALSE"
+                    if engine.dialect.name != "sqlite"
+                    else "ALTER TABLE users ADD COLUMN is_guest BOOLEAN NOT NULL DEFAULT 0"
+                )
+            )
+
+
 def ensure_capacity_schema() -> None:
     """Kitchen cap column for hosts that boot without alembic."""
     from sqlalchemy import text
@@ -997,6 +1026,7 @@ def seed() -> None:
     ensure_slug_schema()
     ensure_subscription_schema()
     ensure_offer_schema()
+    ensure_guest_schema()
     campaigns = ensure_demo_offers()
     if campaigns:
         print(f"Campaigns: seeded {campaigns}")

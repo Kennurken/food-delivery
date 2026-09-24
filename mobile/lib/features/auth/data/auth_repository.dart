@@ -19,6 +19,18 @@ class AuthRepository {
     return _saveToken(r.data);
   }
 
+  /// A session for someone sitting at a table, in exchange for their scan.
+  ///
+  /// Asking a diner to register before they can order at a table they are
+  /// already sitting at is how the order gets abandoned.
+  Future<User> guest(String qrToken) async {
+    final r = await _dio.post(
+      '/api/v1/auth/guest',
+      data: {'qr_token': qrToken},
+    );
+    return _saveToken(r.data);
+  }
+
   Future<User> register({
     required String email,
     required String name,

@@ -4,6 +4,7 @@ class User {
     required this.email,
     required this.name,
     required this.role,
+    this.isGuest = false,
     this.phone,
   });
 
@@ -11,6 +12,10 @@ class User {
   final String email;
   final String name;
   final String role;
+
+  /// A table session created by scanning a QR: no email anyone owns and no
+  /// password. Account settings mean nothing for one.
+  final bool isGuest;
   final String? phone;
 
   bool get isAdmin => role == 'admin';
@@ -21,6 +26,7 @@ class User {
     email: json['email'] as String,
     name: json['name'] as String,
     role: json['role'] as String,
+    isGuest: json['is_guest'] as bool? ?? false,
     phone: json['phone'] as String?,
   );
 }

@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Float, String, func
+from sqlalchemy import Boolean, DateTime, Enum, Float, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -22,6 +22,10 @@ class User(Base):
     phone: Mapped[str | None] = mapped_column(String(30))
     hashed_password: Mapped[str] = mapped_column(String(255))
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.customer)
+    # A table session rather than an account: created by scanning a QR, with
+    # no password anyone knows. Kept as a flag so the app can stop offering
+    # profile settings that mean nothing without an email.
+    is_guest: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     last_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     last_lng: Mapped[float | None] = mapped_column(Float, nullable=True)

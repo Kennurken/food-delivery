@@ -1,14 +1,24 @@
 """Admin-only management endpoints. Order status changes live in orders.py (PATCH /status)."""
 
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException, Query, Request, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
 
 from app.api.deps import DB, AdminUser, CurrentUser
 from app.core import audit
 from app.core.access import require_restaurant
 from app.core.features import DEFAULT_PLAN, PLANS, entitlements
-from app.models import MenuItem, ModifierGroup, ModifierOption, Promo, Restaurant
+from app.models import (
+    MenuItem,
+    ModifierGroup,
+    ModifierOption,
+    Offer,
+    Promo,
+    Restaurant,
+    UserRole,
+)
 from app.schemas.admin import (
     MenuItemCreate,
     MenuItemUpdate,
@@ -358,3 +368,122 @@ def set_availability(
     for item in items:
         db.refresh(item)
     return items
+
+
+class OfferIn(BaseModel):
+    title: str = Field(min_length=1, max_length=160)
+    subtitle: str = Field(default="", max_length=300)
+    body: str = ""
+    image_url: str | None = Field(default=None, max_length=500)
+    promo_code: str | None = Field(default=None, max_length=24)
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    is_active: bool = True
+    sort_order: int = 0
+
+    @model_validator(mode="after")
+    def _period(self) -> "OfferIn":
+        if self.starts_at and self.ends_at and self.ends_at < self.starts_at:
+            raise ValueError("A campaign cannot end before it starts")
+        return self
+
+
+class OfferPatch(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=160)
+    subtitle: str | None = Field(default=None, max_length=300)
+    body: str | None = None
+    image_url: str | None = Field(default=None, max_length=500)
+    promo_code: str | None = Field(default=None, max_length=24)
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    is_active: bool | None = None
+    sort_order: int | None = None
+
+
+def _offer_out(offer: Offer) -> dict:
+    return {
+        "id": offer.id,
+        "restaurant_id": offer.restaurant_id,
+        "slug": offer.slug,
+        "title": offer.title,
+        "subtitle": offer.subtitle,
+        "body": offer.body,
+        "image_url": offer.image_url,
+        "promo_code": offer.promo_code,
+        "starts_at": offer.starts_at.isoformat() if offer.starts_at else None,
+        "ends_at": offer.ends_at.isoformat() if offer.ends_at else None,
+        "is_active": offer.is_active,
+        "sort_order": offer.sort_order,
+        "url": f"/actions/{offer.slug}",
+    }
+
+
+@router.get("/restaurants/{restaurant_id}/offers")
+def list_offers(restaurant_id: int, db: DB, user: CurrentUser) -> list[dict]:
+    """Every campaign of this venue, running or not — this is the editor."""
+    require_restaurant(db, user, restaurant_id, "menu.read")
+    rows = db.scalars(
+        select(Offer)
+        .where(Offer.restaurant_id == restaurant_id)
+        .order_by(Offer.sort_order.desc(), Offer.id.desc())
+    )
+    return [_offer_out(o) for o in rows]
+
+
+@router.post(
+    "/restaurants/{restaurant_id}/offers", status_code=status.HTTP_201_CREATED
+)
+def create_offer(
+    restaurant_id: int, data: OfferIn, db: DB, user: CurrentUser
+) -> dict:
+    require_restaurant(db, user, restaurant_id, "menu.write")
+    fields = data.model_dump()
+    # Before the insert, not after: the column is NOT NULL, so a slug assigned
+    # post-flush never reaches the row. Assigned once and never rewritten by a
+    # later retitling — it is what search engines and shared links hold on to.
+    offer = Offer(
+        restaurant_id=restaurant_id,
+        slug=unique_slug(db, Offer, fields["title"]),
+        **fields,
+    )
+    db.add(offer)
+    db.commit()
+    db.refresh(offer)
+    return _offer_out(offer)
+
+
+@router.patch("/offers/{offer_id}")
+def update_offer(offer_id: int, data: OfferPatch, db: DB, user: CurrentUser) -> dict:
+    offer = db.get(Offer, offer_id)
+    if offer is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Offer not found")
+    if offer.restaurant_id is not None:
+        require_restaurant(db, user, offer.restaurant_id, "menu.write")
+    elif user.role != UserRole.admin:
+        # A platform-wide campaign belongs to nobody's venue.
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Platform campaign")
+    fields = data.model_dump(exclude_unset=True)
+    starts = fields.get("starts_at", offer.starts_at)
+    ends = fields.get("ends_at", offer.ends_at)
+    if starts and ends and ends < starts:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "A campaign cannot end before it starts"
+        )
+    for key, value in fields.items():
+        setattr(offer, key, value)
+    db.commit()
+    db.refresh(offer)
+    return _offer_out(offer)
+
+
+@router.delete("/offers/{offer_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_offer(offer_id: int, db: DB, user: CurrentUser) -> None:
+    offer = db.get(Offer, offer_id)
+    if offer is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Offer not found")
+    if offer.restaurant_id is not None:
+        require_restaurant(db, user, offer.restaurant_id, "menu.write")
+    elif user.role != UserRole.admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Platform campaign")
+    db.delete(offer)
+    db.commit()

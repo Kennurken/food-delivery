@@ -27,9 +27,8 @@ from app.api.deps import get_db
 from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models import MenuItem, Order, Restaurant, User, UserRole
-from app.models.promo import Promo
 from app.schemas.order import OrderCreate
-from app.services import order_service
+from app.services import offers, order_service
 from app.web import cart as cart_store
 from app.web import session as web_session
 
@@ -124,15 +123,9 @@ def home(request: Request, db: Session = DB) -> HTMLResponse:
             select(Restaurant).order_by(Restaurant.is_open.desc(), Restaurant.rating.desc())
         )
     )
-    # Only codes a visitor could actually use. An exhausted or disabled promo on
-    # the landing page is a promise the checkout will refuse to keep.
-    promos = [
-        promo
-        for promo in db.scalars(
-            select(Promo).where(Promo.is_active.is_(True)).order_by(Promo.value.desc()).limit(8)
-        )
-        if promo.max_uses is None or promo.used_count < promo.max_uses
-    ]
+    # Campaigns that are actually running. A finished offer on the landing page
+    # is a promise the checkout will refuse to keep.
+    promos = offers.live(db, limit=6)
     return _render(
         request,
         "home.html",
@@ -181,6 +174,44 @@ def restaurant_page(slug: str, request: Request, db: Session = DB) -> HTMLRespon
             "item_count": len(items),
             "canonical": f"{_base_url()}/r/{restaurant.slug}/",
             "og_image": restaurant.image_url,
+        },
+        db=db,
+    )
+
+
+@router.get("/actions/", response_class=HTMLResponse)
+def offers_page(request: Request, db: Session = DB) -> HTMLResponse:
+    running = offers.live(db)
+    return _render(
+        request,
+        "offers.html",
+        {
+            "title": "Акции и предложения",
+            "description": "Действующие акции ресторанов: скидки, промокоды, комбо.",
+            "offers": running,
+            "canonical": f"{_base_url()}/actions/",
+        },
+        db=db,
+    )
+
+
+@router.get("/actions/{slug}", response_class=HTMLResponse)
+def offer_page(slug: str, request: Request, db: Session = DB) -> HTMLResponse:
+    offer = offers.by_slug(db, slug)
+    if offer is None:
+        # A campaign that has ended is gone, not merely stale: leaving its URL
+        # answering 200 keeps advertising something nobody will honour.
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such offer")
+    return _render(
+        request,
+        "offer.html",
+        {
+            "title": offer.title,
+            "description": (offer.subtitle or offer.body or offer.title)[:300],
+            "offer": offer,
+            "code": offers.usable_code(db, offer),
+            "canonical": f"{_base_url()}/actions/{offer.slug}",
+            "og_image": offer.image_url,
         },
         db=db,
     )
@@ -552,11 +583,14 @@ def robots() -> Response:
 @router.get("/sitemap.xml")
 def sitemap(db: Session = DB) -> Response:
     base = _base_url()
-    urls = [f"{base}/", f"{base}/delivery/", f"{base}/about/"]
+    urls = [f"{base}/", f"{base}/actions/", f"{base}/delivery/", f"{base}/about/"]
     urls += [
         f"{base}/r/{slug}/"
         for slug in db.scalars(select(Restaurant.slug).where(Restaurant.slug.is_not(None)))
     ]
+    # Only running campaigns: a sitemap that lists a finished one sends a
+    # crawler to a 404 and spends its budget doing it.
+    urls += [f"{base}/actions/{offer.slug}" for offer in offers.live(db)]
     body = "".join(f"<url><loc>{url}</loc></url>" for url in urls)
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'

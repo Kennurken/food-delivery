@@ -39,16 +39,21 @@
 
 {% if promos %}
 <section class="wrap block">
-  <h2>Акции</h2>
-  <div class="grid promos">
-    {% for p in promos %}
-    <article class="promo">
-      <p class="promo-value">
-        {% if p.kind == 'percent' %}−{{ p.value|round|int }}%{% else %}−{{ p.value|round|int }} ₸{% endif %}
-      </p>
-      <p class="card-title">{{ p.restaurant.name }}</p>
-      <p class="muted">Промокод <code>{{ p.code }}</code>{% if p.min_subtotal %} · от {{ p.min_subtotal|round|int }} ₸{% endif %}</p>
-    </article>
+  <div class="band-head">
+    <h2>Акции</h2>
+    <a class="under muted" href="/actions/">Все акции</a>
+  </div>
+  <div class="grid cards">
+    {% for o in promos %}
+    <a class="card" href="/actions/{{ o.slug }}">
+      <div class="thumb">
+        {% if o.image_url %}<img src="{{ o.image_url }}" alt="{{ o.title }}" loading="lazy" width="400" height="260">{% endif %}
+      </div>
+      <div class="card-body">
+        <p class="card-title">{{ o.title }}</p>
+        {% if o.subtitle %}<p class="muted">{{ o.subtitle }}</p>{% endif %}
+      </div>
+    </a>
     {% endfor %}
   </div>
 </section>

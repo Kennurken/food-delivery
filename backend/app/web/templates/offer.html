@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block prose">
+  <p class="kicker">Акция{% if offer.restaurant %} · {{ offer.restaurant.name }}{% endif %}</p>
+  <h1>{{ offer.title }}</h1>
+  {% if offer.subtitle %}<p class="lede">{{ offer.subtitle }}</p>{% endif %}
+
+  {% if offer.image_url %}
+  <img class="venue-photo" src="{{ offer.image_url }}" alt="{{ offer.title }}" width="720" height="440">
+  {% endif %}
+
+  {% if code %}
+  <p class="notice">Промокод <code>{{ code }}</code> — введите его в корзине при оформлении.</p>
+  {% elif offer.promo_code %}
+  {# The campaign names a code the checkout would refuse: say nothing rather
+     than send someone to a till that will turn them away. #}
+  <p class="muted">Условия действуют автоматически при оформлении.</p>
+  {% endif %}
+
+  {% if offer.body %}<p>{{ offer.body }}</p>{% endif %}
+
+  {% if offer.ends_at %}
+  <p class="muted">Действует до {{ offer.ends_at.strftime('%d.%m.%Y') }}</p>
+  {% endif %}
+
+  <div class="hero-actions">
+    {% if offer.restaurant and offer.restaurant.slug %}
+      <a class="btn" href="/r/{{ offer.restaurant.slug }}/">Смотреть меню</a>
+    {% else %}
+      <a class="btn" href="/">Выбрать ресторан</a>
+    {% endif %}
+    <a class="btn ghost" href="/actions/">Все акции</a>
+  </div>
+</section>
+{% endblock %}

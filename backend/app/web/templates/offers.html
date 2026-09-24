@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block">
+  <h1>Акции</h1>
+  {% if not offers %}
+    <p class="muted">Сейчас акций нет. Загляните позже.</p>
+    <div class="hero-actions"><a class="btn" href="/">К ресторанам</a></div>
+  {% else %}
+  <div class="grid cards">
+    {% for o in offers %}
+    <a class="card" href="/actions/{{ o.slug }}">
+      <div class="thumb">
+        {% if o.image_url %}<img src="{{ o.image_url }}" alt="{{ o.title }}" loading="lazy" width="400" height="260">{% endif %}
+      </div>
+      <div class="card-body">
+        <p class="card-title">{{ o.title }}</p>
+        {% if o.subtitle %}<p class="muted">{{ o.subtitle }}</p>{% endif %}
+        {% if o.restaurant %}<p class="meta"><span class="muted">{{ o.restaurant.name }}</span></p>{% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

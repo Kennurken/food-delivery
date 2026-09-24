@@ -222,3 +222,7 @@ code { background: var(--line); padding: 2px 7px; border-radius: 6px; font-size:
 @media (max-width: 860px) {
   .checkout { grid-template-columns: 1fr; }
 }
+
+/* Section heading with a link to the full list beside it. */
+.band-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.band-head h2 { margin-bottom: 18px; }

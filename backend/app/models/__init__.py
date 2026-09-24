@@ -7,6 +7,7 @@ from app.models.floor_plan import Floor, FloorObject, FloorVersion, FloorZone
 from app.models.idempotency import IdempotencyRecord
 from app.models.member import RestaurantMember
 from app.models.message import OrderMessage
+from app.models.offer import Offer
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.promo import Promo
 from app.models.reservation import Reservation
@@ -27,6 +28,7 @@ __all__ = [
     "MenuItem",
     "ModifierGroup",
     "ModifierOption",
+    "Offer",
     "Order",
     "OrderItem",
     "OrderMessage",

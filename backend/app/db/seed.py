@@ -454,6 +454,84 @@ def ensure_subscription_schema() -> None:
             conn.execute(text("ALTER TABLE restaurants ADD COLUMN plan_renews_at TIMESTAMP"))
 
 
+def ensure_offer_schema() -> None:
+    """Campaign table for hosts that boot without alembic."""
+    from app.db.session import engine
+    from app.models.offer import Offer
+
+    Offer.__table__.create(bind=engine, checkfirst=True)
+
+
+_DEMO_OFFERS = [
+    (
+        "Bao Bar",
+        "dvoinaya-porciya",
+        "Двойная порция",
+        "По цене одной, по будням до 16:00",
+        (
+            "Берите любое блюдо из раздела «Ramen» и получайте вторую порцию "
+            "бесплатно. Работает на доставку и самовывоз в будние дни до 16:00."
+        ),
+        "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800",
+        None,
+    ),
+    (
+        "Pizza Roma",
+        "pizza-500",
+        "−500 ₸ на пиццу",
+        "По промокоду при заказе от 3000 ₸",
+        "Скидка применяется в корзине. Не суммируется с другими акциями.",
+        "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
+        "PIZZA500",
+    ),
+    (
+        None,
+        "besplatnaya-dostavka",
+        "Бесплатная доставка",
+        "Первый заказ в любом ресторане",
+        "Доставка бесплатна для первого заказа, если адрес попадает в радиус ресторана.",
+        "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=800",
+        None,
+    ),
+]
+
+
+def ensure_demo_offers() -> int:
+    """Give the site something real to show on /actions/."""
+    from app.models.offer import Offer
+    from app.models.restaurant import Restaurant
+
+    ensure_offer_schema()
+    made = 0
+    with SessionLocal() as db:
+        for name, slug, title, subtitle, body, image, code in _DEMO_OFFERS:
+            if db.scalar(select(Offer).where(Offer.slug == slug)):
+                continue
+            restaurant_id = None
+            if name is not None:
+                restaurant = db.scalar(select(Restaurant).where(Restaurant.name == name))
+                if restaurant is None:
+                    continue
+                restaurant_id = restaurant.id
+            db.add(
+                Offer(
+                    restaurant_id=restaurant_id,
+                    slug=slug,
+                    title=title,
+                    subtitle=subtitle,
+                    body=body,
+                    image_url=image,
+                    promo_code=code,
+                    is_active=True,
+                    sort_order=made,
+                )
+            )
+            made += 1
+        if made:
+            db.commit()
+    return made
+
+
 def ensure_capacity_schema() -> None:
     """Kitchen cap column for hosts that boot without alembic."""
     from sqlalchemy import text
@@ -918,6 +996,10 @@ def seed() -> None:
         print(f"Delivery tariffs: set {tariffs}")
     ensure_slug_schema()
     ensure_subscription_schema()
+    ensure_offer_schema()
+    campaigns = ensure_demo_offers()
+    if campaigns:
+        print(f"Campaigns: seeded {campaigns}")
     slugs = ensure_restaurant_slugs()
     if slugs:
         print(f"Public slugs: filled {slugs}")

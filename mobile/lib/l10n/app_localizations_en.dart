@@ -1144,4 +1144,39 @@ class L10nEn extends L10n {
   @override
   String get cancelPlanAsk =>
       'Stop renewing? The plan stays until the paid period ends, then drops to Free.';
+
+  @override
+  String get campaigns => 'Campaigns';
+
+  @override
+  String get campaignTitle => 'Headline';
+
+  @override
+  String get campaignSubtitle => 'Subtitle';
+
+  @override
+  String get campaignBody => 'Details';
+
+  @override
+  String get campaignImage => 'Image URL';
+
+  @override
+  String get campaignEnds => 'Runs until';
+
+  @override
+  String get campaignLive => 'Live';
+
+  @override
+  String get campaignHidden => 'Hidden';
+
+  @override
+  String get noCampaigns => 'No campaigns yet';
+
+  @override
+  String get noCampaignsHint => 'A campaign gets its own page on the site';
+
+  @override
+  String campaignPageHint(String url) {
+    return 'Visible at $url while it runs';
+  }
 }

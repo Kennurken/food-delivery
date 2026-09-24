@@ -93,6 +93,36 @@ class AdminRepository {
         .toList(growable: false);
   }
 
+  /// Campaigns of one venue, running or not — this is the editor's list.
+  Future<List<Map<String, dynamic>>> offers(int restaurantId) async {
+    final r = await _dio.get('/api/v1/admin/restaurants/$restaurantId/offers');
+    return (r.data as List)
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> createOffer(
+    int restaurantId,
+    Map<String, dynamic> body,
+  ) async {
+    final r = await _dio.post(
+      '/api/v1/admin/restaurants/$restaurantId/offers',
+      data: body,
+    );
+    return Map<String, dynamic>.from(r.data as Map);
+  }
+
+  Future<Map<String, dynamic>> updateOffer(
+    int offerId,
+    Map<String, dynamic> patch,
+  ) async {
+    final r = await _dio.patch('/api/v1/admin/offers/$offerId', data: patch);
+    return Map<String, dynamic>.from(r.data as Map);
+  }
+
+  Future<void> deleteOffer(int offerId) =>
+      _dio.delete('/api/v1/admin/offers/$offerId');
+
   /// Dishes currently off sale.
   Future<List<MenuItem>> stopList(int restaurantId) async {
     final r = await _dio.get(

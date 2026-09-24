@@ -1141,4 +1141,39 @@ class L10nKk extends L10n {
   @override
   String get cancelPlanAsk =>
       'Жаңартуды тоқтату керек пе? Тариф төленген кезең соңына дейін жұмыс істейді.';
+
+  @override
+  String get campaigns => 'Акциялар';
+
+  @override
+  String get campaignTitle => 'Тақырып';
+
+  @override
+  String get campaignSubtitle => 'Қосымша тақырып';
+
+  @override
+  String get campaignBody => 'Сипаттама';
+
+  @override
+  String get campaignImage => 'Сурет сілтемесі';
+
+  @override
+  String get campaignEnds => 'Дейін жарамды';
+
+  @override
+  String get campaignLive => 'Жүріп жатыр';
+
+  @override
+  String get campaignHidden => 'Жасырын';
+
+  @override
+  String get noCampaigns => 'Әзірге акция жоқ';
+
+  @override
+  String get noCampaignsHint => 'Акцияның сайтта жеке беті болады';
+
+  @override
+  String campaignPageHint(String url) {
+    return '$url мекенжайында көрінеді';
+  }
 }

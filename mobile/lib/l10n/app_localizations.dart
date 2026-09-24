@@ -2228,6 +2228,72 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Stop renewing? The plan stays until the paid period ends, then drops to Free.'**
   String get cancelPlanAsk;
+
+  /// No description provided for @campaigns.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaigns'**
+  String get campaigns;
+
+  /// No description provided for @campaignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Headline'**
+  String get campaignTitle;
+
+  /// No description provided for @campaignSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle'**
+  String get campaignSubtitle;
+
+  /// No description provided for @campaignBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get campaignBody;
+
+  /// No description provided for @campaignImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Image URL'**
+  String get campaignImage;
+
+  /// No description provided for @campaignEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs until'**
+  String get campaignEnds;
+
+  /// No description provided for @campaignLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get campaignLive;
+
+  /// No description provided for @campaignHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get campaignHidden;
+
+  /// No description provided for @noCampaigns.
+  ///
+  /// In en, this message translates to:
+  /// **'No campaigns yet'**
+  String get noCampaigns;
+
+  /// No description provided for @noCampaignsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A campaign gets its own page on the site'**
+  String get noCampaignsHint;
+
+  /// No description provided for @campaignPageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible at {url} while it runs'**
+  String campaignPageHint(String url);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

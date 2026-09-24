@@ -546,5 +546,23 @@
   "billingRetry": "Payment failed — the card is being retried. Your venue keeps working.",
   "billingBlocked": "Subscription inactive. New orders are refused until it is restored.",
   "billingOff": "Subscriptions are not connected on this platform yet.",
-  "cancelPlanAsk": "Stop renewing? The plan stays until the paid period ends, then drops to Free."
+  "cancelPlanAsk": "Stop renewing? The plan stays until the paid period ends, then drops to Free.",
+  "campaigns": "Campaigns",
+  "campaignTitle": "Headline",
+  "campaignSubtitle": "Subtitle",
+  "campaignBody": "Details",
+  "campaignImage": "Image URL",
+  "campaignEnds": "Runs until",
+  "campaignLive": "Live",
+  "campaignHidden": "Hidden",
+  "noCampaigns": "No campaigns yet",
+  "noCampaignsHint": "A campaign gets its own page on the site",
+  "campaignPageHint": "Visible at {url} while it runs",
+  "@campaignPageHint": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -1142,4 +1142,39 @@ class L10nRu extends L10n {
   @override
   String get cancelPlanAsk =>
       'Остановить продление? Тариф действует до конца оплаченного периода, потом станет Бесплатным.';
+
+  @override
+  String get campaigns => 'Акции';
+
+  @override
+  String get campaignTitle => 'Заголовок';
+
+  @override
+  String get campaignSubtitle => 'Подзаголовок';
+
+  @override
+  String get campaignBody => 'Описание';
+
+  @override
+  String get campaignImage => 'Ссылка на картинку';
+
+  @override
+  String get campaignEnds => 'Действует до';
+
+  @override
+  String get campaignLive => 'Идёт';
+
+  @override
+  String get campaignHidden => 'Скрыта';
+
+  @override
+  String get noCampaigns => 'Акций пока нет';
+
+  @override
+  String get noCampaignsHint => 'У акции появится своя страница на сайте';
+
+  @override
+  String campaignPageHint(String url) {
+    return 'Видна по адресу $url, пока идёт';
+  }
 }

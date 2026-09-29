@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# A newer push to the same branch makes the older run's answer irrelevant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend:
     runs-on: ubuntu-latest
@@ -39,6 +44,68 @@ jobs:
       - run: uv run alembic upgrade head && uv run alembic check
       - run: uv run pytest -q
 
+  # Production has no alembic: every boot builds the schema through ensure_*()
+  # in app/main.py before the first ORM read. On 2026-09-23 a release read a
+  # column before creating it and took production down — on an empty database
+  # it passed, so the jobs above could never have caught it. This one starts the
+  # app on a schema one migration behind, which is what production actually
+  # holds at the moment a deploy lands.
+  backend-boot-rehearsal:
+    name: backend boots on the previous release's schema
+    runs-on: ubuntu-latest
+    defaults:
+      run: { working-directory: backend }
+    services:
+      db:
+        image: postgres:16-alpine
+        env: { POSTGRES_USER: food, POSTGRES_PASSWORD: food, POSTGRES_DB: food }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U food" --health-interval 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://food:food@localhost:5432/food
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with: { enable-cache: true }
+      - run: uv sync --frozen
+
+      - name: Put the schema one release behind
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade -1
+          echo "schema at: $(uv run alembic current 2>/dev/null | tail -1)"
+
+      - name: Boot the app on it
+        run: |
+          uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 > boot.log 2>&1 &
+          for _ in $(seq 1 60); do
+            curl -fsS localhost:8000/health >/dev/null 2>&1 && break
+            sleep 1
+          done
+          curl -fsS localhost:8000/health
+
+      - name: Probe what the lifespan had to repair
+        run: |
+          # The landing page reads restaurants and campaigns; a failed login reads
+          # users. A column the ORM expects but ensure_*() forgot shows up as 500.
+          test "$(curl -s -o /dev/null -w '%{http_code}' localhost:8000/)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            localhost:8000/api/v1/auth/login/json \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"nobody@food.dev","password":"x"}')" = 401
+
+      # The other half of production's history: someone later runs alembic on a
+      # database that ensure_*() already built. Every migration has to cope with
+      # finding its own work already done.
+      - name: Replay migrations on top of what the boot built
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
+
+      - name: Boot log
+        if: failure()
+        run: cat boot.log
+
   mobile:
     runs-on: ubuntu-latest
     defaults:
@@ -50,6 +117,26 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: dart format --output=none --set-exit-if-changed lib test tool
       - run: flutter analyze
       - run: flutter test
+
+  # Analyze and test never run Gradle. main stopped building for Android when
+  # flutter_local_notifications began requiring desugaring, and CI stayed green
+  # the whole time. A debug APK is the cheapest build that exercises Gradle.
+  mobile-android:
+    runs-on: ubuntu-latest
+    defaults:
+      run: { working-directory: mobile }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build apk --debug

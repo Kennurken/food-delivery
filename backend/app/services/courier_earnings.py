@@ -18,6 +18,7 @@ from sqlalchemy import Float, case, func, select
 from sqlalchemy.orm import Session
 
 from app.models.order import Order, OrderStatus
+from app.models.restaurant import Restaurant
 from app.models.user import User
 
 # A delivered cash ticket whose money the courier took and has not handed in.
@@ -40,6 +41,17 @@ class Earnings:
     earned_all_time: float
     deliveries_all_time: int
     by_day: list[DayRow]
+
+
+@dataclass(frozen=True)
+class PayoutRow:
+    order_id: int
+    restaurant_name: str
+    at: datetime  # Order.created_at
+    payout: float  # frozen when the ticket closed, see settle_courier_payout
+    pay_method: str
+    # The ticket's total while it is cash the courier still holds, else 0.
+    cash_held: float
 
 
 def _delivered_by(courier_id: int):
@@ -89,3 +101,46 @@ def summary(db: Session, courier: User, *, days: int = 7) -> Earnings:
             for d, n, total in rows
         ],
     )
+
+
+def history(
+    db: Session, courier: User, *, limit: int = 20, before: int | None = None
+) -> tuple[list[PayoutRow], int | None]:
+    """Newest first. Keyset-paged on order id (`before` = the last id of the
+    previous page), so a page is stable while new deliveries land."""
+    mine = _delivered_by(courier.id)
+
+    stmt = (
+        select(
+            Order.id,
+            Order.created_at,
+            Order.courier_payout,
+            Order.pay_method,
+            case((_HOLDING_CASH, Order.total), else_=0.0).cast(Float).label("cash_held"),
+            Restaurant.name.label("restaurant_name"),
+        )
+        .join(Restaurant, Restaurant.id == Order.restaurant_id)
+        .where(mine)
+        .order_by(Order.id.desc())
+        .limit(limit + 1)
+    )
+    if before is not None:
+        stmt = stmt.where(Order.id < before)
+
+    rows = db.execute(stmt).all()
+
+    items: list[PayoutRow] = []
+    for row in rows[:limit]:
+        items.append(
+            PayoutRow(
+                order_id=row.id,
+                restaurant_name=row.restaurant_name,
+                at=row.created_at,
+                payout=round(float(row.courier_payout or 0.0), 2),
+                pay_method=row.pay_method,
+                cash_held=round(float(row.cash_held or 0.0), 2),
+            )
+        )
+
+    next_before = items[-1].order_id if len(rows) > limit else None
+    return items, next_before

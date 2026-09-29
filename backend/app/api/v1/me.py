@@ -171,3 +171,29 @@ def earnings(db: DB, courier: CourierUser, days: int = Query(7, ge=1, le=90)) ->
             for row in data.by_day
         ],
     }
+
+
+@router.get("/earnings/history")
+def earnings_history(
+    db: DB,
+    courier: CourierUser,
+    limit: int = Query(20, ge=1, le=50),
+    before: int | None = Query(None, ge=1),
+) -> dict:
+    """Delivery by delivery, newest first — so a courier can find the one they
+    think is missing from their pay. Page on with `before=<next_before>`."""
+    items, next_before = courier_earnings.history(db, courier, limit=limit, before=before)
+    return {
+        "items": [
+            {
+                "order_id": row.order_id,
+                "restaurant_name": row.restaurant_name,
+                "at": row.at.isoformat(),
+                "payout": row.payout,
+                "pay_method": row.pay_method,
+                "cash_held": row.cash_held,
+            }
+            for row in items
+        ],
+        "next_before": next_before,
+    }

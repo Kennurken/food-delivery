@@ -5,6 +5,7 @@ import '../../../core/api/api_client.dart';
 import '../../restaurants/domain/menu_item.dart';
 import '../../restaurants/domain/restaurant.dart';
 import '../domain/platform_venue.dart';
+import '../../../core/utils/server_time.dart';
 
 class AdminRepository {
   AdminRepository(this._dio);
@@ -387,7 +388,7 @@ class VenueBilling {
     monthlyPrice: (json['monthly_price'] as num?)?.toDouble() ?? 0,
     billed: json['billed'] as bool? ?? false,
     billingStatus: json['billing_status'] as String? ?? '',
-    renewsAt: DateTime.tryParse(json['renews_at'] as String? ?? ''),
+    renewsAt: parseServerTime(json['renews_at'] as String?),
     hasSubscription: json['has_subscription'] as bool? ?? false,
     billingEnabled: json['billing_enabled'] as bool? ?? false,
   );

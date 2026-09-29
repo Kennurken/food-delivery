@@ -1,3 +1,5 @@
+import '../../../core/utils/server_time.dart';
+
 class Reservation {
   const Reservation({
     required this.id,
@@ -41,7 +43,7 @@ class Reservation {
     name: json['name'] as String,
     phone: json['phone'] as String?,
     guests: json['guests'] as int? ?? 2,
-    startsAt: DateTime.parse(json['starts_at'] as String),
+    startsAt: parseServerTime(json['starts_at'] as String)!,
     durationMin: json['duration_min'] as int? ?? 90,
     status: json['status'] as String,
     comment: json['comment'] as String?,

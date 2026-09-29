@@ -1,3 +1,5 @@
+import '../../../core/utils/server_time.dart';
+
 /// A venue's own numbers.
 ///
 /// [revenue] only counts tickets that genuinely earned — delivered, and either
@@ -137,7 +139,7 @@ class VenueCustomer {
     phone: json['phone'] as String?,
     orders: (json['orders'] as num?)?.toInt() ?? 0,
     spent: (json['spent'] as num?)?.toDouble() ?? 0,
-    lastOrderAt: DateTime.tryParse(json['last_order_at'] as String? ?? ''),
+    lastOrderAt: parseServerTime(json['last_order_at'] as String?),
   );
 }
 

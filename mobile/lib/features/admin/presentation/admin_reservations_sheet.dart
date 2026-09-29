@@ -8,6 +8,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../cart/domain/schedule_slots.dart';
 import '../data/admin_repository.dart';
+import '../../../core/utils/server_time.dart';
 
 Future<void> editReservations(
   BuildContext context,
@@ -165,7 +166,7 @@ class _ReservationsSheetState extends ConsumerState<_ReservationsSheet> {
                         subtitle: Text(
                           [
                             formatSlot(
-                              DateTime.parse(row['starts_at'] as String)
+                              parseServerTime(row['starts_at'] as String)!
                                   .toLocal(),
                             ),
                             t.guestsCount(row['guests'] as int? ?? 2),

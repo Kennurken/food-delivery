@@ -1,3 +1,5 @@
+import '../../../core/utils/server_time.dart';
+
 class OrderModifier {
   const OrderModifier({
     required this.optionId,
@@ -212,7 +214,7 @@ class Order {
     subtotal: (json['subtotal'] as num).toDouble(),
     deliveryFee: (json['delivery_fee'] as num).toDouble(),
     total: (json['total'] as num).toDouble(),
-    createdAt: DateTime.parse(json['created_at'] as String),
+    createdAt: parseServerTime(json['created_at'] as String)!,
     items: (json['items'] as List).map((e) => OrderItem.fromJson(e)).toList(),
     rating: json['rating'] as int?,
     channel: json['channel'] as String? ?? 'delivery',
@@ -226,13 +228,13 @@ class Order {
     courierHeading: _coord(json['courier_heading']),
     courierSeenAt: json['courier_seen_at'] == null
         ? null
-        : DateTime.tryParse(json['courier_seen_at'] as String),
+        : parseServerTime(json['courier_seen_at'] as String),
     payMethod: json['pay_method'] as String? ?? 'cash',
     payStatus: json['pay_status'] as String? ?? 'unpaid',
     checkoutUrl: json['checkout_url'] as String?,
     scheduledFor: json['scheduled_for'] == null
         ? null
-        : DateTime.tryParse(json['scheduled_for'] as String),
+        : parseServerTime(json['scheduled_for'] as String),
     promoCode: json['promo_code'] as String?,
     discount: (json['discount'] as num?)?.toDouble() ?? 0,
   );

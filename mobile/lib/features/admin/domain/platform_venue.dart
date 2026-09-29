@@ -1,3 +1,5 @@
+import '../../../core/utils/server_time.dart';
+
 /// A tenant as the platform admin sees it: who runs it and how it trades.
 class PlatformVenue {
   const PlatformVenue({
@@ -66,7 +68,7 @@ class PlatformVenue {
     windowDays: json['window_days'] as int? ?? 30,
     lastOrderAt: json['last_order_at'] == null
         ? null
-        : DateTime.tryParse(json['last_order_at'] as String),
+        : parseServerTime(json['last_order_at'] as String),
     staff: (json['staff'] as List<dynamic>? ?? [])
         .map((e) => PlatformContact.fromJson(e as Map<String, dynamic>))
         .toList(),
@@ -108,7 +110,7 @@ class PlatformContact {
         isActive: json['is_active'] as bool? ?? true,
         since: json['since'] == null
             ? null
-            : DateTime.tryParse(json['since'] as String),
+            : parseServerTime(json['since'] as String),
       );
 }
 
@@ -141,6 +143,6 @@ class PlatformOrderRow {
         payStatus: json['pay_status'] as String? ?? '',
         createdAt: json['created_at'] == null
             ? null
-            : DateTime.tryParse(json['created_at'] as String),
+            : parseServerTime(json['created_at'] as String),
       );
 }

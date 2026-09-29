@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict, Field
+from datetime import datetime, time
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ModifierOptionOut(BaseModel):
@@ -63,7 +65,28 @@ class RestaurantOut(BaseModel):
     lng: float | None = None
     city_slug: str | None = None
     city_name: str | None = None
+    # By the venue's opening hours; `accepting_orders` already folds it in.
+    open_now: bool = True
+    # When closed by the schedule: the next opening, on the venue's own clock
+    # with its UTC offset, so "opens at 10:00" needs no timezone guesswork.
+    opens_at: datetime | None = None
+    # 0 unless the venue runs a bonus programme and its plan includes one.
+    loyalty_percent: float = 0
+
+
+class HoursOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    weekday: int  # 0 = Monday
+    opens: str  # "HH:MM", venue-local
+    closes: str  # not after `opens` = runs past midnight
+
+    @field_validator("opens", "closes", mode="before")
+    @classmethod
+    def _clock(cls, value: object) -> object:
+        return value.strftime("%H:%M") if isinstance(value, time) else value
 
 
 class RestaurantDetail(RestaurantOut):
+    hours: list[HoursOut] = Field(default_factory=list)
     menu_items: list[MenuItemOut]

@@ -3,12 +3,21 @@ from sqlalchemy.orm import Session
 from app.core.features import channels_of, entitlements
 from app.models import Restaurant
 from app.schemas.restaurant import RestaurantDetail, RestaurantOut
+from app.services import hours as opening_hours
+from app.services import loyalty
 from app.services.kitchen_load import load_of
 
 
 def _load_fields(db: Session, r: Restaurant) -> dict:
     busy = load_of(db, r).overloaded
-    return {"kitchen_busy": busy, "accepting_orders": bool(r.is_open) and not busy}
+    by_hours = opening_hours.status_of(r)
+    return {
+        "kitchen_busy": busy,
+        "accepting_orders": bool(r.is_open) and not busy and by_hours.open_now,
+        "open_now": by_hours.open_now,
+        "opens_at": by_hours.opens_at,
+        "loyalty_percent": r.loyalty_percent if loyalty.enabled(db, r) else 0,
+    }
 
 
 def to_out(db: Session, r: Restaurant) -> RestaurantOut:

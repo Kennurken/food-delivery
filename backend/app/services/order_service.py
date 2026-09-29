@@ -26,7 +26,8 @@ from app.models.floor_plan import FloorObject
 from app.models.idempotency import IdempotencyRecord
 from app.models.member import RestaurantMember
 from app.schemas.order import OrderCreate, OrderOut
-from app.services import delivery_pricing, kitchen_load
+from app.services import delivery_pricing, kitchen_load, loyalty
+from app.services import hours as opening_hours
 from app.services import promo as promo_service
 from app.services.schedule import due_for_courier, parse_slot
 
@@ -187,6 +188,13 @@ def create_order(
         )
     if not restaurant or not restaurant.is_open:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found or closed")
+    # The schedule closes a venue the owner left switched on. A later slot is
+    # checked against the hours at that time instead — ordering ahead for the
+    # morning is exactly what a closed kitchen should still allow.
+    if data.scheduled_for is None and not opening_hours.open_at(restaurant):
+        opens = opening_hours.status_of(restaurant).opens_at
+        when = f" Opens at {opens:%H:%M}." if opens else ""
+        raise HTTPException(status.HTTP_409_CONFLICT, f"{restaurant.name} is closed now.{when}")
     if restaurant.billing_status in INACTIVE_BILLING:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Restaurant subscription is inactive")
 
@@ -234,6 +242,10 @@ def create_order(
     slot = parse_slot(data.scheduled_for)
     if slot is not None and channel == "qr_table":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Table orders are now, not later")
+    if slot is not None and not opening_hours.open_at(restaurant, slot):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, f"{restaurant.name} is closed at that time"
+        )
 
     ids = [i.menu_item_id for i in data.items]
     menu_items = db.scalars(
@@ -299,7 +311,11 @@ def create_order(
             )
         delivery_fee = priced.fee
 
-    total = round(max(subtotal + delivery_fee - discount, 0), 2)
+    loyalty_spent = 0.0
+    if data.use_loyalty and not user.is_guest:
+        loyalty_spent = loyalty.spend(db, user, restaurant, max(subtotal - discount, 0.0))
+
+    total = round(max(subtotal + delivery_fee - discount - loyalty_spent, 0), 2)
     pay_status = "unpaid"
     if pay_method == "cash":
         pay_status = CashProvider().charge(
@@ -329,9 +345,11 @@ def create_order(
         scheduled_for=slot,
         promo_code=promo_code,
         discount=round(discount, 2),
+        loyalty_spent=loyalty_spent,
     )
     db.add(order)
     db.flush()
+    loyalty.record_spend(db, order)
     try:
         if pay_method == "online":
             paid = create_checkout_session(
@@ -502,9 +520,11 @@ def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
     order.status = new_status
     if new_status == OrderStatus.cancelled:
         refund_if_paid(db, order)
+        loyalty.refund(db, order)
     if new_status == OrderStatus.delivered:
         settle_cash(order)
         settle_courier_payout(order)
+        loyalty.earn(db, order)
     db.commit()
     db.refresh(order)
     notify(db, order)

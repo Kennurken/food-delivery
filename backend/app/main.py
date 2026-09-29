@@ -51,6 +51,7 @@ async def lifespan(_: FastAPI):
             ensure_geo_schema,
             ensure_guest_schema,
             ensure_handover_schema,
+            ensure_hours_loyalty_schema,
             ensure_menu_images,
             ensure_offer_schema,
             ensure_offers_schema,
@@ -85,6 +86,7 @@ async def lifespan(_: FastAPI):
         ensure_offer_schema()
         ensure_guest_schema()
         ensure_city_schema()
+        ensure_hours_loyalty_schema()
 
         # Now the data.
         seed_catalog()

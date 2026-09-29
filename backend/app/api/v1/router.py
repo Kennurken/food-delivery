@@ -6,6 +6,8 @@ from app.api.v1 import (
     cities,
     floor_plan,
     geo,
+    hours,
+    loyalty,
     me,
     orders,
     platform,
@@ -18,6 +20,8 @@ from app.api.v1 import (
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router)
 api_router.include_router(me.router)
+api_router.include_router(loyalty.router)
+api_router.include_router(hours.router)
 api_router.include_router(restaurants.router)
 api_router.include_router(cities.router)
 api_router.include_router(orders.router)

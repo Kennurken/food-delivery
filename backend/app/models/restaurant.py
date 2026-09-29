@@ -36,6 +36,14 @@ class Restaurant(Base):
     max_active_orders: Mapped[int | None] = mapped_column(Integer, nullable=True)
     delivery_time_min: Mapped[int] = mapped_column(Integer, default=30)
     is_open: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Share of what a diner paid for food that comes back to them as bonuses
+    # (5 = 5 %). 0 = no programme. Earning also needs the Premium `loyalty`
+    # entitlement: a venue that stops paying for it stops giving, though what
+    # diners already hold stays spendable.
+    loyalty_percent: Mapped[float] = mapped_column(Float, default=0.0, server_default="0")
+    # At most this share of the food subtotal can be paid with bonuses, so a
+    # programme can't turn into free dinners.
+    loyalty_max_share: Mapped[float] = mapped_column(Float, default=0.5, server_default="0.5")
     # Restaurant is the tenant. Plan codes are keys in app.core.features.PLANS.
     plan_code: Mapped[str] = mapped_column(String(20), default="pro")
     billing_status: Mapped[str] = mapped_column(String(20), default="active")
@@ -52,6 +60,13 @@ class Restaurant(Base):
         ForeignKey("cities.id", ondelete="SET NULL"), index=True, nullable=True
     )
     city: Mapped["City | None"] = relationship()  # noqa: F821
+    # Loaded with the venue (one extra query per batch, not per venue): every
+    # listing asks whether each card is open.
+    hours: Mapped[list["OpeningHours"]] = relationship(  # noqa: F821
+        cascade="all, delete-orphan",
+        order_by="(OpeningHours.weekday, OpeningHours.opens)",
+        lazy="selectin",
+    )
 
     menu_items: Mapped[list["MenuItem"]] = relationship(
         back_populates="restaurant", cascade="all, delete-orphan"

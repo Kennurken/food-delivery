@@ -5,7 +5,9 @@ from app.models.device import DeviceToken
 from app.models.favorite import Favorite
 from app.models.feature_flag import FeatureOverride
 from app.models.floor_plan import Floor, FloorObject, FloorVersion, FloorZone
+from app.models.hours import OpeningHours
 from app.models.idempotency import IdempotencyRecord
+from app.models.loyalty import LoyaltyEntry
 from app.models.member import RestaurantMember
 from app.models.message import OrderMessage
 from app.models.offer import Offer
@@ -27,10 +29,12 @@ __all__ = [
     "FloorVersion",
     "FloorZone",
     "IdempotencyRecord",
+    "LoyaltyEntry",
     "MenuItem",
     "ModifierGroup",
     "ModifierOption",
     "Offer",
+    "OpeningHours",
     "Order",
     "OrderItem",
     "OrderMessage",

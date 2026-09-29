@@ -48,5 +48,11 @@ def load_of(db: Session, restaurant: Restaurant) -> KitchenLoad:
 
 
 def accepting(db: Session, restaurant: Restaurant) -> bool:
-    """Open, and with room on the stove."""
-    return bool(restaurant.is_open) and not load_of(db, restaurant).overloaded
+    """Switched on, inside its opening hours, and with room on the stove."""
+    from app.services import hours
+
+    return (
+        bool(restaurant.is_open)
+        and hours.open_at(restaurant)
+        and not load_of(db, restaurant).overloaded
+    )

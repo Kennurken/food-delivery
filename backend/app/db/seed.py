@@ -608,10 +608,60 @@ def ensure_city_schema() -> None:
 
 # slug, name, lat, lng. Almaty first: every venue that predates cities trades
 # there, and it is what a request without a city means.
+# slug, name, as it reads after "в", lat, lng
 _CITIES = [
-    ("almaty", "Алматы", 43.2389, 76.8897),
-    ("astana", "Астана", 51.1282, 71.4304),
+    ("almaty", "Алматы", "Алматы", 43.2389, 76.8897),
+    ("astana", "Астана", "Астане", 51.1282, 71.4304),
 ]
+
+
+def _columns(conn, table: str) -> set[str]:
+    from sqlalchemy import text
+
+    if conn.dialect.name == "sqlite":
+        return {r[1] for r in conn.execute(text(f"PRAGMA table_info({table})"))}
+    return {
+        r[0]
+        for r in conn.execute(
+            text("SELECT column_name FROM information_schema.columns WHERE table_name = :t"),
+            {"t": table},
+        )
+    }
+
+
+def ensure_hours_loyalty_schema() -> None:
+    """Opening hours, the bonus ledger and their columns, for hosts without alembic.
+
+    DDL only, like every ensure_*_schema: the data half of the lifespan runs
+    after all of these, because an ORM read against a missing column is how
+    production went down once.
+    """
+    from sqlalchemy import text
+
+    from app.db.session import engine
+    from app.models.hours import OpeningHours
+    from app.models.loyalty import LoyaltyEntry
+
+    OpeningHours.__table__.create(bind=engine, checkfirst=True)
+    LoyaltyEntry.__table__.create(bind=engine, checkfirst=True)
+    real = "FLOAT" if engine.dialect.name == "sqlite" else "DOUBLE PRECISION"
+    wanted = {
+        "cities": [
+            ("name_in", "VARCHAR(80)"),
+            ("utc_offset_min", "INTEGER NOT NULL DEFAULT 300"),
+        ],
+        "restaurants": [
+            ("loyalty_percent", f"{real} NOT NULL DEFAULT 0"),
+            ("loyalty_max_share", f"{real} NOT NULL DEFAULT 0.5"),
+        ],
+        "orders": [("loyalty_spent", f"{real} NOT NULL DEFAULT 0")],
+    }
+    with engine.begin() as conn:
+        for table, columns in wanted.items():
+            have = _columns(conn, table)
+            for name, ddl in columns:
+                if name not in have:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}"))
 
 
 def ensure_cities() -> int:
@@ -628,13 +678,19 @@ def ensure_cities() -> int:
 
     made = 0
     with SessionLocal() as db:
-        for order, (slug, name, lat, lng) in enumerate(_CITIES):
-            if db.scalar(select(City).where(City.slug == slug)):
+        for order, (slug, name, name_in, lat, lng) in enumerate(_CITIES):
+            existing = db.scalar(select(City).where(City.slug == slug))
+            if existing is not None:
+                # Cities seeded before the column existed get their form once;
+                # one an admin already set is theirs.
+                if existing.name_in is None:
+                    existing.name_in = name_in
                 continue
             db.add(
                 City(
                     slug=check_slug(slug),
                     name=name,
+                    name_in=name_in,
                     lat=lat,
                     lng=lng,
                     is_active=True,
@@ -1121,6 +1177,7 @@ def seed() -> None:
     ensure_offer_schema()
     ensure_guest_schema()
     ensure_city_schema()
+    ensure_hours_loyalty_schema()
     towns = ensure_cities()
     if towns:
         print(f"Cities: seeded {towns}")

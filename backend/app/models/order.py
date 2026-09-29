@@ -53,6 +53,8 @@ class Order(Base):
     scheduled_for: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     promo_code: Mapped[str | None] = mapped_column(String(24), nullable=True)
     discount: Mapped[float] = mapped_column(Float, default=0)
+    # Bonuses applied at checkout, in tenge. Already taken off `total`.
+    loyalty_spent: Mapped[float] = mapped_column(Float, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="orders", foreign_keys=[user_id])  # noqa: F821

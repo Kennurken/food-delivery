@@ -20,6 +20,14 @@ class City(Base):
     # Shown to people. Russian is the site's language; the app localises
     # through its own ARB files and falls back to this.
     name: Mapped[str] = mapped_column(String(80))
+    # The name as it reads after "в": "Астане", "Алматы", "Шымкенте". Russian
+    # declines it and nothing can derive it from `name`, so it is stored. None
+    # falls back to the plain name, which is right for indeclinable ones.
+    name_in: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    # Offset from UTC in minutes, for reading opening hours. A fixed number
+    # rather than a tz name: Kazakhstan has one zone and no DST since 2024, and
+    # a serverless runtime is not guaranteed to ship the tz database.
+    utc_offset_min: Mapped[int] = mapped_column(Integer, default=300, server_default="300")
     # Where the map opens and what "nearby" means before an address is known.
     lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     lng: Mapped[float | None] = mapped_column(Float, nullable=True)

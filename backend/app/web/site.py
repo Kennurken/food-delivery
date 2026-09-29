@@ -122,22 +122,20 @@ def _safe_next(value: str | None, fallback: str = "/") -> str:
     return fallback
 
 
-# Russian puts a city after "в" in the prepositional case, which can't be
-# derived from the name: "в Алматы" but "в Астане". A city missing here falls
-# back to its plain name, which reads acceptably for most names.
-_LOCATIVE = {"almaty": "Алматы", "astana": "Астане"}
+def _locative(city: City) -> str:
+    """The city as it reads after "в" — stored, since Russian declines it and
+    the name alone can't say how ("Алматы" stays, "Астана" becomes "Астане")."""
+    return city.name_in or city.name
 
 
 def _in_city(city: City | None) -> str:
     """"в Астане" — or "" when there is no city to name."""
-    if city is None:
-        return ""
-    return "в " + _LOCATIVE.get(city.slug, city.name)
+    return "" if city is None else "в " + _locative(city)
 
 
 def _in_cities(items: list[City]) -> str:
     """"в Алматы и Астане" — every live city, for pages about the whole service."""
-    names = [_LOCATIVE.get(c.slug, c.name) for c in items]
+    names = [_locative(c) for c in items]
     if not names:
         return ""
     if len(names) == 1:

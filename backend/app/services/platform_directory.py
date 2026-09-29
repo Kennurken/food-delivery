@@ -211,8 +211,10 @@ def revenue(db: Session, *, days: int = 30) -> dict:
             func.coalesce(func.sum(Order.total), 0.0),
         )
         .select_from(Restaurant)
-        .join(Order, Order.restaurant_id == Restaurant.id, isouter=True)
-        .where((Order.id.is_(None)) | window)
+        # The window belongs in the join, not in WHERE: filtering after an outer
+        # join drops a venue whose orders all fall outside it (cancelled, still
+        # pending, or last month's) — the venue vanished from its plan's count.
+        .join(Order, (Order.restaurant_id == Restaurant.id) & window, isouter=True)
         .group_by(Restaurant.plan_code)
     ).all()
 

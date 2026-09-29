@@ -22,6 +22,10 @@ class OrderCreate(BaseModel):
     pay_method: str = Field(default="cash", pattern="^(cash|online)$")
     promo_code: str | None = Field(default=None, max_length=24)
     scheduled_for: datetime | None = None
+    # Pay what the venue's bonus programme allows from the diner's balance.
+    # A flag, not an amount: the server decides how much, like it decides the
+    # delivery fee.
+    use_loyalty: bool = False
     items: list[OrderItemCreate] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -91,6 +95,7 @@ class OrderOut(BaseModel):
     scheduled_for: datetime | None = None
     promo_code: str | None = None
     discount: float = 0
+    loyalty_spent: float = 0
     created_at: datetime
     items: list[OrderItemOut]
 

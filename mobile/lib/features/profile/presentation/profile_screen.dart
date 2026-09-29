@@ -70,8 +70,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _changePassword() async {
+    // Profile is a tab: on the shell's navigator a sheet opens underneath the
+    // bottom bar, which covers its buttons. Same for the address sheet below.
     final ok = await showModalBottomSheet<bool>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       builder: (_) => const _PasswordSheet(),
     );
@@ -101,6 +104,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _addAddress() async {
     final result = await showModalBottomSheet<AddressDraft>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       builder: (_) => const _AddressSheet(),
     );

@@ -2312,6 +2312,162 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'No restaurants in {city} yet'**
   String noVenuesInCity(String city);
+
+  /// No description provided for @closedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get closedNow;
+
+  /// No description provided for @opensAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens at {time}'**
+  String opensAt(String time);
+
+  /// No description provided for @opensOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens {day}, {time}'**
+  String opensOnDay(String day, String time);
+
+  /// No description provided for @preorderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can order ahead for when it opens'**
+  String get preorderHint;
+
+  /// No description provided for @openingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening hours'**
+  String get openingHours;
+
+  /// No description provided for @dayOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Day off'**
+  String get dayOff;
+
+  /// No description provided for @roundTheClock.
+  ///
+  /// In en, this message translates to:
+  /// **'24 hours'**
+  String get roundTheClock;
+
+  /// No description provided for @addStretch.
+  ///
+  /// In en, this message translates to:
+  /// **'Add hours'**
+  String get addStretch;
+
+  /// No description provided for @noScheduleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No schedule: open whenever the switch is on'**
+  String get noScheduleHint;
+
+  /// No description provided for @bonuses.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonuses'**
+  String get bonuses;
+
+  /// No description provided for @useBonuses.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {amount} ₸ with bonuses'**
+  String useBonuses(String amount);
+
+  /// No description provided for @bonusBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} ₸ in bonuses'**
+  String bonusBalance(String amount);
+
+  /// No description provided for @earnBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% back in bonuses'**
+  String earnBonus(String percent);
+
+  /// No description provided for @bonusProgramme.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus programme'**
+  String get bonusProgramme;
+
+  /// No description provided for @bonusPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus rate, %'**
+  String get bonusPercent;
+
+  /// No description provided for @bonusMaxShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Max share of an order paid with bonuses, %'**
+  String get bonusMaxShare;
+
+  /// No description provided for @premiumOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Available on Premium'**
+  String get premiumOnly;
+
+  /// No description provided for @myBonuses.
+  ///
+  /// In en, this message translates to:
+  /// **'My bonuses'**
+  String get myBonuses;
+
+  /// No description provided for @noBonusesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No bonuses yet'**
+  String get noBonusesYet;
+
+  /// No description provided for @paidWithBonuses.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid with bonuses'**
+  String get paidWithBonuses;
+
+  /// No description provided for @cities.
+  ///
+  /// In en, this message translates to:
+  /// **'Cities'**
+  String get cities;
+
+  /// No description provided for @addCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Add city'**
+  String get addCity;
+
+  /// No description provided for @cityName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get cityName;
+
+  /// No description provided for @cityNameIn.
+  ///
+  /// In en, this message translates to:
+  /// **'After “in” (e.g. Астане)'**
+  String get cityNameIn;
+
+  /// No description provided for @citySlug.
+  ///
+  /// In en, this message translates to:
+  /// **'Web address'**
+  String get citySlug;
+
+  /// No description provided for @cityActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown to diners'**
+  String get cityActive;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

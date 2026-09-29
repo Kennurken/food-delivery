@@ -1187,4 +1187,92 @@ class L10nKk extends L10n {
   String noVenuesInCity(String city) {
     return '$city қаласында әзірге мейрамхана жоқ';
   }
+
+  @override
+  String get closedNow => 'Жабық';
+
+  @override
+  String opensAt(String time) {
+    return 'Ашылуы: $time';
+  }
+
+  @override
+  String opensOnDay(String day, String time) {
+    return 'Ашылуы: $day, $time';
+  }
+
+  @override
+  String get preorderHint => 'Ашылуына алдын ала тапсырыс беруге болады';
+
+  @override
+  String get openingHours => 'Жұмыс уақыты';
+
+  @override
+  String get dayOff => 'Демалыс күні';
+
+  @override
+  String get roundTheClock => 'Тәулік бойы';
+
+  @override
+  String get addStretch => 'Уақыт қосу';
+
+  @override
+  String get noScheduleHint => 'Кесте жоқ: қосқыш қосулы кезде ашық';
+
+  @override
+  String get bonuses => 'Бонустар';
+
+  @override
+  String useBonuses(String amount) {
+    return 'Бонуспен $amount ₸ төлеу';
+  }
+
+  @override
+  String bonusBalance(String amount) {
+    return 'Бонус: $amount ₸';
+  }
+
+  @override
+  String earnBonus(String percent) {
+    return '$percent% бонуспен қайтарылады';
+  }
+
+  @override
+  String get bonusProgramme => 'Бонус бағдарламасы';
+
+  @override
+  String get bonusPercent => 'Есептеу, %';
+
+  @override
+  String get bonusMaxShare => 'Бонуспен төлеудің ең көп үлесі, тапсырыстың %';
+
+  @override
+  String get premiumOnly => 'Premium тарифінде қолжетімді';
+
+  @override
+  String get myBonuses => 'Менің бонустарым';
+
+  @override
+  String get noBonusesYet => 'Әзірге бонус жоқ';
+
+  @override
+  String get paidWithBonuses => 'Бонуспен төленді';
+
+  @override
+  String get cities => 'Қалалар';
+
+  @override
+  String get addCity => 'Қала қосу';
+
+  @override
+  String get cityName => 'Атауы';
+
+  @override
+  String get cityNameIn => '«в» сөзінен кейін (мысалы, Астане)';
+
+  @override
+  String get citySlug => 'Сайттағы мекенжай';
+
+  @override
+  String get cityActive => 'Қонақтарға көрсету';
 }

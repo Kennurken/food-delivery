@@ -1190,4 +1190,92 @@ class L10nEn extends L10n {
   String noVenuesInCity(String city) {
     return 'No restaurants in $city yet';
   }
+
+  @override
+  String get closedNow => 'Closed';
+
+  @override
+  String opensAt(String time) {
+    return 'Opens at $time';
+  }
+
+  @override
+  String opensOnDay(String day, String time) {
+    return 'Opens $day, $time';
+  }
+
+  @override
+  String get preorderHint => 'You can order ahead for when it opens';
+
+  @override
+  String get openingHours => 'Opening hours';
+
+  @override
+  String get dayOff => 'Day off';
+
+  @override
+  String get roundTheClock => '24 hours';
+
+  @override
+  String get addStretch => 'Add hours';
+
+  @override
+  String get noScheduleHint => 'No schedule: open whenever the switch is on';
+
+  @override
+  String get bonuses => 'Bonuses';
+
+  @override
+  String useBonuses(String amount) {
+    return 'Pay $amount ₸ with bonuses';
+  }
+
+  @override
+  String bonusBalance(String amount) {
+    return '$amount ₸ in bonuses';
+  }
+
+  @override
+  String earnBonus(String percent) {
+    return '$percent% back in bonuses';
+  }
+
+  @override
+  String get bonusProgramme => 'Bonus programme';
+
+  @override
+  String get bonusPercent => 'Bonus rate, %';
+
+  @override
+  String get bonusMaxShare => 'Max share of an order paid with bonuses, %';
+
+  @override
+  String get premiumOnly => 'Available on Premium';
+
+  @override
+  String get myBonuses => 'My bonuses';
+
+  @override
+  String get noBonusesYet => 'No bonuses yet';
+
+  @override
+  String get paidWithBonuses => 'Paid with bonuses';
+
+  @override
+  String get cities => 'Cities';
+
+  @override
+  String get addCity => 'Add city';
+
+  @override
+  String get cityName => 'Name';
+
+  @override
+  String get cityNameIn => 'After “in” (e.g. Астане)';
+
+  @override
+  String get citySlug => 'Web address';
+
+  @override
+  String get cityActive => 'Shown to diners';
 }

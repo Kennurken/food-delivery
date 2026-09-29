@@ -574,5 +574,69 @@
         "type": "String"
       }
     }
-  }
+  },
+  "closedNow": "Closed",
+  "opensAt": "Opens at {time}",
+  "@opensAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "opensOnDay": "Opens {day}, {time}",
+  "@opensOnDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "preorderHint": "You can order ahead for when it opens",
+  "openingHours": "Opening hours",
+  "dayOff": "Day off",
+  "roundTheClock": "24 hours",
+  "addStretch": "Add hours",
+  "noScheduleHint": "No schedule: open whenever the switch is on",
+  "bonuses": "Bonuses",
+  "useBonuses": "Pay {amount} ₸ with bonuses",
+  "@useBonuses": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "bonusBalance": "{amount} ₸ in bonuses",
+  "@bonusBalance": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "earnBonus": "{percent}% back in bonuses",
+  "@earnBonus": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "bonusProgramme": "Bonus programme",
+  "bonusPercent": "Bonus rate, %",
+  "bonusMaxShare": "Max share of an order paid with bonuses, %",
+  "premiumOnly": "Available on Premium",
+  "myBonuses": "My bonuses",
+  "noBonusesYet": "No bonuses yet",
+  "paidWithBonuses": "Paid with bonuses",
+  "cities": "Cities",
+  "addCity": "Add city",
+  "cityName": "Name",
+  "cityNameIn": "After “in” (e.g. Астане)",
+  "citySlug": "Web address",
+  "cityActive": "Shown to diners"
 }

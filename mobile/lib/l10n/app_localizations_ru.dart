@@ -1188,4 +1188,93 @@ class L10nRu extends L10n {
   String noVenuesInCity(String city) {
     return 'В городе $city пока нет ресторанов';
   }
+
+  @override
+  String get closedNow => 'Закрыто';
+
+  @override
+  String opensAt(String time) {
+    return 'Откроется в $time';
+  }
+
+  @override
+  String opensOnDay(String day, String time) {
+    return 'Откроется: $day, $time';
+  }
+
+  @override
+  String get preorderHint => 'Можно заказать заранее — к открытию';
+
+  @override
+  String get openingHours => 'Часы работы';
+
+  @override
+  String get dayOff => 'Выходной';
+
+  @override
+  String get roundTheClock => 'Круглосуточно';
+
+  @override
+  String get addStretch => 'Добавить время';
+
+  @override
+  String get noScheduleHint =>
+      'Без расписания: открыто, пока включён переключатель';
+
+  @override
+  String get bonuses => 'Бонусы';
+
+  @override
+  String useBonuses(String amount) {
+    return 'Списать $amount ₸ бонусами';
+  }
+
+  @override
+  String bonusBalance(String amount) {
+    return 'Бонусов: $amount ₸';
+  }
+
+  @override
+  String earnBonus(String percent) {
+    return 'Кешбэк $percent% бонусами';
+  }
+
+  @override
+  String get bonusProgramme => 'Бонусная программа';
+
+  @override
+  String get bonusPercent => 'Начисление, %';
+
+  @override
+  String get bonusMaxShare => 'Максимум оплаты бонусами, % от заказа';
+
+  @override
+  String get premiumOnly => 'Доступно на тарифе Premium';
+
+  @override
+  String get myBonuses => 'Мои бонусы';
+
+  @override
+  String get noBonusesYet => 'Бонусов пока нет';
+
+  @override
+  String get paidWithBonuses => 'Оплачено бонусами';
+
+  @override
+  String get cities => 'Города';
+
+  @override
+  String get addCity => 'Добавить город';
+
+  @override
+  String get cityName => 'Название';
+
+  @override
+  String get cityNameIn => 'После «в» (например, Астане)';
+
+  @override
+  String get citySlug => 'Адрес на сайте';
+
+  @override
+  String get cityActive => 'Показывать гостям';
 }

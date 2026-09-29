@@ -1,4 +1,5 @@
 import 'menu_item.dart';
+import 'opening_hours.dart';
 
 class Restaurant {
   const Restaurant({
@@ -22,6 +23,10 @@ class Restaurant {
     this.lng,
     this.citySlug,
     this.cityName,
+    this.openNow = true,
+    this.opensAt,
+    this.loyaltyPercent = 0,
+    this.hours = const [],
   });
 
   final int id;
@@ -47,6 +52,22 @@ class Restaurant {
   final double? lng;
   final String? citySlug;
   final String? cityName;
+
+  /// By the venue's opening hours. `acceptingOrders` already folds it in;
+  /// this says *why* a venue isn't taking orders.
+  final bool openNow;
+
+  /// When closed by the schedule: the next opening on the venue's own wall
+  /// clock. Deliberately not converted to the phone's zone — "opens at 10:00"
+  /// means ten where the kitchen is, even for someone browsing from Astana
+  /// with a phone still on another zone.
+  final DateTime? opensAt;
+
+  /// Share of paid food returned as bonuses; 0 = no programme.
+  final double loyaltyPercent;
+
+  /// The week, when the API sent it (the venue detail does; lists don't).
+  final List<OpeningStretch> hours;
 
   bool get hasPin =>
       lat != null &&
@@ -86,5 +107,19 @@ class Restaurant {
     lng: json['lng'] is num ? (json['lng'] as num).toDouble() : null,
     citySlug: json['city_slug'] as String?,
     cityName: json['city_name'] as String?,
+    openNow: json['open_now'] as bool? ?? true,
+    opensAt: wallClock(json['opens_at'] as String?),
+    loyaltyPercent: (json['loyalty_percent'] as num?)?.toDouble() ?? 0,
+    hours: [
+      for (final h in json['hours'] as List<dynamic>? ?? const [])
+        OpeningStretch.fromJson(h as Map<String, dynamic>),
+    ],
   );
+
+  /// "2026-10-01T10:00:00+05:00" → 10:00 on 1 Oct, as written. DateTime.parse
+  /// would shift it to UTC and the venue's "10:00" would print as "05:00".
+  static DateTime? wallClock(String? iso) {
+    if (iso == null || iso.length < 19) return null;
+    return DateTime.tryParse(iso.substring(0, 19));
+  }
 }

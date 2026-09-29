@@ -7,18 +7,38 @@ people have it.
 
 import itertools
 
+import pytest
+from sqlalchemy import update
+
+from app.db.session import SessionLocal
+from app.models import City
+
 ADMIN = "/api/v1/admin/cities"
 _n = itertools.count(1)
+_made: list[int] = []
 
 
 def _slug() -> str:
     return f"town-{next(_n)}"
 
 
+@pytest.fixture(autouse=True)
+def _switch_off_what_we_made():
+    """The test database is shared by the whole session, and pages about the
+    whole service name every live city — leftovers would leak into them."""
+    yield
+    if _made:
+        with SessionLocal() as db:
+            db.execute(update(City).where(City.id.in_(_made)).values(is_active=False))
+            db.commit()
+        _made.clear()
+
+
 def _create(client, admin, **extra) -> dict:
     body = {"slug": _slug(), "name": "Шымкент", "name_in": "Шымкенте", **extra}
     r = client.post(ADMIN, json=body, headers=admin)
     assert r.status_code == 201, r.text
+    _made.append(r.json()["id"])
     return r.json()
 
 

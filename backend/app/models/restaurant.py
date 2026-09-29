@@ -46,6 +46,12 @@ class Restaurant(Base):
     plan_renews_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     lng: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Nullable so a venue can exist before anyone decides where it trades;
+    # every venue that predates cities is backfilled into the default one.
+    city_id: Mapped[int | None] = mapped_column(
+        ForeignKey("cities.id", ondelete="SET NULL"), index=True, nullable=True
+    )
+    city: Mapped["City | None"] = relationship()  # noqa: F821
 
     menu_items: Mapped[list["MenuItem"]] = relationship(
         back_populates="restaurant", cascade="all, delete-orphan"

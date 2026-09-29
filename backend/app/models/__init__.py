@@ -1,5 +1,6 @@
 from app.models.address import Address
 from app.models.audit import AuditLog
+from app.models.city import City
 from app.models.device import DeviceToken
 from app.models.favorite import Favorite
 from app.models.feature_flag import FeatureOverride
@@ -17,6 +18,7 @@ from app.models.user import User, UserRole
 __all__ = [
     "Address",
     "AuditLog",
+    "City",
     "DeviceToken",
     "Favorite",
     "FeatureOverride",

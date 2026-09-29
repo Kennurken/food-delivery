@@ -61,6 +61,8 @@ class RestaurantOut(BaseModel):
     reservations: bool = False
     lat: float | None = None
     lng: float | None = None
+    city_slug: str | None = None
+    city_name: str | None = None
 
 
 class RestaurantDetail(RestaurantOut):

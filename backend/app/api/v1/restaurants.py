@@ -7,7 +7,7 @@ from app.models import MenuItem, Restaurant
 from app.schemas.admin import PromoQuote
 from app.schemas.reservation import TableOut
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
-from app.services import delivery_pricing
+from app.services import cities, delivery_pricing
 from app.services import reservation as reserve_service
 from app.services.promo import quote as quote_promo
 from app.services.restaurant_view import to_detail, to_out
@@ -29,8 +29,17 @@ def list_restaurants(
     cuisine: str | None = None,
     q: str | None = Query(default=None, min_length=1),
     sort: str = Query(default="rating", pattern="^(rating|eta|fee)$"),
+    city: str | None = Query(default=None, max_length=40),
 ) -> list[RestaurantOut]:
     stmt = select(Restaurant).where(Restaurant.is_open.is_(True))
+    if city:
+        # An unknown or switched-off city is an empty list, not every venue in
+        # the country: someone who picked Astana must never be shown Almaty's
+        # kitchens as if they could deliver there.
+        chosen = cities.by_slug(db, city)
+        if chosen is None:
+            return []
+        stmt = stmt.where(Restaurant.city_id == chosen.id)
     if cuisine:
         stmt = stmt.where(Restaurant.cuisine == cuisine)
     if q:

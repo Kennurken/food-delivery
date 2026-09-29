@@ -561,6 +561,99 @@ def ensure_guest_schema() -> None:
             )
 
 
+def ensure_city_schema() -> None:
+    """Cities table and restaurants.city_id for hosts that boot without alembic.
+
+    DDL only. Filling the table and backfilling venues is data, and runs in the
+    data half of the lifespan — reading rows here is how production went down.
+    """
+    from sqlalchemy import text
+
+    from app.db.session import engine
+    from app.models.city import City
+
+    City.__table__.create(bind=engine, checkfirst=True)
+    with engine.begin() as conn:
+        if engine.dialect.name == "sqlite":
+            have = {r[1] for r in conn.execute(text("PRAGMA table_info(restaurants)"))}
+        else:
+            have = {
+                r[0]
+                for r in conn.execute(
+                    text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_name = 'restaurants'"
+                    )
+                )
+            }
+        if "city_id" not in have:
+            # The constraint is named exactly as the migration names it. Left to
+            # Postgres it would be restaurants_city_id_fkey, and the migration's
+            # downgrade — which drops fk_restaurants_city_id — would fail on
+            # every database this boot path built.
+            conn.execute(
+                text(
+                    "ALTER TABLE restaurants ADD COLUMN city_id INTEGER "
+                    "CONSTRAINT fk_restaurants_city_id "
+                    "REFERENCES cities(id) ON DELETE SET NULL"
+                )
+            )
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_restaurants_city_id "
+                    "ON restaurants (city_id)"
+                )
+            )
+
+
+# slug, name, lat, lng. Almaty first: every venue that predates cities trades
+# there, and it is what a request without a city means.
+_CITIES = [
+    ("almaty", "Алматы", 43.2389, 76.8897),
+    ("astana", "Астана", 51.1282, 71.4304),
+]
+
+
+def ensure_cities() -> int:
+    """Seed the cities and move every venue with no city into the default.
+
+    Idempotent both ways: an existing city is left as it is, and a venue that
+    already has a city is never reassigned — someone may have moved it.
+    """
+    from sqlalchemy import update
+
+    from app.models.city import City
+    from app.models.restaurant import Restaurant
+    from app.services.cities import DEFAULT_SLUG, check_slug
+
+    made = 0
+    with SessionLocal() as db:
+        for order, (slug, name, lat, lng) in enumerate(_CITIES):
+            if db.scalar(select(City).where(City.slug == slug)):
+                continue
+            db.add(
+                City(
+                    slug=check_slug(slug),
+                    name=name,
+                    lat=lat,
+                    lng=lng,
+                    is_active=True,
+                    sort_order=order,
+                )
+            )
+            made += 1
+        db.flush()
+        default = db.scalar(select(City).where(City.slug == DEFAULT_SLUG))
+        if default is not None:
+            db.execute(
+                update(Restaurant)
+                .where(Restaurant.city_id.is_(None))
+                .values(city_id=default.id)
+            )
+        db.commit()
+    return made
+
+
 def ensure_capacity_schema() -> None:
     """Kitchen cap column for hosts that boot without alembic."""
     from sqlalchemy import text
@@ -1027,6 +1120,10 @@ def seed() -> None:
     ensure_subscription_schema()
     ensure_offer_schema()
     ensure_guest_schema()
+    ensure_city_schema()
+    towns = ensure_cities()
+    if towns:
+        print(f"Cities: seeded {towns}")
     campaigns = ensure_demo_offers()
     if campaigns:
         print(f"Campaigns: seeded {campaigns}")

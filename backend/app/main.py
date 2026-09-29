@@ -39,6 +39,8 @@ async def lifespan(_: FastAPI):
             ensure_capacity_schema,
             ensure_chat_schema,
             ensure_checkout_schema,
+            ensure_cities,
+            ensure_city_schema,
             ensure_courier_payout_schema,
             ensure_delivery_pricing_schema,
             ensure_demo_modifiers,
@@ -82,6 +84,7 @@ async def lifespan(_: FastAPI):
         ensure_subscription_schema()
         ensure_offer_schema()
         ensure_guest_schema()
+        ensure_city_schema()
 
         # Now the data.
         seed_catalog()
@@ -91,6 +94,7 @@ async def lifespan(_: FastAPI):
         ensure_demo_promos()
         ensure_restaurant_slugs()
         ensure_demo_offers()
+        ensure_cities()
     # Sync endpoints run in a threadpool; hub needs the main loop to push WS frames.
     hub.bind_loop(asyncio.get_running_loop())
     yield

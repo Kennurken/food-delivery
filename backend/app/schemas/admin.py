@@ -10,6 +10,9 @@ class RestaurantCreate(BaseModel):
     delivery_time_min: int = Field(default=30, ge=1, le=240)
     lat: float | None = Field(default=None, ge=-90, le=90)
     lng: float | None = Field(default=None, ge=-180, le=180)
+    # Omitted means the default city. A venue with no city appears in no city's
+    # listing, so there is no way to create one on purpose.
+    city_slug: str | None = Field(default=None, max_length=40)
 
 
 class RestaurantUpdate(BaseModel):
@@ -26,6 +29,7 @@ class RestaurantUpdate(BaseModel):
     billing_status: str | None = None
     lat: float | None = Field(default=None, ge=-90, le=90)
     lng: float | None = Field(default=None, ge=-180, le=180)
+    city_slug: str | None = Field(default=None, max_length=40)
 
 
 class MenuItemCreate(BaseModel):

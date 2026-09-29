@@ -30,6 +30,7 @@ from app.schemas.admin import (
     RestaurantUpdate,
 )
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
+from app.services import cities
 from app.services import restaurant_stats as restaurant_stats_service
 from app.services.restaurant_view import to_detail, to_out
 from app.services.slugs import unique_slug
@@ -48,12 +49,29 @@ def _restaurant_or_404(db, restaurant_id: int) -> Restaurant:
     return r
 
 
+def _city_id(db, slug: str | None) -> int | None:
+    """The city a venue goes into: the one named, or the default one.
+
+    An unknown or switched-off slug is refused rather than quietly replaced by
+    the default: the owner asked for a specific city and would not notice the
+    venue landing somewhere else.
+    """
+    if slug is None:
+        chosen = cities.default(db)
+        return chosen.id if chosen else None
+    chosen = cities.by_slug(db, slug)
+    if chosen is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unknown city")
+    return chosen.id
+
+
 @router.post("/restaurants", response_model=RestaurantOut, status_code=status.HTTP_201_CREATED)
 def create_restaurant(
     data: RestaurantCreate, db: DB, user: AdminUser, request: Request
 ) -> RestaurantOut:
     payload = data.model_dump()
-    r = Restaurant(**payload, plan_code=DEFAULT_PLAN)
+    city_id = _city_id(db, payload.pop("city_slug"))
+    r = Restaurant(**payload, city_id=city_id, plan_code=DEFAULT_PLAN)
     db.add(r)
     db.flush()
     # Without this the venue has no public page and never reaches the sitemap:
@@ -105,6 +123,9 @@ def update_restaurant(
         )
     if "billing_status" in updates and updates["billing_status"] not in _BILLING:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unknown billing status")
+    if "city_slug" in updates:
+        # null here is not "no city" but "the default one", same as on create.
+        updates["city_id"] = _city_id(db, updates.pop("city_slug"))
     for k, v in updates.items():
         setattr(r, k, v)
     db.commit()

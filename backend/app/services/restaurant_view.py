@@ -18,6 +18,7 @@ def to_out(db: Session, r: Restaurant) -> RestaurantOut:
             "channels": channels_of(flags),
             "reservations": flags.enabled("reservations"),
             **_load_fields(db, r),
+            **_city_fields(r),
         }
     )
 
@@ -29,5 +30,14 @@ def to_detail(db: Session, r: Restaurant) -> RestaurantDetail:
             "channels": channels_of(flags),
             "reservations": flags.enabled("reservations"),
             **_load_fields(db, r),
+            **_city_fields(r),
         }
     )
+
+
+def _city_fields(r: Restaurant) -> dict:
+    city = r.city
+    return {
+        "city_slug": city.slug if city else None,
+        "city_name": city.name if city else None,
+    }

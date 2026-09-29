@@ -14,6 +14,10 @@ class ListSkeleton extends StatelessWidget {
     child: ListView.separated(
       padding: const EdgeInsets.all(16),
       physics: const NeverScrollableScrollPhysics(),
+      // It never scrolls, so it can size to its rows — which is what lets it
+      // stand in for a section inside a page that does (a nested viewport
+      // given no height throws).
+      shrinkWrap: true,
       itemCount: count,
       separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (_, _) => Card(

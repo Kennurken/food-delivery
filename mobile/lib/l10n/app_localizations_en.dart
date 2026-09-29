@@ -1278,4 +1278,15 @@ class L10nEn extends L10n {
 
   @override
   String get cityActive => 'Shown to diners';
+
+  @override
+  String get showMore => 'Show more';
+
+  @override
+  String get noDeliveriesYet => 'No deliveries yet';
+
+  @override
+  String cashInHand(String amount) {
+    return 'cash with you: $amount ₸';
+  }
 }

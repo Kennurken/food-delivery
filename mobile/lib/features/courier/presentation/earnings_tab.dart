@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -61,6 +62,7 @@ class EarningsTab extends ConsumerWidget {
               )
             else
               _DayChart(data: data).stagger(3),
+            const _HistorySection(),
           ],
         ),
       ),
@@ -124,14 +126,17 @@ class _EarnedCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
+          // Wrap, not Row: on a 320px phone the all-time sum in Russian ran
+          // six pixels past the card. It moves to a second line instead.
+          Wrap(
+            spacing: 24,
+            runSpacing: 8,
             children: [
               _Stat(
                 label: t.deliveriesLabel,
                 value: '${data.deliveries}',
                 tone: scheme.onPrimaryContainer,
               ),
-              const SizedBox(width: 24),
               _Stat(
                 label: t.allTimeLabel,
                 value: formatMoney(data.earnedAllTime),
@@ -291,5 +296,133 @@ class _DayChart extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Per-delivery payout history section.
+class _HistorySection extends ConsumerWidget {
+  const _HistorySection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.l10n;
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+
+    final async = ref.watch(payoutHistoryProvider);
+
+    return async.when(
+      loading: () => const ListSkeleton(count: 5, rowHeight: 72),
+      error: (_, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: Text(
+            t.couldNotLoad,
+            style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+        ),
+      ),
+      data: (history) {
+        final rows = history.rows;
+        if (rows.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text(
+                t.noDeliveriesYet,
+                style: text.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          );
+        }
+
+        final notifier = ref.read(payoutHistoryProvider.notifier);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            Text(
+              t.history,
+              style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: rows.length + (history.hasMore ? 1 : 0),
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                if (index == rows.length) {
+                  // Load more button
+                  return Center(
+                    child: TextButton(
+                      onPressed: history.loadingMore
+                          ? null
+                          : () => notifier.loadMore().catchError((Object e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(errorMessage(e))),
+                                );
+                              }
+                            }),
+                      child: history.loadingMore
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(t.showMore),
+                    ),
+                  );
+                }
+
+                final row = rows[index];
+                final dateStr = _formatDateTime(row.at);
+                final subtitle = row.cashHeld > 0
+                    ? '$dateStr  ·  ${t.cashInHand(formatMoney(row.cashHeld))}'
+                    : dateStr;
+
+                return ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    row.restaurantName,
+                    style: text.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    subtitle,
+                    style: text.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Text(
+                    '+${formatMoney(row.payout)} ₸',
+                    style: text.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// `2026-09-30T12:40:00` -> `30.09 12:40`
+  String _formatDateTime(DateTime dt) {
+    final d = dt.day.toString().padLeft(2, '0');
+    final m = dt.month.toString().padLeft(2, '0');
+    final h = dt.hour.toString().padLeft(2, '0');
+    final min = dt.minute.toString().padLeft(2, '0');
+    return '$d.$m $h:$min';
   }
 }

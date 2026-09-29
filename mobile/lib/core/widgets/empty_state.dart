@@ -84,25 +84,30 @@ class EmptyState extends StatelessWidget {
         cta = cta.animate(delay: 280.ms).fadeIn(duration: Motion.normal);
       }
     }
+    final body = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        mark,
+        const SizedBox(height: 16),
+        heading,
+        if (sub != null) ...[const SizedBox(height: 4), sub],
+        if (cta != null) ...[const SizedBox(height: 16), cta],
+      ],
+    );
     return LayoutBuilder(
-      builder: (_, c) => SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: SizedBox(
-          height: c.maxHeight,
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                mark,
-                const SizedBox(height: 16),
-                heading,
-                if (sub != null) ...[const SizedBox(height: 4), sub],
-                if (cta != null) ...[const SizedBox(height: 16), cta],
-              ],
-            ),
+      builder: (_, c) {
+        // Inside a list there is no height to fill: sizing to maxHeight there
+        // is sizing to infinity, which threw on a new courier's empty wallet.
+        // Just take the room the content needs.
+        if (!c.hasBoundedHeight) return Center(child: body);
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: c.maxHeight,
+            child: Center(child: body),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

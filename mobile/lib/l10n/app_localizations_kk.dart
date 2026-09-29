@@ -1275,4 +1275,15 @@ class L10nKk extends L10n {
 
   @override
   String get cityActive => 'Қонақтарға көрсету';
+
+  @override
+  String get showMore => 'Тағы көрсету';
+
+  @override
+  String get noDeliveriesYet => 'Әзірге жеткізу жоқ';
+
+  @override
+  String cashInHand(String amount) {
+    return 'қолыңыздағы қолма-қол: $amount ₸';
+  }
 }

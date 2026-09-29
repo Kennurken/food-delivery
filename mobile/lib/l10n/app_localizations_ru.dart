@@ -1277,4 +1277,15 @@ class L10nRu extends L10n {
 
   @override
   String get cityActive => 'Показывать гостям';
+
+  @override
+  String get showMore => 'Показать ещё';
+
+  @override
+  String get noDeliveriesYet => 'Доставок пока нет';
+
+  @override
+  String cashInHand(String amount) {
+    return 'наличные у вас: $amount ₸';
+  }
 }

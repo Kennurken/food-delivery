@@ -488,5 +488,8 @@
   "cityName": "Название",
   "cityNameIn": "После «в» (например, Астане)",
   "citySlug": "Адрес на сайте",
-  "cityActive": "Показывать гостям"
+  "cityActive": "Показывать гостям",
+  "showMore": "Показать ещё",
+  "noDeliveriesYet": "Доставок пока нет",
+  "cashInHand": "наличные у вас: {amount} ₸"
 }

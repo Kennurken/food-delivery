@@ -2468,6 +2468,24 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Shown to diners'**
   String get cityActive;
+
+  /// No description provided for @showMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get showMore;
+
+  /// No description provided for @noDeliveriesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No deliveries yet'**
+  String get noDeliveriesYet;
+
+  /// No description provided for @cashInHand.
+  ///
+  /// In en, this message translates to:
+  /// **'cash with you: {amount} ₸'**
+  String cashInHand(String amount);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

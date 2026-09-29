@@ -638,5 +638,15 @@
   "cityName": "Name",
   "cityNameIn": "After “in” (e.g. Астане)",
   "citySlug": "Web address",
-  "cityActive": "Shown to diners"
+  "cityActive": "Shown to diners",
+  "showMore": "Show more",
+  "noDeliveriesYet": "No deliveries yet",
+  "cashInHand": "cash with you: {amount} ₸",
+  "@cashInHand": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  }
 }

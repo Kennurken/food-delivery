@@ -1179,4 +1179,15 @@ class L10nEn extends L10n {
   String campaignPageHint(String url) {
     return 'Visible at $url while it runs';
   }
+
+  @override
+  String get chooseCity => 'Choose a city';
+
+  @override
+  String get allCities => 'All cities';
+
+  @override
+  String noVenuesInCity(String city) {
+    return 'No restaurants in $city yet';
+  }
 }

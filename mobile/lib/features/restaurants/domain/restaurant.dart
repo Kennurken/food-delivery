@@ -20,6 +20,8 @@ class Restaurant {
     this.reservations = false,
     this.lat,
     this.lng,
+    this.citySlug,
+    this.cityName,
   });
 
   final int id;
@@ -43,6 +45,8 @@ class Restaurant {
   final List<MenuItem> menu;
   final double? lat;
   final double? lng;
+  final String? citySlug;
+  final String? cityName;
 
   bool get hasPin =>
       lat != null &&
@@ -80,5 +84,7 @@ class Restaurant {
         .toList(),
     lat: json['lat'] is num ? (json['lat'] as num).toDouble() : null,
     lng: json['lng'] is num ? (json['lng'] as num).toDouble() : null,
+    citySlug: json['city_slug'] as String?,
+    cityName: json['city_name'] as String?,
   );
 }

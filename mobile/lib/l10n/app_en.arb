@@ -564,5 +564,15 @@
         "type": "String"
       }
     }
+  },
+  "chooseCity": "Choose a city",
+  "allCities": "All cities",
+  "noVenuesInCity": "No restaurants in {city} yet",
+  "@noVenuesInCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
   }
 }

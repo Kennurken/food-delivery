@@ -2294,6 +2294,24 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Visible at {url} while it runs'**
   String campaignPageHint(String url);
+
+  /// No description provided for @chooseCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a city'**
+  String get chooseCity;
+
+  /// No description provided for @allCities.
+  ///
+  /// In en, this message translates to:
+  /// **'All cities'**
+  String get allCities;
+
+  /// No description provided for @noVenuesInCity.
+  ///
+  /// In en, this message translates to:
+  /// **'No restaurants in {city} yet'**
+  String noVenuesInCity(String city);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

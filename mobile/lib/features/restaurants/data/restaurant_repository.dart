@@ -4,25 +4,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../map/presentation/map_origin.dart';
 import '../../reservations/domain/floor_table.dart';
-import '../domain/promo_quote.dart';
+import '../domain/city.dart';
 import '../domain/delivery_quote.dart';
+import '../domain/promo_quote.dart';
 import '../domain/restaurant.dart';
 import '../domain/sort.dart';
+import 'city_choice.dart';
 
 class RestaurantRepository {
   RestaurantRepository(this._dio);
 
   final Dio _dio;
 
-  Future<List<Restaurant>> list({String? query, String? cuisine}) async {
+  Future<List<Restaurant>> list({
+    String? query,
+    String? cuisine,
+    String? city,
+  }) async {
     final r = await _dio.get(
       '/api/v1/restaurants',
       queryParameters: {
         if (query != null && query.isNotEmpty) 'q': query,
         'cuisine': ?cuisine,
+        'city': ?city,
       },
     );
     return (r.data as List).map((e) => Restaurant.fromJson(e)).toList();
+  }
+
+  Future<List<City>> cities() async {
+    final r = await _dio.get('/api/v1/cities');
+    return (r.data as List).map((e) => City.fromJson(e)).toList();
   }
 
   Future<List<FloorTable>> tables(int restaurantId) async {
@@ -116,12 +128,25 @@ final cuisinesProvider = FutureProvider<List<String>>(
   (ref) => ref.watch(restaurantRepositoryProvider).cuisines(),
 );
 
-final restaurantsProvider = FutureProvider<List<Restaurant>>((ref) {
+final citiesProvider = FutureProvider<List<City>>(
+  (ref) => ref.watch(restaurantRepositoryProvider).cities(),
+);
+
+final restaurantsProvider = FutureProvider<List<Restaurant>>((ref) async {
   final q = ref.watch(restaurantSearchProvider);
   final cuisine = ref.watch(cuisineFilterProvider);
-  return ref
-      .watch(restaurantRepositoryProvider)
-      .list(query: q, cuisine: cuisine);
+  final repo = ref.watch(restaurantRepositoryProvider);
+  var city = ref.watch(cityChoiceProvider);
+  final live = city == null ? null : ref.watch(citiesProvider.future);
+  if (live != null) {
+    // A remembered city that has since been switched off would filter the
+    // list to nothing, for good, under a button that can no longer name it.
+    // Browse every city instead. Without the city list, trust the choice.
+    try {
+      if (!(await live).any((c) => c.slug == city)) city = null;
+    } catch (_) {}
+  }
+  return repo.list(query: q, cuisine: cuisine, city: city);
 });
 
 final sortedRestaurantsProvider = Provider<AsyncValue<List<Restaurant>>>((ref) {

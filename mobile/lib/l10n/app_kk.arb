@@ -459,5 +459,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "chooseCity": "Қаланы таңдаңыз",
+  "allCities": "Барлық қалалар",
+  "noVenuesInCity": "{city} қаласында әзірге мейрамхана жоқ"
 }

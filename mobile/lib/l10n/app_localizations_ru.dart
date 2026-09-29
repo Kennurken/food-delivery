@@ -1177,4 +1177,15 @@ class L10nRu extends L10n {
   String campaignPageHint(String url) {
     return 'Видна по адресу $url, пока идёт';
   }
+
+  @override
+  String get chooseCity => 'Выберите город';
+
+  @override
+  String get allCities => 'Все города';
+
+  @override
+  String noVenuesInCity(String city) {
+    return 'В городе $city пока нет ресторанов';
+  }
 }

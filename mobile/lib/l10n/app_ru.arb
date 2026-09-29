@@ -459,5 +459,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "chooseCity": "Выберите город",
+  "allCities": "Все города",
+  "noVenuesInCity": "В городе {city} пока нет ресторанов"
 }

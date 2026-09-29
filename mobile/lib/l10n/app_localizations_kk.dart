@@ -1176,4 +1176,15 @@ class L10nKk extends L10n {
   String campaignPageHint(String url) {
     return '$url мекенжайында көрінеді';
   }
+
+  @override
+  String get chooseCity => 'Қаланы таңдаңыз';
+
+  @override
+  String get allCities => 'Барлық қалалар';
+
+  @override
+  String noVenuesInCity(String city) {
+    return '$city қаласында әзірге мейрамхана жоқ';
+  }
 }

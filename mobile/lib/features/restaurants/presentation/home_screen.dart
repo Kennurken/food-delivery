@@ -22,10 +22,12 @@ import '../../map/domain/geo.dart';
 import '../../map/presentation/device_location.dart';
 import '../../map/presentation/map_origin.dart';
 import '../../map/domain/place.dart';
+import '../data/city_choice.dart';
 import '../data/favorite_repository.dart';
 import '../data/restaurant_repository.dart';
 import '../domain/restaurant.dart';
 import '../domain/sort.dart';
+import 'city_picker.dart';
 import 'favorite_button.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -127,19 +129,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   onChanged: _onQuery,
                 )
-              : Column(
+              : HomeTitle(
                   key: const ValueKey('title'),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _greeting,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(user?.name.split(' ').first ?? ''),
-                  ],
+                  greeting: _greeting,
+                  name: user?.name.split(' ').first ?? '',
                 ),
         ),
         actions: [
@@ -182,6 +175,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               data: (list) {
                 if (list.isEmpty) {
+                  // Only when the city is the one thing narrowing the list:
+                  // with a search or a cuisine on, "nothing in Astana" would
+                  // be a false claim about Astana.
+                  final citySlug = ref.watch(cityChoiceProvider);
+                  if (citySlug != null &&
+                      query.isEmpty &&
+                      ref.watch(cuisineFilterProvider) == null) {
+                    final cities = ref.watch(citiesProvider).value ?? const [];
+                    final city = cities
+                        .where((c) => c.slug == citySlug)
+                        .firstOrNull;
+                    final name = city?.name ?? citySlug;
+                    return EmptyState(
+                      icon: Icons.search_off,
+                      title: t.noVenuesInCity(name),
+                    );
+                  }
                   return EmptyState(
                     icon: Icons.search_off,
                     title: t.nothingFound,
@@ -699,4 +709,40 @@ class _ErrorView extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Greeting over the diner's name and the city they are browsing.
+///
+/// Two lines, not three: the city shares the name's line so the block still
+/// fits a standard app bar.
+class HomeTitle extends StatelessWidget {
+  const HomeTitle({super.key, required this.greeting, required this.name});
+
+  final String greeting;
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          greeting,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (name.isNotEmpty)
+              Flexible(child: Text(name, overflow: TextOverflow.ellipsis)),
+            const Flexible(child: CityButton()),
+          ],
+        ),
+      ],
+    );
+  }
 }

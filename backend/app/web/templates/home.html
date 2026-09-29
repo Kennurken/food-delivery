@@ -3,8 +3,8 @@
 {% block content %}
 <section class="hero">
   <div class="wrap">
-    <p class="kicker">Алматы</p>
-    <h1>Доставка еды в г. Алматы</h1>
+    <p class="kicker">{{ city.name if city else "Food Delivery" }}</p>
+    <h1>Доставка еды {{ city_in }}</h1>
     <p class="lede">Паназиатская кухня, пицца и бургеры из местных ресторанов.
       Оплата картой или наличными, бронь столика, доставка по расстоянию —
       цену видно до оформления.</p>
@@ -35,6 +35,9 @@
     </a>
     {% endfor %}
   </div>
+  {% if not restaurants %}
+  <p class="muted">Пока нет ресторанов {{ city_in }} — скоро появятся.</p>
+  {% endif %}
 </section>
 
 {% if promos %}

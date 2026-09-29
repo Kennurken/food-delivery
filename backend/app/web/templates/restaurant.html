@@ -9,7 +9,7 @@
   "servesCuisine": {{ restaurant.cuisine|tojson }},
   "image": {{ (restaurant.image_url or '')|tojson }},
   "url": {{ canonical|tojson }},
-  "address": {"@type": "PostalAddress", "addressLocality": "Алматы", "addressCountry": "KZ"},
+  "address": {"@type": "PostalAddress", "addressLocality": {{ (city.name if city else "")|tojson }}, "addressCountry": "KZ"},
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": {{ '%.1f'|format(restaurant.rating) }},
@@ -26,7 +26,7 @@
     <img class="venue-photo" src="{{ restaurant.image_url }}" alt="{{ restaurant.name }}" width="520" height="340">
     {% endif %}
     <div>
-      <p class="kicker">{{ restaurant.cuisine }} · Алматы</p>
+      <p class="kicker">{{ restaurant.cuisine }}{% if city %} · {{ city.name }}{% endif %}</p>
       <h1>{{ restaurant.name }}</h1>
       {% if restaurant.description %}<p class="lede">{{ restaurant.description }}</p>{% endif %}
       <p class="meta">

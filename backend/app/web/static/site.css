@@ -63,6 +63,16 @@ h3.section { font-size: 18px; font-weight: 800; margin: 26px 0 12px; }
 .nav a:hover { color: var(--ink); }
 .nav .cta { color: var(--brand-ink); background: var(--brand); padding: 9px 16px; border-radius: 999px; }
 
+.cities { display: flex; gap: 8px; flex-wrap: wrap; margin-left: 16px; }
+.cities a {
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+}
+.cities a:hover { color: var(--ink); }
+.cities a[aria-current="page"] {
+  background: var(--brand); color: var(--brand-ink); border-color: var(--brand);
+}
+
 /* Hero */
 .hero { padding: 56px 0 8px; }
 .kicker { text-transform: uppercase; letter-spacing: .09em; font-size: 12px; font-weight: 800; color: var(--brand); margin: 0; }
@@ -137,6 +147,10 @@ code { background: var(--line); padding: 2px 7px; border-radius: 6px; font-size:
   /* Links wrap to the left on a phone rather than disappearing. */
   .nav-row { justify-content: flex-start; overflow-x: auto; }
   .nav { gap: 14px; font-size: 14px; white-space: nowrap; }
+  /* Cities get their own line: squeezed next to the links they stack into a
+     column and push the row into a scrollbar. */
+  .nav-row { flex-wrap: wrap; }
+  .cities { flex-basis: 100%; margin: 8px 0 0; }
 }
 
 /* ---------------------------------------------------- ordering on the site */

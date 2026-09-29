@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ title }} — Food Delivery</title>
 <meta name="description" content="{{ description }}">
+{% if noindex %}<meta name="robots" content="noindex">{% endif %}
 {% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{ title }}">
@@ -41,6 +42,13 @@
         <a href="/login/">Войти</a>
       {% endif %}
     </nav>
+    {% if city_links and city_links|length > 1 %}
+    <nav class="cities" aria-label="Город">
+      {% for c, href in city_links %}
+      <a href="{{ href }}"{% if city and c.id == city.id %} aria-current="page"{% endif %}>{{ c.name }}</a>
+      {% endfor %}
+    </nav>
+    {% endif %}
   </div>
 </header>
 
@@ -50,7 +58,7 @@
   <div class="wrap foot-inner">
     <div>
       <p class="foot-brand">Food Delivery</p>
-      <p class="muted">Доставка еды в Алматы</p>
+      <p class="muted">Доставка еды {{ cities_in }}</p>
     </div>
     <nav class="foot-nav">
       <a href="/">Главная</a>

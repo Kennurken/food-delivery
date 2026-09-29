@@ -26,9 +26,9 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db
 from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password
-from app.models import MenuItem, Order, Restaurant, User, UserRole
+from app.models import City, MenuItem, Order, Restaurant, User, UserRole
 from app.schemas.order import OrderCreate
-from app.services import offers, order_service
+from app.services import cities, offers, order_service
 from app.web import cart as cart_store
 from app.web import session as web_session
 
@@ -93,6 +93,15 @@ def _render(
     context.setdefault("asset_version", ASSET_VERSION)
     if db is not None:
         context.setdefault("viewer", _viewer(request, db))
+        live = cities.active(db)
+        default = cities.default(db)
+        context.setdefault("city", default)
+        context.setdefault("city_in", _in_city(context["city"]))
+        context.setdefault("cities_in", _in_cities(live))
+        context.setdefault(
+            "city_links",
+            [(c, "/" if default and c.id == default.id else f"/{c.slug}/") for c in live],
+        )
     return templates.TemplateResponse(request, name, context, status_code=status_code)
 
 
@@ -113,34 +122,69 @@ def _safe_next(value: str | None, fallback: str = "/") -> str:
     return fallback
 
 
+# Russian puts a city after "в" in the prepositional case, which can't be
+# derived from the name: "в Алматы" but "в Астане". A city missing here falls
+# back to its plain name, which reads acceptably for most names.
+_LOCATIVE = {"almaty": "Алматы", "astana": "Астане"}
+
+
+def _in_city(city: City | None) -> str:
+    """"в Астане" — or "" when there is no city to name."""
+    if city is None:
+        return ""
+    return "в " + _LOCATIVE.get(city.slug, city.name)
+
+
+def _in_cities(items: list[City]) -> str:
+    """"в Алматы и Астане" — every live city, for pages about the whole service."""
+    names = [_LOCATIVE.get(c.slug, c.name) for c in items]
+    if not names:
+        return ""
+    if len(names) == 1:
+        return "в " + names[0]
+    return "в " + ", ".join(names[:-1]) + " и " + names[-1]
+
+
 # ---------------------------------------------------------------- public pages
 
 
-@router.get("/", response_class=HTMLResponse)
-def home(request: Request, db: Session = DB) -> HTMLResponse:
-    restaurants = list(
-        db.scalars(
-            select(Restaurant).order_by(Restaurant.is_open.desc(), Restaurant.rating.desc())
-        )
-    )
+def _landing(request: Request, db: Session, city: City | None) -> HTMLResponse:
+    """The landing page for one city — or for every venue when there is no city
+    at all (a database the city seed hasn't reached yet)."""
+    query = select(Restaurant).order_by(Restaurant.is_open.desc(), Restaurant.rating.desc())
+    if city is not None:
+        query = query.where(Restaurant.city_id == city.id)
+    restaurants = list(db.scalars(query))
     # Campaigns that are actually running. A finished offer on the landing page
     # is a promise the checkout will refuse to keep.
     promos = offers.live(db, limit=6)
+    default = cities.default(db)
+    on_root = city is None or (default is not None and city.id == default.id)
+    where = f" {_in_city(city)}" if city else ""
     return _render(
         request,
         "home.html",
         {
-            "title": "Доставка еды в Алматы",
+            "title": f"Доставка еды{where}",
             "description": (
-                "Заказывайте доставку из ресторанов Алматы: паназиатская кухня, "
-                "пицца, бургеры. Оплата картой или наличными, бронь столика."
+                f"Доставка еды{where}: паназиатская кухня, пицца, бургеры. "
+                "Оплата картой или наличными, бронь столика."
             ),
             "restaurants": restaurants,
             "promos": promos,
-            "canonical": f"{_base_url()}/",
+            "canonical": f"{_base_url()}/" if on_root else f"{_base_url()}/{city.slug}/",
+            "city": city,
+            # A city with no venues yet is a thin page; keep it out of the index
+            # until it has something to show.
+            "noindex": not restaurants,
         },
         db=db,
     )
+
+
+@router.get("/", response_class=HTMLResponse)
+def home(request: Request, db: Session = DB) -> HTMLResponse:
+    return _landing(request, db, cities.default(db))
 
 
 @router.get("/r/{slug}/", response_class=HTMLResponse)
@@ -160,11 +204,13 @@ def restaurant_page(slug: str, request: Request, db: Session = DB) -> HTMLRespon
         if not sections or sections[-1].name != item.category:
             sections.append(MenuSection(name=item.category, items=[]))
         sections[-1].items.append(item)
+    city = restaurant.city or cities.default(db)
+    where = f" {_in_city(city)}" if city else ""
     return _render(
         request,
         "restaurant.html",
         {
-            "title": f"{restaurant.name} — доставка в Алматы",
+            "title": f"{restaurant.name} — доставка{where}",
             "description": (
                 restaurant.description
                 or f"{restaurant.name}: доставка {restaurant.delivery_time_min} мин."
@@ -174,6 +220,7 @@ def restaurant_page(slug: str, request: Request, db: Session = DB) -> HTMLRespon
             "item_count": len(items),
             "canonical": f"{_base_url()}/r/{restaurant.slug}/",
             "og_image": restaurant.image_url,
+            "city": city,
         },
         db=db,
     )
@@ -591,6 +638,17 @@ def sitemap(db: Session = DB) -> Response:
     # Only running campaigns: a sitemap that lists a finished one sends a
     # crawler to a 404 and spends its budget doing it.
     urls += [f"{base}/actions/{offer.slug}" for offer in offers.live(db)]
+    # The default city is already "/". A city with no venues is noindex, so
+    # listing it would only send a crawler to a page it is told to drop.
+    default = cities.default(db)
+    for c in cities.active(db):
+        if default and c.id == default.id:
+            continue
+        has_venue = db.scalar(
+            select(Restaurant.id).where(Restaurant.city_id == c.id).limit(1)
+        )
+        if has_venue:
+            urls.append(f"{base}/{c.slug}/")
     body = "".join(f"<url><loc>{url}</loc></url>" for url in urls)
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'
@@ -598,3 +656,18 @@ def sitemap(db: Session = DB) -> Response:
         f"{body}</urlset>"
     )
     return Response(content=xml, media_type="application/xml")
+
+
+# ------------------------------------------------------------------- city pages
+# Must stay last: routes match in order, so a one-segment catch-all shadows any
+# page registered after it. The slug itself can't collide with a page either —
+# see cities.RESERVED_SLUGS.
+@router.get("/{city_slug}/", response_class=HTMLResponse)
+def city_page(city_slug: str, request: Request, db: Session = DB) -> Response:
+    city = cities.by_slug(db, city_slug)
+    if city is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such city")
+    default = cities.default(db)
+    if default and city.id == default.id:
+        return RedirectResponse("/", status_code=status.HTTP_301_MOVED_PERMANENTLY)
+    return _landing(request, db, city)

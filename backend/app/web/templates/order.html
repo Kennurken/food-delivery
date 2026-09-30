@@ -21,6 +21,10 @@
   {% if courier_minutes is not none %}
   <p class="muted">{{ _("Курьер на связи") }}{% if courier_minutes %} · {{ _("%(n)s мин назад", n=courier_minutes) }}{% endif %}</p>
   {% endif %}
+  {% if gone %}<p class="error">{{ _("Этих блюд сейчас нет в меню.") }}</p>{% endif %}
+  {% if can_repeat %}
+  <form method="post" action="/orders/{{ order.id }}/repeat"><button class="btn ghost" type="submit">{{ _("Повторить заказ") }}</button></form>
+  {% endif %}
   {% if order.status.value == 'cancelled' %}
   <p class="error">{{ _("Заказ отменён.") }}</p>
   {% endif %}

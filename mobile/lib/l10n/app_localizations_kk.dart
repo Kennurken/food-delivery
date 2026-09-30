@@ -1342,4 +1342,10 @@ class L10nKk extends L10n {
 
   @override
   String get cityNameInKk => 'Қазақша «қалада» түрі (мысалы, Астанада)';
+
+  @override
+  String get rateCourier => 'Ал курьер ше?';
+
+  @override
+  String get courierRatingLabel => 'Рейтинг';
 }

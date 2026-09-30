@@ -167,6 +167,8 @@ def earnings(db: DB, courier: CourierUser, days: int = Query(7, ge=1, le=90)) ->
         "cash_held": data.cash_held,
         "earned_all_time": data.earned_all_time,
         "deliveries_all_time": data.deliveries_all_time,
+        "rating": data.rating,
+        "rated": data.rated,
         "by_day": [
             {"day": row.day, "deliveries": row.deliveries, "earned": row.earned}
             for row in data.by_day

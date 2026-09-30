@@ -137,6 +137,12 @@ class _EarnedCard extends StatelessWidget {
                 value: '${data.deliveries}',
                 tone: scheme.onPrimaryContainer,
               ),
+              if (data.rating != null)
+                _Stat(
+                  label: t.courierRatingLabel,
+                  value: '★ ${data.rating!.toStringAsFixed(1)} (${data.rated})',
+                  tone: scheme.onPrimaryContainer,
+                ),
               _Stat(
                 label: t.allTimeLabel,
                 value: formatMoney(data.earnedAllTime),

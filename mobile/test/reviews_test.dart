@@ -63,6 +63,17 @@ void main() {
       expect(log[1].data, {'rating': 5});
       expect(log[2].data, {'rating': 4, 'review': 'Great'});
     });
+
+    test('sends the courier score only when one was given', () async {
+      final log = <RequestOptions>[];
+      final repo = OrderRepository(_dio(log, _order));
+
+      await repo.rate(1, 5, courierRating: 4);
+      await repo.rate(1, 5, review: 'ok');
+
+      expect(log[0].data, {'rating': 5, 'courier_rating': 4});
+      expect(log[1].data.containsKey('courier_rating'), isFalse);
+    });
   });
 
   group('the venue\'s reviews', () {

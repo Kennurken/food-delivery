@@ -1344,4 +1344,10 @@ class L10nRu extends L10n {
 
   @override
   String get cityNameInKk => 'Казахская форма «в городе» (например, Астанада)';
+
+  @override
+  String get rateCourier => 'А курьер?';
+
+  @override
+  String get courierRatingLabel => 'Рейтинг';
 }

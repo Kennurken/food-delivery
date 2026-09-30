@@ -2594,6 +2594,18 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Kazakh “in the city” form (e.g. Астанада)'**
   String get cityNameInKk;
+
+  /// No description provided for @rateCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'And the courier?'**
+  String get rateCourier;
+
+  /// No description provided for @courierRatingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get courierRatingLabel;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

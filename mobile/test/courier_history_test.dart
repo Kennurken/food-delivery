@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:food_delivery/features/courier/data/earnings_repository.dart';
+import 'package:food_delivery/features/courier/domain/courier_earnings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_delivery/features/courier/domain/payout_row.dart';
 
@@ -332,6 +333,31 @@ void main() {
       final rows = (await container.read(payoutHistoryProvider.future)).rows;
 
       expect(rows.single.at.toUtc(), DateTime.utc(2026, 9, 30, 7, 40));
+    });
+  });
+
+  group('CourierEarnings rating', () {
+    Map<String, dynamic> wallet(Map<String, dynamic> extra) => {
+      'days': 7,
+      'deliveries': 1,
+      'earned': 100,
+      'cash_held': 0,
+      'earned_all_time': 100,
+      'deliveries_all_time': 1,
+      'by_day': <dynamic>[],
+      ...extra,
+    };
+
+    test('reads the average and how many gave it', () {
+      final w = CourierEarnings.fromJson(wallet({'rating': 4.75, 'rated': 8}));
+
+      expect((w.rating, w.rated), (4.75, 8));
+    });
+
+    test('nobody rated yet is no score, not a zero', () {
+      final w = CourierEarnings.fromJson(wallet({'rating': null, 'rated': 0}));
+
+      expect(w.rating, isNull);
     });
   });
 }

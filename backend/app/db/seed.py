@@ -662,6 +662,7 @@ def ensure_hours_loyalty_schema() -> None:
             ("review", "VARCHAR(1000)"),
             ("review_reply", "VARCHAR(1000)"),
             ("reviewed_at", "TIMESTAMP"),
+            ("courier_rating", "INTEGER"),
         ],
     }
     flag_on = "1" if engine.dialect.name == "sqlite" else "TRUE"

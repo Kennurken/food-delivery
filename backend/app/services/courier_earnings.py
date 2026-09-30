@@ -41,6 +41,9 @@ class Earnings:
     earned_all_time: float
     deliveries_all_time: int
     by_day: list[DayRow]
+    # Average of what diners gave this courier, over every rated delivery.
+    rating: float | None = None
+    rated: int = 0
 
 
 @dataclass(frozen=True)
@@ -81,6 +84,12 @@ def summary(db: Session, courier: User, *, days: int = 7) -> Earnings:
         ).where(mine)
     ).one()
 
+    rated_avg, rated_n = db.execute(
+        select(func.avg(Order.courier_rating), func.count(Order.courier_rating)).where(
+            mine, Order.courier_rating.is_not(None)
+        )
+    ).one()
+
     day = func.date(Order.created_at)
     rows = db.execute(
         select(day, func.count(Order.id), func.coalesce(func.sum(Order.courier_payout), 0.0))
@@ -96,6 +105,8 @@ def summary(db: Session, courier: User, *, days: int = 7) -> Earnings:
         cash_held=round(float(lifetime[2] or 0.0), 2),
         earned_all_time=round(float(lifetime[1] or 0.0), 2),
         deliveries_all_time=int(lifetime[0] or 0),
+        rating=round(float(rated_avg), 2) if rated_avg is not None else None,
+        rated=int(rated_n or 0),
         by_day=[
             DayRow(day=str(d), deliveries=int(n or 0), earned=round(float(total or 0.0), 2))
             for d, n, total in rows

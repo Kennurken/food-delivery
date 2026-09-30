@@ -57,14 +57,26 @@ class OrderDetailScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _rate(BuildContext context, WidgetRef ref, int stars) async {
+  Future<void> _rate(
+    BuildContext context,
+    WidgetRef ref,
+    int stars, {
+    required bool hasCourier,
+  }) async {
     // The stars are chosen; the words are optional. Cancelling leaves the
     // order unrated — a rating can't be taken back, so it is not sent early.
-    final review = await _askReview(context, stars);
-    if (review == null) return;
+    final answer = await _askReview(context, stars, hasCourier: hasCourier);
+    if (answer == null) return;
     try {
       Haptics.success();
-      await ref.read(orderRepositoryProvider).rate(id, stars, review: review);
+      await ref
+          .read(orderRepositoryProvider)
+          .rate(
+            id,
+            stars,
+            review: answer.review,
+            courierRating: answer.courierRating,
+          );
       ref.invalidate(orderLiveProvider(id));
       ref.invalidate(ordersProvider);
     } catch (e) {
@@ -75,11 +87,14 @@ class OrderDetailScreen extends ConsumerWidget {
     }
   }
 
-  Future<String?> _askReview(BuildContext context, int stars) =>
-      showDialog<String>(
-        context: context,
-        builder: (_) => _ReviewDialog(stars: stars),
-      );
+  Future<({String review, int? courierRating})?> _askReview(
+    BuildContext context,
+    int stars, {
+    required bool hasCourier,
+  }) => showDialog<({String review, int? courierRating})>(
+    context: context,
+    builder: (_) => _ReviewDialog(stars: stars, hasCourier: hasCourier),
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -313,7 +328,12 @@ class OrderDetailScreen extends ConsumerWidget {
                 if (o.status == OrderStatus.delivered)
                   _RatingRow(
                     rating: o.rating,
-                    onRate: (stars) => _rate(context, ref, stars),
+                    onRate: (stars) => _rate(
+                      context,
+                      ref,
+                      stars,
+                      hasCourier: o.courier != null,
+                    ),
                   ).stagger(idx++),
               ],
             ),
@@ -610,12 +630,14 @@ class _HandoverCard extends ConsumerWidget {
   }
 }
 
-/// The words that go with the stars. Pops the text (possibly empty), or null
-/// when cancelled.
+/// The words that go with the stars, and — on a delivery someone carried — a
+/// score for the courier. Pops both (the words possibly empty, the courier
+/// score null when skipped), or null when cancelled.
 class _ReviewDialog extends StatefulWidget {
-  const _ReviewDialog({required this.stars});
+  const _ReviewDialog({required this.stars, required this.hasCourier});
 
   final int stars;
+  final bool hasCourier;
 
   @override
   State<_ReviewDialog> createState() => _ReviewDialogState();
@@ -623,6 +645,7 @@ class _ReviewDialog extends StatefulWidget {
 
 class _ReviewDialogState extends State<_ReviewDialog> {
   final _text = TextEditingController();
+  int? _courier;
 
   @override
   void dispose() {
@@ -635,14 +658,43 @@ class _ReviewDialogState extends State<_ReviewDialog> {
     final t = context.l10n;
     return AlertDialog(
       title: Text('★' * widget.stars),
-      content: TextField(
-        controller: _text,
-        autofocus: true,
-        maxLength: 1000,
-        maxLines: 4,
-        minLines: 2,
-        textCapitalization: TextCapitalization.sentences,
-        decoration: InputDecoration(hintText: t.reviewHint),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _text,
+              autofocus: true,
+              maxLength: 1000,
+              maxLines: 4,
+              minLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(hintText: t.reviewHint),
+            ),
+            if (widget.hasCourier) ...[
+              const SizedBox(height: 8),
+              Text(
+                t.rateCourier,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              Row(
+                children: [
+                  for (var i = 1; i <= 5; i++)
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      onPressed: () => setState(() => _courier = i),
+                      icon: Icon(
+                        (_courier ?? 0) >= i ? Icons.star : Icons.star_border,
+                        color: Theme.of(context).colorScheme.tertiary,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -650,7 +702,10 @@ class _ReviewDialogState extends State<_ReviewDialog> {
           child: Text(t.cancel),
         ),
         FilledButton(
-          onPressed: () => Navigator.pop(context, _text.text),
+          onPressed: () => Navigator.pop(context, (
+            review: _text.text,
+            courierRating: _courier,
+          )),
           child: Text(t.reviewSend),
         ),
       ],

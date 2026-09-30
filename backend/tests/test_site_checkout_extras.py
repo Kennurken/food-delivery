@@ -216,3 +216,120 @@ class TestTheLiveOrderPage:
         _signed_up(stranger)
 
         assert stranger.get(f"/orders/{order.id}/").status_code == 404
+
+
+class TestRepeatingAnOrder:
+    """One button to put a past order back in the basket — as the menu stands
+    today, and never a dish that is gone or one with options the site's basket
+    can't carry."""
+
+    def _done(self, client, web, admin):
+        _fill(web, _menu(client)[0])
+        _signed_up(web)
+        order = _placed(web, channel="pickup", address="")
+        for step in ("confirmed", "preparing", "on_the_way", "delivered"):
+            client.patch(f"/api/v1/orders/{order.id}/status", json={"status": step}, headers=admin)
+        return order
+
+    def test_a_finished_order_offers_it(self, client, web, admin):
+        order = self._done(client, web, admin)
+
+        assert "Повторить заказ" in web.get(f"/orders/{order.id}/").text
+
+    def test_a_live_order_does_not(self, client, web):
+        _fill(web, _menu(client)[0])
+        _signed_up(web)
+        order = _placed(web)
+
+        assert "Повторить заказ" not in web.get(f"/orders/{order.id}/").text
+
+    def test_it_refills_the_basket(self, client, web, admin):
+        order = self._done(client, web, admin)
+
+        r = web.post(f"/orders/{order.id}/repeat", follow_redirects=False)
+
+        assert r.status_code == 303 and r.headers["location"] == "/cart/"
+        assert _menu(client)[0]["name"] in web.get("/cart/").text
+
+    def test_a_dish_that_left_the_menu_is_dropped(self, client, web, admin):
+        order = self._done(client, web, admin)
+        item = _menu(client)[0]
+        client.patch(f"/api/v1/admin/menu/{item['id']}", json={"is_available": False}, headers=admin)
+        try:
+            r = web.post(f"/orders/{order.id}/repeat", follow_redirects=False)
+
+            assert r.headers["location"] == f"/orders/{order.id}/?gone=1"
+            assert "Этих блюд сейчас нет" in web.get(r.headers["location"]).text
+        finally:
+            client.patch(f"/api/v1/admin/menu/{item['id']}", json={"is_available": True}, headers=admin)
+
+    def test_someone_elses_order_is_not_repeatable(self, client, web, admin):
+        order = self._done(client, web, admin)
+        stranger = TestClient(app)
+        _signed_up(stranger)
+
+        assert stranger.post(f"/orders/{order.id}/repeat", follow_redirects=False).status_code == 404
+
+    def test_signed_out_goes_to_sign_in(self, client):
+        r = TestClient(app).post("/orders/1/repeat", follow_redirects=False)
+
+        assert r.status_code == 303 and r.headers["location"].startswith("/login/")
+
+
+class TestRepeatAndOptions:
+    """The site's basket carries no options, so it only repeats what it can
+    reproduce exactly."""
+
+    @pytest.fixture
+    def venue(self, client, admin):
+        rid = client.post(
+            "/api/v1/admin/restaurants",
+            json={"name": f"Options Cafe {secrets.token_hex(2)}", "cuisine": "Test"},
+            headers=admin,
+        ).json()["id"]
+        dish = client.post(
+            f"/api/v1/admin/restaurants/{rid}/menu",
+            json={"name": "Coffee", "price": 1000, "category": "Drinks"},
+            headers=admin,
+        ).json()["id"]
+        made = client.put(
+            f"/api/v1/admin/menu/{dish}/modifiers",
+            json=[{"name": "Size", "required": True, "min_select": 1, "max_select": 1,
+                   "options": [{"name": "Small", "is_default": True},
+                               {"name": "Large", "price_delta": 300}]}],
+            headers=admin,
+        )
+        assert made.status_code == 200, made.text
+        options = {o["name"]: o["id"] for g in made.json()["modifier_groups"] for o in g["options"]}
+        return {"id": rid, "dish": dish, "options": options}
+
+    def _order_with(self, client, admin, venue, option_ids):
+        user = TestClient(app)
+        email = _signed_up(user)
+        with SessionLocal() as db:
+            uid = db.scalar(select(User.id).where(User.email == email))
+        token = client.post(
+            "/api/v1/auth/login/json", json={"email": email, "password": "sitepass123"}
+        ).json()["access_token"]
+        oid = client.post(
+            "/api/v1/orders",
+            json={"restaurant_id": venue["id"], "channel": "pickup",
+                  "items": [{"menu_item_id": venue["dish"], "quantity": 1, "option_ids": option_ids}]},
+            headers={"Authorization": f"Bearer {token}"},
+        ).json()["id"]
+        for step in ("confirmed", "preparing", "on_the_way", "delivered"):
+            client.patch(f"/api/v1/orders/{oid}/status", json={"status": step}, headers=admin)
+        assert uid
+        return user, oid
+
+    def test_default_options_can_be_repeated(self, client, admin, venue):
+        user, oid = self._order_with(client, admin, venue, [venue["options"]["Small"]])
+
+        assert "Повторить заказ" in user.get(f"/orders/{oid}/").text
+
+    def test_a_different_choice_cannot_be_reproduced_so_it_is_not_offered(self, client, admin, venue):
+        user, oid = self._order_with(client, admin, venue, [venue["options"]["Large"]])
+
+        assert "Повторить заказ" not in user.get(f"/orders/{oid}/").text
+        r = user.post(f"/orders/{oid}/repeat", follow_redirects=False)
+        assert r.headers["location"] == f"/orders/{oid}/?gone=1"

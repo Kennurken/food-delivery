@@ -118,6 +118,8 @@ class OrderRate(BaseModel):
     rating: int = Field(ge=1, le=5)
     # Optional. Shown on the venue's public page, under the diner's first name.
     review: str | None = Field(default=None, max_length=1000)
+    # For the courier, on a delivery that had one.
+    courier_rating: int | None = Field(default=None, ge=1, le=5)
 
 
 class ReviewReply(BaseModel):

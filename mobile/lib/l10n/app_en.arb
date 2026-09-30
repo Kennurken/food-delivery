@@ -676,5 +676,7 @@
   },
   "newGuestsOnly": "New guests only",
   "cityNameKk": "Name in Kazakh",
-  "cityNameInKk": "Kazakh “in the city” form (e.g. Астанада)"
+  "cityNameInKk": "Kazakh “in the city” form (e.g. Астанада)",
+  "rateCourier": "And the courier?",
+  "courierRatingLabel": "Rating"
 }

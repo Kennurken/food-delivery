@@ -1345,4 +1345,10 @@ class L10nEn extends L10n {
 
   @override
   String get cityNameInKk => 'Kazakh “in the city” form (e.g. Астанада)';
+
+  @override
+  String get rateCourier => 'And the courier?';
+
+  @override
+  String get courierRatingLabel => 'Rating';
 }

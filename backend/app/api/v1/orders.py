@@ -167,7 +167,7 @@ def rate_order(
     request: Request, order_id: int, data: OrderRate, db: DB, user: CurrentUser
 ) -> Order:
     return order_service.rate_order(
-        db, user, order_service.get_visible_order(db, user, order_id), data.rating, data.review
+        db, user, order_service.get_visible_order(db, user, order_id), data.rating, data.review, data.courier_rating
     )
 
 

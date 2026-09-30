@@ -542,7 +542,12 @@ def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
 
 
 def rate_order(
-    db: Session, user: User, order: Order, rating: int, review: str | None = None
+    db: Session,
+    user: User,
+    order: Order,
+    rating: int,
+    review: str | None = None,
+    courier_rating: int | None = None,
 ) -> Order:
     if order.user_id != user.id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Not your order")
@@ -550,7 +555,10 @@ def rate_order(
         raise HTTPException(status.HTTP_409_CONFLICT, "Only delivered orders can be rated")
     if order.rating is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Already rated")
+    if courier_rating is not None and order.courier_id is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "This order had no courier to rate")
     order.rating = rating
+    order.courier_rating = courier_rating
     text = (review or "").strip()
     if text:
         order.review = text

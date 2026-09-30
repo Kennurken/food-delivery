@@ -12,6 +12,8 @@ class CourierEarnings {
     required this.earnedAllTime,
     required this.deliveriesAllTime,
     required this.byDay,
+    this.rating,
+    this.rated = 0,
   });
 
   final int days;
@@ -21,6 +23,10 @@ class CourierEarnings {
   final double earnedAllTime;
   final int deliveriesAllTime;
   final List<EarningsDay> byDay;
+
+  /// Average of what diners gave this courier; null until someone has.
+  final double? rating;
+  final int rated;
 
   static double _num(Object? v) => (v as num?)?.toDouble() ?? 0;
 
@@ -33,6 +39,8 @@ class CourierEarnings {
       cashHeld: _num(json['cash_held']),
       earnedAllTime: _num(json['earned_all_time']),
       deliveriesAllTime: (json['deliveries_all_time'] as num?)?.toInt() ?? 0,
+      rating: (json['rating'] as num?)?.toDouble(),
+      rated: (json['rated'] as num?)?.toInt() ?? 0,
       byDay: raw
           .map((e) => EarningsDay.fromJson(e as Map<String, dynamic>))
           .toList(growable: false),

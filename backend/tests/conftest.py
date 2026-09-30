@@ -4,6 +4,8 @@ os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")  # CI/PG can overri
 os.environ["LOGIN_RATE_LIMIT"] = "1000/minute"  # every fixture logs in from 127.0.0.1
 os.environ["WRITE_RATE_LIMIT"] = "1000/minute"  # ...and the suite places hundreds of orders
 os.environ["GEO_PROVIDER"] = "fixture"
+# Long enough for HS256: PyJWT warns on every token signed with the 10-byte dev default.
+os.environ["SECRET_KEY"] = "test-only-secret-key-not-for-production-use-0123456789"
 os.environ["STRIPE_SECRET_KEY"] = ""
 os.environ["STRIPE_PUBLISHABLE_KEY"] = ""
 os.environ["STRIPE_WEBHOOK_SECRET"] = ""

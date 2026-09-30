@@ -268,7 +268,31 @@ def _landing(request: Request, db: Session, city: City | None) -> HTMLResponse:
     query = select(Restaurant).order_by(Restaurant.is_open.desc(), Restaurant.rating.desc())
     if city is not None:
         query = query.where(Restaurant.city_id == city.id)
-    restaurants = list(db.scalars(query))
+    everyone = list(db.scalars(query))
+    # The chips come from the unfiltered list, so choosing one doesn't make the
+    # others vanish.
+    cuisines = sorted({r.cuisine for r in everyone})
+    q = (request.query_params.get("q") or "").strip()[:60]
+    cuisine = (request.query_params.get("cuisine") or "").strip()[:50]
+    restaurants = everyone
+    if cuisine:
+        restaurants = [r for r in restaurants if r.cuisine == cuisine]
+    if q:
+        like = "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+        by_dish = set(
+            db.scalars(
+                select(MenuItem.restaurant_id).where(
+                    MenuItem.name.ilike(like, escape="\\"), MenuItem.is_available.is_(True)
+                )
+            )
+        )
+        needle = q.casefold()
+        restaurants = [
+            r
+            for r in restaurants
+            if needle in r.name.casefold() or needle in r.cuisine.casefold() or r.id in by_dish
+        ]
+    filtered = bool(q or cuisine)
     # Campaigns that are actually running. A finished offer on the landing page
     # is a promise the checkout will refuse to keep.
     promos = offers.live(db, limit=6)
@@ -299,12 +323,17 @@ def _landing(request: Request, db: Session, city: City | None) -> HTMLResponse:
             ),
             "city": city,
             "notes": notes,
-            # A city with no venues yet is a thin page; keep it out of the index
-            # until it has something to show.
-            "noindex": not restaurants,
+            # A search result is a page nobody links to and a crawler shouldn't
+            # index; neither should a city with nothing in it yet.
+            "noindex": filtered or not everyone,
+            "q": q,
+            "cuisine_now": cuisine,
+            "cuisines": cuisines,
+            "everyone_count": len(everyone),
+            "filtered": filtered,
         },
         db=db,
-        alternates=True,
+        alternates=not filtered,
     )
 
 
@@ -786,9 +815,64 @@ def order_page(order_id: int, request: Request, db: Session = DB) -> Response:
                 else None
             ),
             "courier_minutes": minutes if order.status == OrderStatus.on_the_way else None,
+            "can_repeat": order.status in (OrderStatus.delivered, OrderStatus.cancelled)
+            and bool(_repeatable(db, order)),
+            "gone": request.query_params.get("gone") == "1",
         },
         db=db,
     )
+
+
+@router.post("/orders/{order_id}/repeat")
+def repeat_order(order_id: int, request: Request, db: Session = DB) -> Response:
+    """Put a past order's dishes back in the basket, as the menu stands today."""
+    user = _viewer(request, db)
+    if user is None:
+        return RedirectResponse(
+            f"/login/?next=/orders/{order_id}/", status_code=status.HTTP_303_SEE_OTHER
+        )
+    order = db.get(Order, order_id)
+    if order is None or order.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such order")
+    quantities = _repeatable(db, order)
+    if not quantities:
+        # Every dish is gone from the menu: say so on the order instead of
+        # sending someone to an empty basket.
+        return RedirectResponse(f"/orders/{order.id}/?gone=1", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse("/cart/", status_code=status.HTTP_303_SEE_OTHER)
+    cart_store.save(response, cart_store.Cart(restaurant_id=order.restaurant_id, quantities=quantities))
+    return response
+
+
+def _repeatable(db: Session, order: Order) -> dict[int, int]:
+    """What of this order the site's basket can put back: dish id -> quantity.
+
+    The site's basket carries no options, so every dish comes back with the
+    menu's defaults. A line the diner ordered with other options would change
+    price and content, so an order containing one is not repeatable here at
+    all (the app can). Dishes no longer on the menu are simply dropped.
+    """
+    live = {
+        m.id: m
+        for m in db.scalars(
+            select(MenuItem).where(
+                MenuItem.restaurant_id == order.restaurant_id, MenuItem.is_available.is_(True)
+            )
+        )
+    }
+    quantities: dict[int, int] = {}
+    for line in order.items:
+        item = live.get(line.menu_item_id)
+        if item is None:
+            continue
+        defaults = {
+            o.id for g in item.modifier_groups for o in g.options if o.is_default and o.is_available
+        }
+        chosen = {m.get("option_id") for m in (line.modifiers or [])}
+        if chosen != defaults:
+            return {}
+        quantities[item.id] = min(cart_store.MAX_QTY, quantities.get(item.id, 0) + line.quantity)
+    return quantities
 
 
 # ------------------------------------------------------------------ language

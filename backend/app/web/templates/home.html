@@ -15,6 +15,21 @@
 
 <section class="wrap block">
   <h2>{{ _("Рестораны") }}</h2>
+  {% if everyone_count > 1 or filtered %}
+  <form class="search" method="get" role="search">
+    <input type="search" name="q" value="{{ q }}" maxlength="60" placeholder="{{ _('Ресторан или блюдо') }}" aria-label="{{ _('Поиск') }}">
+    {% if cuisine_now %}<input type="hidden" name="cuisine" value="{{ cuisine_now }}">{% endif %}
+    <button class="btn" type="submit">{{ _("Найти") }}</button>
+  </form>
+  {% if cuisines|length > 1 %}
+  <nav class="chips" aria-label="{{ _('Кухня') }}">
+    <a href="?{% if q %}q={{ q|urlencode }}{% endif %}"{% if not cuisine_now %} aria-current="true"{% endif %}>{{ _("Все") }}</a>
+    {% for c in cuisines %}
+    <a href="?cuisine={{ c|urlencode }}{% if q %}&amp;q={{ q|urlencode }}{% endif %}"{% if cuisine_now == c %} aria-current="true"{% endif %}>{{ c }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
+  {% endif %}
   <div class="grid cards">
     {% for r in restaurants %}
     <a class="card{% if not r.is_open %} closed{% endif %}" href="{{ lp }}/r/{{ r.slug }}/">
@@ -35,7 +50,7 @@
     {% endfor %}
   </div>
   {% if not restaurants %}
-  <p class="muted">{{ _("Пока нет ресторанов %(where)s — скоро появятся.", where=city_in) }}</p>
+  <p class="muted">{% if filtered %}{{ _("Ничего не найдено. Попробуйте другой запрос.") }}{% else %}{{ _("Пока нет ресторанов %(where)s — скоро появятся.", where=city_in) }}{% endif %}</p>
   {% endif %}
 </section>
 

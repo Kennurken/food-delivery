@@ -509,5 +509,7 @@
   "regularsValue": "{again} из {total} вернулись",
   "newGuestsOnly": "Только для новых гостей",
   "cityNameKk": "Название по-казахски",
-  "cityNameInKk": "Казахская форма «в городе» (например, Астанада)"
+  "cityNameInKk": "Казахская форма «в городе» (например, Астанада)",
+  "rateCourier": "А курьер?",
+  "courierRatingLabel": "Рейтинг"
 }

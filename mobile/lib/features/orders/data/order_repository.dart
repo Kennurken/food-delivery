@@ -72,11 +72,20 @@ class OrderRepository {
     return Order.fromJson(r.data);
   }
 
-  Future<Order> rate(int id, int rating, {String? review}) async {
+  Future<Order> rate(
+    int id,
+    int rating, {
+    String? review,
+    int? courierRating,
+  }) async {
     final text = review?.trim() ?? '';
     final r = await _dio.post(
       '/api/v1/orders/$id/rate',
-      data: {'rating': rating, if (text.isNotEmpty) 'review': text},
+      data: {
+        'rating': rating,
+        if (text.isNotEmpty) 'review': text,
+        'courier_rating': ?courierRating,
+      },
     );
     return Order.fromJson(r.data);
   }

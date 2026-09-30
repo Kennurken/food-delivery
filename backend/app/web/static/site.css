@@ -262,3 +262,10 @@ code { background: var(--line); padding: 2px 7px; border-radius: 6px; font-size:
 .langs { display: flex; gap: 8px; margin-left: 12px; font-size: 13px; font-weight: 700; }
 .langs a { color: var(--muted); padding: 2px 6px; border-radius: 6px; }
 .langs a[aria-current="true"] { color: var(--brand-ink); background: var(--brand); }
+
+/* Search and cuisine chips */
+.search { display: flex; gap: 8px; margin: 12px 0; }
+.search input[type="search"] { flex: 1; min-width: 0; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
+.chips a { font-size: 14px; font-weight: 600; color: var(--muted); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); }
+.chips a[aria-current="true"] { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }

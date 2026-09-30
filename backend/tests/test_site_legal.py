@@ -11,8 +11,9 @@ from app.main import app
 
 @pytest.fixture
 def web(client):
-    with TestClient(app) as c:
-        yield c
+    # Not a `with` block: that re-runs the lifespan and closes the event hub's
+    # loop under every later test (see tests/test_site_ordering.py).
+    return TestClient(app)
 
 
 @pytest.mark.parametrize(

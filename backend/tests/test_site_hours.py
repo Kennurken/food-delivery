@@ -1,13 +1,14 @@
 """Tests for opening hours display on the public site."""
 
 import json
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.db.session import SessionLocal
 from app.models import Restaurant
+from app.services.hours import offset_of
 
 
 def _make_restaurant(client, admin, name: str) -> Restaurant:
@@ -45,12 +46,13 @@ def test_closed_now_shows_tomorrow_note(client: TestClient, admin: dict) -> None
     rest = _make_restaurant(client, admin, "Closed Tomorrow")
     rid = rest.id
 
-    # Stretch tomorrow at 10:00–11:00 (weekday = tomorrow)
-    tomorrow = (datetime.now(UTC) + timedelta(days=1)).weekday()
-    _set_hours(client, admin, rid, [{"weekday": tomorrow, "opens": "10:00", "closes": "11:00"}])
-
+    # "Tomorrow" on the venue's clock, not UTC's: for five hours every evening
+    # (19:00-24:00 UTC) Almaty is already a day ahead.
     with SessionLocal() as db:
         slug = _get_slug(db, rid)
+        tz = offset_of(db.get(Restaurant, rid))
+    tomorrow = (datetime.now(tz) + timedelta(days=1)).weekday()
+    _set_hours(client, admin, rid, [{"weekday": tomorrow, "opens": "10:00", "closes": "11:00"}])
 
     # Landing page
     resp = client.get("/")

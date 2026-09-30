@@ -503,5 +503,8 @@
   "replyToReview": "Ответить",
   "noReviewsYet": "Отзывов пока нет",
   "onTheLine": "На линии",
-  "offTheLineHint": "Вы не на линии: новые заказы скрыты"
+  "offTheLineHint": "Вы не на линии: новые заказы скрыты",
+  "peakHours": "Часы пик",
+  "regulars": "Постоянные гости",
+  "regularsValue": "{again} из {total} вернулись"
 }

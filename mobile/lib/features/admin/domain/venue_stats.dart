@@ -18,6 +18,9 @@ class VenueStats {
     required this.topDishes,
     required this.byChannel,
     required this.byPayMethod,
+    this.byHour = const [],
+    this.customers = 0,
+    this.repeatCustomers = 0,
   });
 
   final int days;
@@ -34,6 +37,21 @@ class VenueStats {
   final List<DishRow> topDishes;
   final Map<String, int> byChannel;
   final Map<String, int> byPayMethod;
+
+  /// Earned orders per hour of the day, venue clock, 24 entries (or none from
+  /// an older server).
+  final List<int> byHour;
+  final int customers;
+  final int repeatCustomers;
+
+  /// The busiest hour's count. Never zero, so a chart cannot divide by it.
+  int get peakHourCount {
+    var peak = 0;
+    for (final n in byHour) {
+      if (n > peak) peak = n;
+    }
+    return peak == 0 ? 1 : peak;
+  }
 
   static double _money(Object? v) => (v as num?)?.toDouble() ?? 0;
   static int _count(Object? v) => (v as num?)?.toInt() ?? 0;
@@ -62,6 +80,9 @@ class VenueStats {
         .toList(growable: false),
     byChannel: _counts(json['by_channel']),
     byPayMethod: _counts(json['by_pay_method']),
+    byHour: [for (final n in (json['by_hour'] as List?) ?? const []) _count(n)],
+    customers: _count(json['customers']),
+    repeatCustomers: _count(json['repeat_customers']),
   );
 
   /// Biggest day in the window. Never zero, so a chart cannot divide by it.

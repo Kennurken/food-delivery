@@ -165,6 +165,16 @@ class _Numbers extends ConsumerWidget {
         ),
         const SizedBox(height: 18),
         DayChart(days: data.byDay, peak: data.peakDay),
+        if (data.byHour.length == 24) ...[
+          const SizedBox(height: 22),
+          SectionTitle(t.peakHours),
+          HourChart(hours: data.byHour, peak: data.peakHourCount),
+        ],
+        if (data.customers > 0) ...[
+          const SizedBox(height: 22),
+          SectionTitle(t.regulars),
+          Text(t.regularsValue(data.repeatCustomers, data.customers)),
+        ],
         if (data.topDishes.isNotEmpty) ...[
           const SizedBox(height: 22),
           SectionTitle(t.topDishes),

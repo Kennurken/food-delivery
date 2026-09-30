@@ -2558,6 +2558,24 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'You are off the line: new orders are hidden'**
   String get offTheLineHint;
+
+  /// No description provided for @peakHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Busiest hours'**
+  String get peakHours;
+
+  /// No description provided for @regulars.
+  ///
+  /// In en, this message translates to:
+  /// **'Regulars'**
+  String get regulars;
+
+  /// No description provided for @regularsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{again} of {total} came back'**
+  String regularsValue(int again, int total);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

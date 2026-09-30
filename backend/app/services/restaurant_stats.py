@@ -19,13 +19,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from sqlalchemy import Float, case, func, select
+from sqlalchemy import Float, case, extract, func, select
 from sqlalchemy.orm import Session
 
 from app.core.features import Entitlements
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.restaurant import Restaurant
 from app.models.user import User
+from app.services.hours import offset_of
 
 # Delivered, and the money genuinely arrived. Cash is settled at the door, a
 # card only when the processor said so.
@@ -73,6 +74,12 @@ class Stats:
     top_dishes: list[DishRow]
     by_channel: dict[str, int]
     by_pay_method: dict[str, int]
+    # Orders that earned, by hour of the day on the venue's own clock — when the
+    # kitchen is busy, which is what staffing and prep are planned around.
+    by_hour: list[int]
+    customers: int
+    repeat_customers: int
+    repeat_rate: float
 
 
 @dataclass(frozen=True)
@@ -145,6 +152,30 @@ def summary(db: Session, restaurant: Restaurant, *, days: int, flags: Entitlemen
         select(Order.pay_method, func.count(Order.id)).where(mine).group_by(Order.pay_method)
     ).all()
 
+    hour_rows = db.execute(
+        select(extract("hour", Order.created_at), func.count(Order.id))
+        .where(mine, EARNED)
+        .group_by(extract("hour", Order.created_at))
+    ).all()
+    shift = offset_of(restaurant).utcoffset(None).total_seconds() // 3600
+    by_hour = [0] * 24
+    for hour, count in hour_rows:
+        # The column is UTC; move each bucket onto the venue's clock. A zone
+        # with a half-hour offset lands on the nearer whole hour.
+        by_hour[int((int(hour) + shift) % 24)] += int(count or 0)
+
+    per_user = (
+        select(Order.user_id, func.count(Order.id).label("n"))
+        .where(mine, EARNED)
+        .group_by(Order.user_id)
+        .subquery()
+    )
+    seen, again = db.execute(
+        select(
+            func.count(), func.coalesce(func.sum(case((per_user.c.n >= 2, 1), else_=0)), 0)
+        ).select_from(per_user)
+    ).one()
+
     return Stats(
         days=allowed,
         window_limit=max_window(flags),
@@ -165,6 +196,10 @@ def summary(db: Session, restaurant: Restaurant, *, days: int, flags: Entitlemen
         ],
         by_channel={str(channel): int(count) for channel, count in channels},
         by_pay_method={str(method): int(count) for method, count in methods},
+        by_hour=by_hour,
+        customers=int(seen or 0),
+        repeat_customers=int(again or 0),
+        repeat_rate=round(int(again or 0) / int(seen), 4) if seen else 0.0,
     )
 
 

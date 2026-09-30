@@ -660,5 +660,18 @@
   "replyToReview": "Reply",
   "noReviewsYet": "No reviews yet",
   "onTheLine": "On the line",
-  "offTheLineHint": "You are off the line: new orders are hidden"
+  "offTheLineHint": "You are off the line: new orders are hidden",
+  "peakHours": "Busiest hours",
+  "regulars": "Regulars",
+  "regularsValue": "{again} of {total} came back",
+  "@regularsValue": {
+    "placeholders": {
+      "again": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -319,6 +319,10 @@ def restaurant_stats(
         ],
         "by_channel": data.by_channel,
         "by_pay_method": data.by_pay_method,
+        "by_hour": data.by_hour,
+        "customers": data.customers,
+        "repeat_customers": data.repeat_customers,
+        "repeat_rate": data.repeat_rate,
     }
 
 

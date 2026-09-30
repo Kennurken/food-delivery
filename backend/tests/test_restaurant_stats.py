@@ -158,3 +158,95 @@ def test_customers_are_ranked_by_spend(client, auth, admin, courier):
 
 def test_a_courier_cannot_read_the_customer_list(client, courier):
     assert client.get(CUSTOMERS, headers=courier).status_code in (403, 404)
+
+
+class TestPeakHoursAndRegulars:
+    """A brand-new venue, so the numbers are exactly what these tests create."""
+
+    @pytest.fixture
+    def venue(self, client, admin) -> dict:
+        import secrets
+
+        rid = client.post(
+            "/api/v1/admin/restaurants",
+            json={"name": f"Stats Cafe {secrets.token_hex(2)}", "cuisine": "Test"},
+            headers=admin,
+        ).json()["id"]
+        dish = client.post(
+            f"/api/v1/admin/restaurants/{rid}/menu",
+            json={"name": "Samsa", "price": 1000, "category": "Main"},
+            headers=admin,
+        ).json()["id"]
+        return {"id": rid, "dish": dish}
+
+    def _diner(self, client) -> dict:
+        import secrets
+
+        email = f"regular.{secrets.token_hex(3)}@food.dev"
+        r = client.post(
+            "/api/v1/auth/register", json={"email": email, "password": "regular123", "name": "Reg"}
+        )
+        return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    def _serve(self, client, admin, venue, diner) -> None:
+        oid = client.post(
+            "/api/v1/orders",
+            json={
+                "restaurant_id": venue["id"],
+                "channel": "pickup",
+                "items": [{"menu_item_id": venue["dish"], "quantity": 1}],
+            },
+            headers=diner,
+        ).json()["id"]
+        for step in ("confirmed", "preparing", "on_the_way", "delivered"):
+            client.patch(f"/api/v1/orders/{oid}/status", json={"status": step}, headers=admin)
+
+    def _stats(self, client, admin, venue) -> dict:
+        return client.get(
+            f"/api/v1/admin/restaurants/{venue['id']}/stats", params={"days": 30}, headers=admin
+        ).json()
+
+    def test_an_empty_venue_has_a_flat_day(self, client, admin, venue):
+        body = self._stats(client, admin, venue)
+
+        assert body["by_hour"] == [0] * 24
+        assert (body["customers"], body["repeat_customers"], body["repeat_rate"]) == (0, 0, 0.0)
+
+    def test_an_order_lands_in_the_venues_local_hour(self, client, admin, venue):
+        from datetime import UTC, datetime, timedelta
+
+        self._serve(client, admin, venue, self._diner(client))
+        local = (datetime.now(UTC) + timedelta(hours=5)).hour  # seeded cities are UTC+5
+
+        by_hour = self._stats(client, admin, venue)["by_hour"]
+
+        assert sum(by_hour) == 1
+        # A minute boundary can push it into the next bucket between the two clocks.
+        assert by_hour[local] == 1 or by_hour[(local + 1) % 24] == 1
+
+    def test_regulars_are_counted_once_they_come_back(self, client, admin, venue):
+        regular, once = self._diner(client), self._diner(client)
+        self._serve(client, admin, venue, regular)
+        self._serve(client, admin, venue, regular)
+        self._serve(client, admin, venue, once)
+
+        body = self._stats(client, admin, venue)
+
+        assert body["customers"] == 2
+        assert body["repeat_customers"] == 1
+        assert body["repeat_rate"] == 0.5
+
+    def test_a_cancelled_order_does_not_make_a_customer(self, client, admin, venue):
+        diner = self._diner(client)
+        oid = client.post(
+            "/api/v1/orders",
+            json={
+                "restaurant_id": venue["id"],
+                "channel": "pickup",
+                "items": [{"menu_item_id": venue["dish"], "quantity": 1}],
+            },
+            headers=diner,
+        ).json()["id"]
+        client.patch(f"/api/v1/orders/{oid}/status", json={"status": "cancelled"}, headers=admin)
+
+        assert self._stats(client, admin, venue)["customers"] == 0

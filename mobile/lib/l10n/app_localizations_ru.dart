@@ -1324,4 +1324,15 @@ class L10nRu extends L10n {
 
   @override
   String get offTheLineHint => 'Вы не на линии: новые заказы скрыты';
+
+  @override
+  String get peakHours => 'Часы пик';
+
+  @override
+  String get regulars => 'Постоянные гости';
+
+  @override
+  String regularsValue(int again, int total) {
+    return '$again из $total вернулись';
+  }
 }

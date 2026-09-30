@@ -244,4 +244,67 @@ class DayChart extends StatelessWidget {
   }
 }
 
+/// Orders by hour of the day: 24 thin bars, the busiest tallest. Only the
+/// hours a venue could plausibly be open are labelled, so the axis reads at
+/// 320px.
+class HourChart extends StatelessWidget {
+  const HourChart({super.key, required this.hours, required this.peak});
+
+  final List<int> hours;
+  final int peak;
+
+  static const _labelled = {0, 6, 12, 18, 23};
+
+  @override
+  Widget build(BuildContext context) {
+    if (hours.length != 24 || hours.every((n) => n == 0)) {
+      return const SizedBox.shrink();
+    }
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return SizedBox(
+      height: 110,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (var h = 0; h < 24; h++)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 1),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      height: 4 + 68 * (hours[h] / peak).clamp(0, 1),
+                      decoration: BoxDecoration(
+                        color: hours[h] == 0
+                            ? scheme.surfaceContainerHighest
+                            : scheme.primary,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      height: 14,
+                      child: _labelled.contains(h)
+                          ? FittedBox(
+                              child: Text(
+                                '$h',
+                                style: text.labelSmall?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            )
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 String moneyOrDash(double value) => value == 0 ? '—' : formatMoney(value);

@@ -1322,4 +1322,15 @@ class L10nKk extends L10n {
 
   @override
   String get offTheLineHint => 'Сіз желіде емессіз: жаңа тапсырыстар жасырын';
+
+  @override
+  String get peakHours => 'Ең қарбалас сағаттар';
+
+  @override
+  String get regulars => 'Тұрақты қонақтар';
+
+  @override
+  String regularsValue(int again, int total) {
+    return '$total ішінен $again қайта келді';
+  }
 }

@@ -1325,4 +1325,15 @@ class L10nEn extends L10n {
 
   @override
   String get offTheLineHint => 'You are off the line: new orders are hidden';
+
+  @override
+  String get peakHours => 'Busiest hours';
+
+  @override
+  String get regulars => 'Regulars';
+
+  @override
+  String regularsValue(int again, int total) {
+    return '$again of $total came back';
+  }
 }

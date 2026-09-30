@@ -145,6 +145,7 @@ class Order {
     this.promoCode,
     this.discount = 0,
     this.loyaltySpent = 0,
+    this.tip = 0,
   });
 
   final int id;
@@ -180,6 +181,9 @@ class Order {
 
   /// Bonuses applied at checkout, in tenge; already taken off [total].
   final double loyaltySpent;
+
+  /// Tenge tipped to the courier; part of [total].
+  final double tip;
 
   bool get isCash => payMethod == 'cash';
   bool get isPaid => payStatus == 'paid';
@@ -242,6 +246,7 @@ class Order {
     promoCode: json['promo_code'] as String?,
     discount: (json['discount'] as num?)?.toDouble() ?? 0,
     loyaltySpent: (json['loyalty_spent'] as num?)?.toDouble() ?? 0,
+    tip: (json['tip'] as num?)?.toDouble() ?? 0,
   );
 }
 

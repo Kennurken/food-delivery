@@ -1286,4 +1286,13 @@ class L10nKk extends L10n {
   String cashInHand(String amount) {
     return 'қолыңыздағы қолма-қол: $amount ₸';
   }
+
+  @override
+  String get tipCourier => 'Курьерге шайлық';
+
+  @override
+  String get tipLine => 'Шайлық';
+
+  @override
+  String get noTip => 'Шайлықсыз';
 }

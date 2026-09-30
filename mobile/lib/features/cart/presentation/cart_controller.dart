@@ -21,6 +21,7 @@ class CartState {
     this.promoCode,
     this.promoDiscount = 0,
     this.useLoyalty = false,
+    this.tip = 0,
   });
 
   final int? restaurantId;
@@ -39,6 +40,10 @@ class CartState {
   final double promoDiscount;
   final bool useLoyalty;
 
+  /// Tenge for the courier. Only counts on delivery: a table or a counter has
+  /// no courier, and the server refuses a tip there.
+  final double tip;
+
   int get count => items.values.fold(0, (s, i) => s + i.quantity);
   double get subtotal => items.values.fold(0.0, (s, i) => s + i.lineTotal);
   bool get isEmpty => items.isEmpty;
@@ -47,8 +52,13 @@ class CartState {
   bool get hasDest => destLat != null && destLng != null;
   bool get isScheduled => scheduledFor != null;
 
+  bool get isDelivery => !isDineIn && !isPickup;
+
+  /// The tip that will actually be sent.
+  double get effectiveTip => isDelivery ? tip : 0;
+
   double payable(double fee) {
-    final raw = subtotal + fee - promoDiscount;
+    final raw = subtotal + fee - promoDiscount + effectiveTip;
     return raw < 0 ? 0 : raw;
   }
 
@@ -73,6 +83,7 @@ class CartState {
     bool clearPromo = false,
     bool? useLoyalty,
     bool clearLoyalty = false,
+    double? tip,
   }) => CartState(
     restaurantId: restaurantId ?? this.restaurantId,
     items: items ?? this.items,
@@ -85,6 +96,7 @@ class CartState {
     promoCode: clearPromo ? null : (promoCode ?? this.promoCode),
     promoDiscount: clearPromo ? 0 : (promoDiscount ?? this.promoDiscount),
     useLoyalty: clearLoyalty ? false : (useLoyalty ?? this.useLoyalty),
+    tip: tip ?? this.tip,
   );
 
   factory CartState.fromJson(Map<String, dynamic> json) {
@@ -111,6 +123,7 @@ class CartState {
       promoCode: json['promo_code'] as String?,
       promoDiscount: (json['promo_discount'] as num?)?.toDouble() ?? 0,
       useLoyalty: json['use_loyalty'] as bool? ?? false,
+      tip: (json['tip'] as num?)?.toDouble() ?? 0,
       items: parsed,
     );
   }
@@ -126,6 +139,7 @@ class CartState {
     'promo_code': promoCode,
     'promo_discount': promoDiscount,
     'use_loyalty': useLoyalty,
+    'tip': tip,
     'items': {for (final e in items.entries) e.key: e.value.toJson()},
   };
 }
@@ -305,6 +319,11 @@ class CartController extends Notifier<CartState> {
 
   void clearPromo() {
     state = state.copyWith(clearPromo: true);
+    _save();
+  }
+
+  void setTip(double tip) {
+    state = state.copyWith(tip: tip);
     _save();
   }
 

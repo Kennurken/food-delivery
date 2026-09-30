@@ -33,6 +33,7 @@ class OrderRepository {
         'pay_method': payMethod,
         if (cart.promoCode != null) 'promo_code': cart.promoCode,
         if (cart.useLoyalty) 'use_loyalty': true,
+        if (cart.effectiveTip > 0) 'tip': cart.effectiveTip,
         if (cart.scheduledFor != null)
           'scheduled_for': cart.scheduledFor!.toUtc().toIso8601String(),
         'items': [

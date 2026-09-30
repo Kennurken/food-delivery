@@ -1289,4 +1289,13 @@ class L10nEn extends L10n {
   String cashInHand(String amount) {
     return 'cash with you: $amount ₸';
   }
+
+  @override
+  String get tipCourier => 'Tip for the courier';
+
+  @override
+  String get tipLine => 'Tip';
+
+  @override
+  String get noTip => 'No tip';
 }

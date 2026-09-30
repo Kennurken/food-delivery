@@ -491,5 +491,8 @@
   "cityActive": "Показывать гостям",
   "showMore": "Показать ещё",
   "noDeliveriesYet": "Доставок пока нет",
-  "cashInHand": "наличные у вас: {amount} ₸"
+  "cashInHand": "наличные у вас: {amount} ₸",
+  "tipCourier": "Чаевые курьеру",
+  "tipLine": "Чаевые",
+  "noTip": "Без чаевых"
 }

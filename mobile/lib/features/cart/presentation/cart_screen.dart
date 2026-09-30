@@ -509,6 +509,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             ).stagger(idx++),
           ],
           const _LoyaltyTile(),
+          if (cart.isDelivery) const _TipPicker(),
           const SizedBox(height: 12),
           SegmentedButton<String>(
             segments: [
@@ -602,6 +603,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                     ),
                   if (cart.promoDiscount > 0)
                     _Row(t.discount, '-${formatMoney(cart.promoDiscount)}'),
+                  if (cart.effectiveTip > 0)
+                    _Row(t.tipLine, formatMoney(cart.effectiveTip)),
                   if (bonuses > 0)
                     _Row(t.paidWithBonuses, '-${formatMoney(bonuses)}'),
                   const Divider(height: 20),
@@ -738,6 +741,49 @@ class _LoyaltyTile extends ConsumerWidget {
         subtitle: Text(t.bonusBalance(formatMoney(quote.balance))),
         value: on,
         onChanged: (v) => ref.read(cartProvider.notifier).setLoyalty(v),
+      ),
+    );
+  }
+}
+
+/// Tip chips for the courier. A few round amounts, because nobody types a tip
+/// at their door; zero is the default and stays one tap away.
+class _TipPicker extends ConsumerWidget {
+  const _TipPicker();
+
+  static const _amounts = [0.0, 200.0, 500.0, 1000.0];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.l10n;
+    final tip = ref.watch(cartProvider.select((c) => c.tip));
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t.tipCourier,
+            style: Theme.of(context).textTheme.labelLarge
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (final amount in _amounts)
+                ChoiceChip(
+                  label: Text(
+                    amount == 0 ? t.noTip : '${formatMoney(amount)} ₸',
+                  ),
+                  selected: tip == amount,
+                  onSelected: (_) =>
+                      ref.read(cartProvider.notifier).setTip(amount),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }

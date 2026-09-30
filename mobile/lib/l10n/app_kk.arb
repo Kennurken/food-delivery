@@ -491,5 +491,8 @@
   "cityActive": "Қонақтарға көрсету",
   "showMore": "Тағы көрсету",
   "noDeliveriesYet": "Әзірге жеткізу жоқ",
-  "cashInHand": "қолыңыздағы қолма-қол: {amount} ₸"
+  "cashInHand": "қолыңыздағы қолма-қол: {amount} ₸",
+  "tipCourier": "Курьерге шайлық",
+  "tipLine": "Шайлық",
+  "noTip": "Шайлықсыз"
 }

@@ -648,5 +648,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "tipCourier": "Tip for the courier",
+  "tipLine": "Tip",
+  "noTip": "No tip"
 }

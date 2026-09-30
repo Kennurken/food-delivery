@@ -315,7 +315,13 @@ def create_order(
     if data.use_loyalty and not user.is_guest:
         loyalty_spent = loyalty.spend(db, user, restaurant, max(subtotal - discount, 0.0))
 
-    total = round(max(subtotal + delivery_fee - discount - loyalty_spent, 0), 2)
+    tip = round(data.tip or 0, 2)
+    if tip and channel != DELIVERY_CHANNEL:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Tips are for the courier, and only on delivery"
+        )
+
+    total = round(max(subtotal + delivery_fee - discount - loyalty_spent, 0) + tip, 2)
     pay_status = "unpaid"
     if pay_method == "cash":
         pay_status = CashProvider().charge(
@@ -346,6 +352,7 @@ def create_order(
         promo_code=promo_code,
         discount=round(discount, 2),
         loyalty_spent=loyalty_spent,
+        tip=tip,
     )
     db.add(order)
     db.flush()
@@ -508,7 +515,8 @@ def settle_courier_payout(order: Order) -> Order:
     if order.courier_id is None or order.courier_payout:
         return order
     share = max(0.0, min(1.0, settings.courier_fee_share))
-    order.courier_payout = round((order.delivery_fee or 0.0) * share, 2)
+    # The tip is the courier's whole, not shared like the delivery fee.
+    order.courier_payout = round((order.delivery_fee or 0.0) * share + (order.tip or 0.0), 2)
     return order
 
 

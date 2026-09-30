@@ -654,7 +654,10 @@ def ensure_hours_loyalty_schema() -> None:
             ("loyalty_percent", f"{real} NOT NULL DEFAULT 0"),
             ("loyalty_max_share", f"{real} NOT NULL DEFAULT 0.5"),
         ],
-        "orders": [("loyalty_spent", f"{real} NOT NULL DEFAULT 0")],
+        "orders": [
+            ("loyalty_spent", f"{real} NOT NULL DEFAULT 0"),
+            ("tip", f"{real} NOT NULL DEFAULT 0"),
+        ],
     }
     with engine.begin() as conn:
         for table, columns in wanted.items():

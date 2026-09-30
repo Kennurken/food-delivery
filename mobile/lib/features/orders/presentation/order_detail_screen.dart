@@ -251,6 +251,7 @@ class OrderDetailScreen extends ConsumerWidget {
                                 '${t.discount}${o.promoCode == null ? '' : ' · ${o.promoCode}'}',
                                 '-${formatMoney(o.discount)}',
                               ),
+                            if (o.tip > 0) _Row(t.tipLine, formatMoney(o.tip)),
                             if (o.loyaltySpent > 0)
                               _Row(
                                 t.paidWithBonuses,

@@ -1288,4 +1288,13 @@ class L10nRu extends L10n {
   String cashInHand(String amount) {
     return 'наличные у вас: $amount ₸';
   }
+
+  @override
+  String get tipCourier => 'Чаевые курьеру';
+
+  @override
+  String get tipLine => 'Чаевые';
+
+  @override
+  String get noTip => 'Без чаевых';
 }

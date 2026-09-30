@@ -2486,6 +2486,24 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'cash with you: {amount} ₸'**
   String cashInHand(String amount);
+
+  /// No description provided for @tipCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip for the courier'**
+  String get tipCourier;
+
+  /// No description provided for @tipLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip'**
+  String get tipLine;
+
+  /// No description provided for @noTip.
+  ///
+  /// In en, this message translates to:
+  /// **'No tip'**
+  String get noTip;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

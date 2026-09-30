@@ -11,6 +11,10 @@ class OrderItemCreate(BaseModel):
     option_ids: list[int] = Field(default_factory=list)
 
 
+# A ceiling against typos (an extra zero), not a judgement on generosity.
+MAX_TIP = 50_000
+
+
 class OrderCreate(BaseModel):
     restaurant_id: int
     address: str | None = Field(default=None, min_length=3, max_length=300)
@@ -26,6 +30,9 @@ class OrderCreate(BaseModel):
     # A flag, not an amount: the server decides how much, like it decides the
     # delivery fee.
     use_loyalty: bool = False
+    # Tip for the courier. Delivery only; the server refuses it elsewhere
+    # rather than quietly dropping money the diner meant to give.
+    tip: float = Field(default=0, ge=0, le=MAX_TIP)
     items: list[OrderItemCreate] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -96,6 +103,7 @@ class OrderOut(BaseModel):
     promo_code: str | None = None
     discount: float = 0
     loyalty_spent: float = 0
+    tip: float = 0
     created_at: datetime
     items: list[OrderItemOut]
 

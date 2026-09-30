@@ -55,6 +55,9 @@ class Order(Base):
     discount: Mapped[float] = mapped_column(Float, default=0)
     # Bonuses applied at checkout, in tenge. Already taken off `total`.
     loyalty_spent: Mapped[float] = mapped_column(Float, default=0, server_default="0")
+    # Tip for the courier, in tenge. Part of `total` (the diner pays it) and all of
+    # it goes into `courier_payout` — the venue and the platform take nothing.
+    tip: Mapped[float] = mapped_column(Float, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="orders", foreign_keys=[user_id])  # noqa: F821

@@ -121,6 +121,7 @@ code { background: var(--line); padding: 2px 7px; border-radius: 6px; font-size:
   border: 1px solid color-mix(in srgb, var(--brand) 32%, transparent);
   padding: 10px 14px; border-radius: 12px; font-size: 14px;
 }
+.hours-notice { background: color-mix(in srgb, var(--brand) 8%, transparent); border-color: color-mix(in srgb, var(--brand) 24%, transparent); }
 
 /* Band */
 .band-inner {
@@ -185,6 +186,15 @@ code { background: var(--line); padding: 2px 7px; border-radius: 6px; font-size:
 .chip.add { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
 .chip.add:hover { filter: brightness(1.05); color: var(--brand-ink); }
 .chip.danger:hover { border-color: #d7263d; color: #d7263d; }
+
+/* Hours section */
+.hours-section { padding: 24px 0; }
+.hours-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.hours-list li { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.hours-list li:last-child { border-bottom: 0; }
+.hours-day { font-weight: 600; min-width: 120px; }
+.hours-times { color: var(--muted); text-align: right; white-space: nowrap; }
+.badge.schedule { background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--brand); border: 1px solid color-mix(in srgb, var(--brand) 36%, transparent); }
 
 /* Line items (cart, order, history) */
 .lines { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }

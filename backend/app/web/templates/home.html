@@ -23,6 +23,7 @@
       <div class="thumb">
         {% if r.image_url %}<img src="{{ r.image_url }}" alt="{{ r.name }}" loading="lazy" width="400" height="260">{% endif %}
         {% if not r.is_open %}<span class="badge">Закрыто</span>{% endif %}
+        {% if notes.get(r.id) %}<span class="badge schedule">{{ notes[r.id] }}</span>{% endif %}
       </div>
       <div class="card-body">
         <p class="card-title">{{ r.name }}</p>

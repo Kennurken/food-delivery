@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from datetime import timedelta
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
@@ -28,7 +29,7 @@ from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models import City, MenuItem, Order, Restaurant, User, UserRole
 from app.schemas.order import OrderCreate
-from app.services import cities, offers, order_service
+from app.services import cities, hours, offers, order_service
 from app.web import cart as cart_store
 from app.web import session as web_session
 
@@ -143,6 +144,66 @@ def _in_cities(items: list[City]) -> str:
     return "в " + ", ".join(names[:-1]) + " и " + names[-1]
 
 
+def _hours_note(restaurant: Restaurant) -> str | None:
+    """Human-readable note about when the venue opens next.
+
+    Returns None when the venue is open now (or has no schedule). When closed
+    by schedule: "Откроется в 10:00" (today), "Откроется завтра в 10:00"
+    (tomorrow), or "Откроется в пн, 10:00" (later in the week).
+    """
+    state = hours.status_of(restaurant)
+    if not state.has_schedule or state.open_now or state.opens_at is None:
+        return None
+
+    # Dates are compared on the venue's own wall clock, not the server's.
+    today = hours.local_time(restaurant).date()
+    opens = state.opens_at
+    at = _clock(opens)
+    if opens.date() == today:
+        return f"Откроется в {at}"
+    if opens.date() == today + timedelta(days=1):
+        return f"Откроется завтра в {at}"
+    return f"Откроется в {['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'][opens.weekday()]}, {at}"
+
+
+_DAYS_RU = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
+_DAYS_SCHEMA = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+
+def _clock(value) -> str:
+    return value.strftime("%H:%M")
+
+
+def _week(schedule: list[hours.Stretch]) -> list[tuple[str, str]]:
+    """The seven days as (name, "10:00–22:00, 17:00–23:00"), for the page.
+
+    Built here rather than in the template: a template that has to group
+    stretches by weekday ends up writing the same filter seven times.
+    """
+    rows = []
+    for day, name in enumerate(_DAYS_RU):
+        today = [s for s in schedule if s.weekday == day]
+        if not today:
+            rows.append((name, "Выходной"))
+            continue
+        parts = ["Круглосуточно" if s.opens == s.closes else f"{_clock(s.opens)}–{_clock(s.closes)}" for s in today]
+        rows.append((name, ", ".join(parts)))
+    return rows
+
+
+def _opening_spec(schedule: list[hours.Stretch]) -> list[dict]:
+    """schema.org OpeningHoursSpecification, one entry per stretch."""
+    return [
+        {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": f"https://schema.org/{_DAYS_SCHEMA[s.weekday]}",
+            "opens": _clock(s.opens),
+            "closes": _clock(s.closes),
+        }
+        for s in schedule
+    ]
+
+
 # ---------------------------------------------------------------- public pages
 
 
@@ -159,6 +220,8 @@ def _landing(request: Request, db: Session, city: City | None) -> HTMLResponse:
     default = cities.default(db)
     on_root = city is None or (default is not None and city.id == default.id)
     where = f" {_in_city(city)}" if city else ""
+    # Hours notes for cards — schedule-closed venues show when they open
+    notes = {r.id: _hours_note(r) for r in restaurants}
     return _render(
         request,
         "home.html",
@@ -172,6 +235,7 @@ def _landing(request: Request, db: Session, city: City | None) -> HTMLResponse:
             "promos": promos,
             "canonical": f"{_base_url()}/" if on_root else f"{_base_url()}/{city.slug}/",
             "city": city,
+            "notes": notes,
             # A city with no venues yet is a thin page; keep it out of the index
             # until it has something to show.
             "noindex": not restaurants,
@@ -204,6 +268,9 @@ def restaurant_page(slug: str, request: Request, db: Session = DB) -> HTMLRespon
         sections[-1].items.append(item)
     city = restaurant.city or cities.default(db)
     where = f" {_in_city(city)}" if city else ""
+    # Hours note for the restaurant page
+    note = _hours_note(restaurant)
+    schedule = hours.stretches(restaurant.hours)
     return _render(
         request,
         "restaurant.html",
@@ -219,6 +286,9 @@ def restaurant_page(slug: str, request: Request, db: Session = DB) -> HTMLRespon
             "canonical": f"{_base_url()}/r/{restaurant.slug}/",
             "og_image": restaurant.image_url,
             "city": city,
+            "hours_note": note,
+            "hours_week": _week(schedule) if schedule else [],
+            "hours_spec": _opening_spec(schedule),
         },
         db=db,
     )

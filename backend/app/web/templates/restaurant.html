@@ -15,6 +15,9 @@
     "ratingValue": {{ '%.1f'|format(restaurant.rating) }},
     "reviewCount": {{ restaurant.rating_count }}
   }
+  {% if hours_spec %},
+  "openingHoursSpecification": {{ hours_spec|tojson }}
+  {% endif %}
 }
 </script>
 {% endblock %}
@@ -38,6 +41,9 @@
       {% if not restaurant.is_open %}
       <p class="notice">Сейчас закрыто. Меню и цены актуальны.</p>
       {% endif %}
+      {% if hours_note %}
+      <p class="notice hours-notice">{{ hours_note }} · Можно заказать заранее — к открытию</p>
+      {% endif %}
       <div class="hero-actions">
         <a class="btn" href="#menu">Смотреть меню</a>
         {% if cart_count %}<a class="btn ghost" href="/cart/">В корзине · {{ cart_count }}</a>{% endif %}
@@ -45,6 +51,17 @@
     </div>
   </div>
 </section>
+
+{% if hours_week %}
+<section class="wrap block hours-section" id="hours">
+  <h2>Часы работы</h2>
+  <ul class="hours-list">
+    {% for day, times in hours_week %}
+    <li><span class="hours-day">{{ day }}</span><span class="hours-times">{{ times }}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
 
 <section class="wrap block" id="menu">
   <h2>Меню{% if item_count %} · {{ item_count }} блюд{% endif %}</h2>

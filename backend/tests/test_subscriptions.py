@@ -116,12 +116,6 @@ class TestState:
 
 
 class TestSubscribing:
-    def test_a_free_plan_is_refused_rather_than_charged(self, client, admin):
-        r = client.post(f"{BILLING}/subscribe", json={"plan_code": "basic"}, headers=admin)
-
-        assert r.status_code == 400
-        assert "free" in r.text.lower()
-
     def test_an_unknown_plan_is_refused(self, client, admin):
         r = client.post(f"{BILLING}/subscribe", json={"plan_code": "gold"}, headers=admin)
 
@@ -207,27 +201,21 @@ class TestWebhookDrivesEverything:
         )
         assert placed.status_code == 403
 
-    def test_cancelling_drops_to_the_free_plan_rather_than_suspending(
+    def test_cancelling_ends_the_subscription_and_closes_orders(
         self, client, admin, signed
     ):
-        """Stopping payment is not the same as defaulting on it. The venue lands
-        on the free tier, keeps its account and its menu, and is not locked out
-        the way an unpaid subscription locks it out."""
+        """There is no free tier: when Stripe says the subscription is over, the
+        venue keeps its account and menu but stops taking orders."""
         _send(client, _subscription_event("customer.subscription.created", status="active"))
 
         _send(client, _subscription_event("customer.subscription.deleted", status="canceled"))
 
         body = _state(client, admin)
-        assert body["plan_code"] == "basic"
-        assert body["billing_status"] == "active"
+        assert body["billing_status"] == "cancelled"
+        assert body["orders_open"] is False
         assert body["has_subscription"] is False
-        assert body["renews_at"] is None
 
-    def test_after_cancelling_delivery_stops_and_says_which_plan(
-        self, client, auth, signed
-    ):
-        """Delivery is a paid feature, so it does go away — but the refusal has
-        to name the plan, not leave a customer staring at a bare 403."""
+    def test_after_cancelling_orders_are_refused(self, client, auth, signed):
         _send(client, _subscription_event("customer.subscription.deleted", status="canceled"))
 
         menu = client.get("/api/v1/restaurants/1/menu").json()
@@ -240,9 +228,7 @@ class TestWebhookDrivesEverything:
         )
 
         assert placed.status_code == 403
-        # Not "subscription is inactive": they are paid up, just on a smaller plan.
-        assert "plan" in placed.json()["detail"].lower()
-        assert "inactive" not in placed.json()["detail"].lower()
+        assert "subscription" in placed.json()["detail"].lower()
 
     def test_an_event_for_an_unknown_venue_is_ignored(self, client, signed):
         r = _send(client, _subscription_event("customer.subscription.updated",

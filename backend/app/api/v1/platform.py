@@ -106,7 +106,8 @@ def workspace(restaurant_id: int, db: DB, user: CurrentUser) -> dict:
     )
     return {
         "plan": flags.plan_code,
-        "billing_status": restaurant.billing_status,
+        "billing_status": subscriptions.effective_status(restaurant),
+        "days_left": subscriptions.days_left(restaurant),
         "features": sorted(flags.features),
         "limits": flags.limits,
         "setup": {
@@ -254,6 +255,44 @@ def stop_subscription(restaurant_id: int, db: DB, user: CurrentUser) -> dict:
     stopped = subscriptions.cancel(restaurant)
     if not stopped:
         raise HTTPException(status.HTTP_409_CONFLICT, "No active subscription")
+    return subscriptions.describe(restaurant)
+
+
+class ManualPaymentIn(BaseModel):
+    plan_code: str
+    months: int = 1
+
+
+@router.post("/admin/restaurants/{restaurant_id}/subscription/manual")
+def record_manual_payment(
+    restaurant_id: int, data: ManualPaymentIn, db: DB, user: AdminUser, request: Request
+) -> dict:
+    """The platform confirms a payment it received outside Stripe.
+
+    Only a platform admin may say money arrived, and only here: this is the one
+    door besides Stripe's webhook that marks a venue paid, and it leaves an
+    audit row saying who did it.
+    """
+    restaurant = db.get(Restaurant, restaurant_id)
+    if not restaurant:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
+    before = subscriptions.describe(restaurant)
+    subscriptions.record_payment(restaurant, data.plan_code, data.months)
+    audit.record(
+        db,
+        actor_id=user.id,
+        restaurant_id=restaurant.id,
+        action="subscription.manual",
+        resource=f"restaurant:{restaurant.id}",
+        payload={
+            "plan": data.plan_code,
+            "months": data.months,
+            "was": before["billing_status"],
+        },
+        request_id=getattr(request.state, "request_id", None),
+    )
+    db.commit()
+    db.refresh(restaurant)
     return subscriptions.describe(restaurant)
 
 

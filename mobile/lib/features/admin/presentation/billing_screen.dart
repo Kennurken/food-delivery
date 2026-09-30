@@ -94,6 +94,10 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         data: (data) => ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
           children: [
+            if (data.isTrial && data.daysLeft != null)
+              _Banner(t.billingTrial(data.daysLeft!), tone: _Tone.plain),
+            if (data.isGrace && data.daysLeft != null)
+              _Banner(t.billingGrace(data.daysLeft!), tone: _Tone.danger),
             if (data.isRetrying) _Banner(t.billingRetry, tone: _Tone.warning),
             if (data.isBlocked) _Banner(t.billingBlocked, tone: _Tone.danger),
             if (!data.billingEnabled) _Banner(t.billingOff, tone: _Tone.plain),

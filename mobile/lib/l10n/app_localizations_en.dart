@@ -1139,11 +1139,11 @@ class L10nEn extends L10n {
 
   @override
   String get billingOff =>
-      'Subscriptions are not connected on this platform yet.';
+      'Online payment is not connected yet. To pay for a plan, contact the platform.';
 
   @override
   String get cancelPlanAsk =>
-      'Stop renewing? The plan stays until the paid period ends, then drops to Free.';
+      'Stop renewing? The plan stays until the paid period ends, then new orders close.';
 
   @override
   String get campaigns => 'Campaigns';
@@ -1379,4 +1379,14 @@ class L10nEn extends L10n {
 
   @override
   String get rejectedVenue => 'Application rejected';
+
+  @override
+  String billingTrial(int days) {
+    return 'Free trial: $days days left. After that, choose a plan to keep taking orders.';
+  }
+
+  @override
+  String billingGrace(int days) {
+    return 'Payment overdue. Orders will close in $days days — pay to keep them open.';
+  }
 }

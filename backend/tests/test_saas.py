@@ -33,13 +33,14 @@ def test_plans_are_public(client):
     assert r.status_code == 200
     plans = {p["code"]: p for p in r.json()}
     assert set(plans) == {"basic", "pro", "premium"}
-    # The free tier must never be sold, and a paid tier must carry a price —
-    # a billed plan costing zero would open a Stripe checkout for nothing.
-    assert plans["basic"]["billed"] is False
-    assert plans["basic"]["monthly_price"] == 0
-    for code in ("pro", "premium"):
-        assert plans[code]["billed"] is True
-        assert plans[code]["monthly_price"] > 0
+    # There is no free tier: every plan is billed and carries the published
+    # price. A billed plan costing zero would open a checkout for nothing.
+    assert {c: p["monthly_price"] for c, p in plans.items()} == {
+        "basic": 9990,
+        "pro": 29990,
+        "premium": 49990,
+    }
+    assert all(p["billed"] for p in plans.values())
 
 
 def test_platform_overview_admin_only(client, auth, admin):

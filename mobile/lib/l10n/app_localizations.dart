@@ -2220,13 +2220,13 @@ abstract class L10n {
   /// No description provided for @billingOff.
   ///
   /// In en, this message translates to:
-  /// **'Subscriptions are not connected on this platform yet.'**
+  /// **'Online payment is not connected yet. To pay for a plan, contact the platform.'**
   String get billingOff;
 
   /// No description provided for @cancelPlanAsk.
   ///
   /// In en, this message translates to:
-  /// **'Stop renewing? The plan stays until the paid period ends, then drops to Free.'**
+  /// **'Stop renewing? The plan stays until the paid period ends, then new orders close.'**
   String get cancelPlanAsk;
 
   /// No description provided for @campaigns.
@@ -2660,6 +2660,18 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Application rejected'**
   String get rejectedVenue;
+
+  /// No description provided for @billingTrial.
+  ///
+  /// In en, this message translates to:
+  /// **'Free trial: {days} days left. After that, choose a plan to keep taking orders.'**
+  String billingTrial(int days);
+
+  /// No description provided for @billingGrace.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment overdue. Orders will close in {days} days — pay to keep them open.'**
+  String billingGrace(int days);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

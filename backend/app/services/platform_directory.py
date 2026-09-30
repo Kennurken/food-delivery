@@ -11,6 +11,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import Select, case, func, select
 from sqlalchemy.orm import Session
 
+from app.core.subscriptions import days_left, effective_status
 from app.models import Order, OrderStatus, Restaurant, User
 from app.models.member import RestaurantMember
 
@@ -111,7 +112,8 @@ def directory(db: Session, *, days: int = 30, query: str | None = None) -> list[
                 "image_url": r.image_url,
                 "is_open": r.is_open,
                 "plan_code": r.plan_code,
-                "billing_status": r.billing_status,
+                "billing_status": effective_status(r),
+                "days_left": days_left(r),
                 "rating": r.rating,
                 "rating_count": r.rating_count,
                 "owner": owners.get(r.id),

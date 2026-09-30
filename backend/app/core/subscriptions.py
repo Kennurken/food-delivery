@@ -20,19 +20,29 @@ the customer.
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import stripe
 from fastapi import HTTPException, status
 
 from app.core.billing import _app_base, _stripe_amount
 from app.core.config import settings
-from app.core.features import PLANS, plan_of
+from app.core.features import INACTIVE_BILLING, PLANS, plan_of
 from app.models.restaurant import Restaurant
 
 log = logging.getLogger(__name__)
 
 CURRENCY = "KZT"
+
+TRIAL_DAYS = 30
+GRACE_DAYS = 7
+PERIOD_DAYS = 30
+TRIAL_PLAN = "pro"
+
+# Vercel runs no scheduler, so nothing flips a venue to "grace" or "expired"
+# when its time runs out. The stored status is what was last *written*; the
+# effective one below is what is true right now, computed on every read.
+_TIMED = frozenset({"trial", "active", "grace_period"})
 
 # What Stripe calls a subscription, and what that means for us. `past_due` is
 # deliberately a working state: the retry window is Stripe's job, not a reason
@@ -188,29 +198,90 @@ def apply_event(db, event: dict) -> Restaurant | None:
     if mapped in ("active", "trial") and plan_code in PLANS:
         restaurant.plan_code = plan_code
     if mapped in ("cancelled", "expired"):
-        # Falling back to the free tier rather than locking the venue out: they
-        # stop paying, they stop getting the paid features, they keep trading.
-        restaurant.plan_code = "basic"
-        restaurant.billing_status = "active"
+        # There is no free tier to fall back to: the subscription is over, so
+        # orders close. The account, menu and history stay for when they return.
         restaurant.stripe_subscription_id = None
-        restaurant.plan_renews_at = None
 
     db.commit()
     db.refresh(restaurant)
     return restaurant
 
 
+def _now() -> datetime:
+    return datetime.now(UTC).replace(tzinfo=None)
+
+
+def effective_status(restaurant: Restaurant, now: datetime | None = None) -> str:
+    """The billing state as of `now`, whatever was last written.
+
+    A venue with no end date (seeded or platform-created) never times out, and
+    one that Stripe manages is left to Stripe — its webhooks are the authority.
+    Otherwise the end date decides: inside it the stored status stands, within
+    GRACE_DAYS after it the venue is in grace and still trading, beyond that it
+    is expired and orders close.
+    """
+    stored = restaurant.billing_status
+    ends = restaurant.plan_renews_at
+    if stored not in _TIMED or ends is None or restaurant.stripe_subscription_id:
+        return stored
+    now = now or _now()
+    if now <= ends:
+        return "active" if stored == "grace_period" else stored
+    if now <= ends + timedelta(days=GRACE_DAYS):
+        return "grace_period"
+    return "expired"
+
+
+def days_left(restaurant: Restaurant, now: datetime | None = None) -> int | None:
+    """Whole days until the next thing happens: the trial or period ends while
+    it runs, the orders close while in grace. None when there is no end date."""
+    ends = restaurant.plan_renews_at
+    if ends is None or restaurant.stripe_subscription_id:
+        return None
+    now = now or _now()
+    if now > ends:
+        ends = ends + timedelta(days=GRACE_DAYS)
+    return max(0, (ends - now).days + (1 if (ends - now).seconds else 0))
+
+
+def start_trial(restaurant: Restaurant, now: datetime | None = None) -> None:
+    """The free month a venue gets when the platform approves it."""
+    restaurant.plan_code = TRIAL_PLAN
+    restaurant.billing_status = "trial"
+    restaurant.plan_renews_at = (now or _now()) + timedelta(days=TRIAL_DAYS)
+
+
+def record_payment(
+    restaurant: Restaurant, plan_code: str, months: int, now: datetime | None = None
+) -> None:
+    """Pay in advance for `months` months, taken outside Stripe (bank transfer,
+    a Kazakh processor). Paying early extends the current period instead of
+    starting a new one, so nobody loses days by not waiting for the last one."""
+    if plan_code not in PLANS:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No such plan")
+    if not 1 <= months <= 12:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Months must be 1 to 12")
+    now = now or _now()
+    ends = restaurant.plan_renews_at
+    live = effective_status(restaurant, now) in ("trial", "active") and ends is not None
+    base = ends if live and ends > now else now
+    restaurant.plan_code = plan_code
+    restaurant.billing_status = "active"
+    restaurant.plan_renews_at = base + timedelta(days=PERIOD_DAYS * months)
+
+
 def describe(restaurant: Restaurant) -> dict:
     spec = plan_of(restaurant.plan_code)
+    status_now = effective_status(restaurant)
     return {
         "plan_code": restaurant.plan_code,
         "plan_name": spec["name"],
         "monthly_price": spec["monthly_price"],
         "billed": spec["billed"],
-        "billing_status": restaurant.billing_status,
-        "renews_at": restaurant.plan_renews_at.isoformat()
-        if restaurant.plan_renews_at
-        else None,
+        "billing_status": status_now,
+        "days_left": days_left(restaurant),
+        "orders_open": status_now not in INACTIVE_BILLING,
+        "renews_at": restaurant.plan_renews_at.isoformat() if restaurant.plan_renews_at else None,
         "has_subscription": bool(restaurant.stripe_subscription_id),
         "billing_enabled": billing_enabled(),
     }

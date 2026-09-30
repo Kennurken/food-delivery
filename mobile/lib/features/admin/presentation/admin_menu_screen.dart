@@ -69,6 +69,37 @@ class AdminMenuScreen extends ConsumerWidget {
     );
   }
 
+  List<Widget> _billingBanner(BuildContext context, WidgetRef ref) {
+    final billing = ref.watch(venueBillingProvider(restaurantId)).value;
+    if (billing == null) return const [];
+    final t = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    final days = billing.daysLeft;
+    final (String, Color, Color)? note = billing.isBlocked
+        ? (t.billingBlocked, scheme.errorContainer, scheme.onErrorContainer)
+        : billing.isGrace && days != null
+        ? (t.billingGrace(days), scheme.errorContainer, scheme.onErrorContainer)
+        : billing.isTrial && days != null && days <= 7
+        ? (
+            t.billingTrial(days),
+            scheme.tertiaryContainer,
+            scheme.onTertiaryContainer,
+          )
+        : null;
+    if (note == null) return const [];
+    return [
+      Material(
+        color: note.$2,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(note.$1, style: TextStyle(color: note.$3)),
+        ),
+      ),
+      const SizedBox(height: 12),
+    ];
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final restaurant = ref.watch(adminRestaurantProvider(restaurantId));
@@ -116,6 +147,9 @@ class AdminMenuScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                     ],
+                    // Trial running out, or payment overdue: the owner finds
+                    // out here, not from a guest who could not order.
+                    ..._billingBanner(context, ref),
                     ManageActions(
                       actions: [
                         ManageAction(

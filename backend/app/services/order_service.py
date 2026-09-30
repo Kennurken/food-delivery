@@ -21,6 +21,7 @@ from app.core.features import INACTIVE_BILLING, entitlements
 from app.core.geo import resolve_point, valid_coord
 from app.core.push import fanout as push_fanout
 from app.core.qr import parse_table_token
+from app.core.subscriptions import effective_status
 from app.models import MenuItem, Order, OrderItem, OrderStatus, Restaurant, User, UserRole
 from app.models.floor_plan import FloorObject
 from app.models.idempotency import IdempotencyRecord
@@ -195,7 +196,7 @@ def create_order(
         opens = opening_hours.status_of(restaurant).opens_at
         when = f" Opens at {opens:%H:%M}." if opens else ""
         raise HTTPException(status.HTTP_409_CONFLICT, f"{restaurant.name} is closed now.{when}")
-    if restaurant.billing_status in INACTIVE_BILLING:
+    if effective_status(restaurant) in INACTIVE_BILLING:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Restaurant subscription is inactive")
 
     body_hash = sha256(data.model_dump_json().encode()).hexdigest()

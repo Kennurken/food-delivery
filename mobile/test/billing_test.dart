@@ -19,6 +19,24 @@ void main() {
   };
 
   group('venue billing', () {
+    test('a trial and its grace week are read from the server', () {
+      final trial = VenueBilling.fromJson({
+        ...payload(status: 'trial'),
+        'days_left': 12,
+        'orders_open': true,
+      });
+      final grace = VenueBilling.fromJson({
+        ...payload(status: 'grace_period'),
+        'days_left': 3,
+      });
+
+      expect(trial.isTrial, isTrue);
+      expect(trial.daysLeft, 12);
+      expect(grace.isGrace, isTrue);
+      expect(grace.isBlocked, isFalse);
+      expect(VenueBilling.fromJson(payload()).daysLeft, isNull);
+    });
+
     test('a failed renewal is a warning, not a closure', () {
       final data = VenueBilling.fromJson(payload(status: 'past_due'));
 

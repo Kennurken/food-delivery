@@ -545,8 +545,8 @@
   "freePlan": "Free",
   "billingRetry": "Payment failed — the card is being retried. Your venue keeps working.",
   "billingBlocked": "Subscription inactive. New orders are refused until it is restored.",
-  "billingOff": "Subscriptions are not connected on this platform yet.",
-  "cancelPlanAsk": "Stop renewing? The plan stays until the paid period ends, then drops to Free.",
+  "billingOff": "Online payment is not connected yet. To pay for a plan, contact the platform.",
+  "cancelPlanAsk": "Stop renewing? The plan stays until the paid period ends, then new orders close.",
   "campaigns": "Campaigns",
   "campaignTitle": "Headline",
   "campaignSubtitle": "Subtitle",
@@ -687,5 +687,21 @@
   "noCouriersPickupOnly": "No couriers: pickup and table only",
   "rejectReason": "Reason (optional)",
   "pendingApproval": "Waiting for approval: guests can't see this restaurant yet",
-  "rejectedVenue": "Application rejected"
+  "rejectedVenue": "Application rejected",
+  "billingTrial": "Free trial: {days} days left. After that, choose a plan to keep taking orders.",
+  "@billingTrial": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "billingGrace": "Payment overdue. Orders will close in {days} days — pay to keep them open.",
+  "@billingGrace": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

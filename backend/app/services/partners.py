@@ -14,6 +14,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core import subscriptions
 from app.core.security import hash_password
 from app.models import City, Restaurant, RestaurantMember, User, UserRole
 from app.services import cities
@@ -86,6 +87,7 @@ def decide(db: Session, venue: Restaurant, *, approve: bool, reason: str | None 
         venue.rejection_reason = None
         # Open on approval: the owner already built the menu while it was hidden.
         venue.is_open = True
+        subscriptions.start_trial(venue)
     else:
         venue.approval = REJECTED
         venue.rejection_reason = (reason or "").strip()[:300] or None

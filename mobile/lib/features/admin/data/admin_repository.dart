@@ -368,6 +368,8 @@ class VenueBilling {
     required this.renewsAt,
     required this.hasSubscription,
     required this.billingEnabled,
+    this.daysLeft,
+    this.ordersOpen = true,
   });
 
   final String planCode;
@@ -377,6 +379,11 @@ class VenueBilling {
   final String billingStatus;
   final DateTime? renewsAt;
   final bool hasSubscription;
+
+  /// Days until the trial or paid period ends — or, in grace, until orders
+  /// close. Null when there is no end date.
+  final int? daysLeft;
+  final bool ordersOpen;
 
   /// False when the platform has no Stripe keys: subscribing would fail, so
   /// the screen says so rather than offering a button that cannot work.
@@ -391,7 +398,12 @@ class VenueBilling {
     renewsAt: parseServerTime(json['renews_at'] as String?),
     hasSubscription: json['has_subscription'] as bool? ?? false,
     billingEnabled: json['billing_enabled'] as bool? ?? false,
+    daysLeft: (json['days_left'] as num?)?.toInt(),
+    ordersOpen: json['orders_open'] as bool? ?? true,
   );
+
+  bool get isTrial => billingStatus == 'trial';
+  bool get isGrace => billingStatus == 'grace_period';
 
   /// Stripe is retrying the card. The venue keeps working — this is a warning,
   /// not a closure.

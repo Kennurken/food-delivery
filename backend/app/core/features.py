@@ -76,28 +76,28 @@ _PREMIUM = _PRO + (
     "ai",
 )
 
-# Monthly price per venue, in tenge. `billed` plans need a live Stripe
-# subscription; a free plan never touches the processor.
+# Monthly price per venue, in tenge. Every plan is paid: a new venue gets a
+# month-long trial (see core/subscriptions.py), then pays or its orders close.
 PLANS: dict[str, dict] = {
     "basic": {
         "name": "Basic",
         "features": _BASIC,
         "limits": {"branches.max": 1, "tables.max": 20, "staff.max": 5},
-        "monthly_price": 0,
-        "billed": False,
+        "monthly_price": 9990,
+        "billed": True,
     },
     "pro": {
         "name": "Pro",
         "features": _PRO,
         "limits": {"branches.max": 3, "tables.max": 100, "staff.max": 30},
-        "monthly_price": 29000,
+        "monthly_price": 29990,
         "billed": True,
     },
     "premium": {
         "name": "Premium",
         "features": _PREMIUM,
         "limits": {"branches.max": None, "tables.max": None, "staff.max": None},
-        "monthly_price": 79000,
+        "monthly_price": 49990,
         "billed": True,
     },
 }

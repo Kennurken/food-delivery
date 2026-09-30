@@ -13,6 +13,7 @@ from app.api.v1 import (
     partners,
     platform,
     qr,
+    qr_sheet,
     reservations,
     restaurants,
     reviews,
@@ -34,6 +35,7 @@ api_router.include_router(admin.router)
 api_router.include_router(floor_plan.router)
 api_router.include_router(platform.router)
 api_router.include_router(qr.router)
+api_router.include_router(qr_sheet.router)
 api_router.include_router(geo.router)
 api_router.include_router(reservations.router)
 api_router.include_router(ws.router)

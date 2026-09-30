@@ -19,6 +19,7 @@ dependencies = [
     "stripe>=15.6.1",
     "jinja2>=3.1",
     "sentry-sdk>=2.20",
+    "segno>=1.6.6",
 ]
 
 [dependency-groups]

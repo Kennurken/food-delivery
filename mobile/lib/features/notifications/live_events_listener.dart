@@ -10,6 +10,8 @@ import '../../core/widgets/live_toast.dart';
 import '../auth/presentation/auth_controller.dart';
 import '../orders/domain/order.dart';
 import 'local_push.dart';
+import 'device_repository.dart';
+import 'fcm.dart';
 
 /// Turns WebSocket order events into in-app banners, tailored per role.
 /// Keeps the socket alive for the whole session (it's autoDispose otherwise).
@@ -22,6 +24,9 @@ class LiveEventsListener extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).value;
     if (user != null) {
+      ref.listen(fcmRefreshProvider, (_, next) {
+        if (next.hasValue) ref.read(deviceRepositoryProvider).sync();
+      });
       ref.listen(orderEventsProvider, (prev, next) {
         final evt = next.value;
         if (evt == null || evt == prev?.value) return;

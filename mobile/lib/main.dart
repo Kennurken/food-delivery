@@ -1,3 +1,5 @@
+import 'features/notifications/fcm.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import 'features/notifications/local_push.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   unawaited(LocalPush.init());
+  unawaited(Fcm.init());
   // Draw behind system bars; the theme picks icon colors per brightness.
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(

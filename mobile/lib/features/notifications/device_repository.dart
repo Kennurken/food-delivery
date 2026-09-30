@@ -6,8 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../core/api/api_client.dart';
+import 'fcm.dart';
 
-/// Local device id sent to PUT /me/devices. Not an FCM token until a key exists.
+/// What this device registers with the server: its FCM token when the build
+/// has Firebase, otherwise a random local id (which only marks the device —
+/// the server can't push to it).
 class DeviceRepository {
   DeviceRepository(this._dio, [this._storage = const FlutterSecureStorage()]);
 
@@ -24,6 +27,12 @@ class DeviceRepository {
   }
 
   Future<String> token() async {
+    final fcm = await Fcm.token();
+    if (fcm != null && fcm.length >= 8) {
+      // Remembered, so logging out can unregister exactly this token.
+      await _storage.write(key: _key, value: fcm);
+      return fcm;
+    }
     final existing = await _storage.read(key: _key);
     if (existing != null && existing.length >= 8) return existing;
     final rnd = Random.secure();

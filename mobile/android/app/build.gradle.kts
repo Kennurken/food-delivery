@@ -7,6 +7,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Push notifications need google-services.json, which is kept out of git. A
+// checkout without it (CI, a new machine) still builds — the app then starts
+// with push switched off instead of failing the build.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {

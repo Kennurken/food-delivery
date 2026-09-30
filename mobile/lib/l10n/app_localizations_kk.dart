@@ -1405,4 +1405,15 @@ class L10nKk extends L10n {
   @override
   String get removeCourierAsk =>
       'Бұл курьерді алып тастау керек пе? Ол сіздің тапсырыстарыңызды көрмейді.';
+
+  @override
+  String get chatCallManager => 'Әкімшіні шақыру';
+
+  @override
+  String chatManagerCalled(String name) {
+    return '$name әкімшіні шақырды';
+  }
+
+  @override
+  String get chatManagerSnack => 'Әкімшіге хабарлама жіберілді';
 }

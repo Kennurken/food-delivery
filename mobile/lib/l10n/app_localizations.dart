@@ -2702,6 +2702,24 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Remove this courier? They will stop seeing your orders.'**
   String get removeCourierAsk;
+
+  /// No description provided for @chatCallManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Call the manager'**
+  String get chatCallManager;
+
+  /// No description provided for @chatManagerCalled.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} called the manager'**
+  String chatManagerCalled(String name);
+
+  /// No description provided for @chatManagerSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'The manager has been notified'**
+  String get chatManagerSnack;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

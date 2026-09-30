@@ -708,5 +708,15 @@
   "noCouriersYet": "No couriers yet. Add someone who has registered in the app.",
   "courierEmailHint": "Courier email",
   "courierMustRegister": "The courier must register in the app first. Then add their email here.",
-  "removeCourierAsk": "Remove this courier? They will stop seeing your orders."
+  "removeCourierAsk": "Remove this courier? They will stop seeing your orders.",
+  "chatCallManager": "Call the manager",
+  "chatManagerCalled": "{name} called the manager",
+  "@chatManagerCalled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatManagerSnack": "The manager has been notified"
 }

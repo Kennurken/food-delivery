@@ -1407,4 +1407,15 @@ class L10nRu extends L10n {
   @override
   String get removeCourierAsk =>
       'Убрать этого курьера? Он перестанет видеть ваши заказы.';
+
+  @override
+  String get chatCallManager => 'Позвать администратора';
+
+  @override
+  String chatManagerCalled(String name) {
+    return '$name позвал(а) администратора';
+  }
+
+  @override
+  String get chatManagerSnack => 'Администратору отправлено уведомление';
 }

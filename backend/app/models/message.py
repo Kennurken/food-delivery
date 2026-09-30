@@ -18,6 +18,9 @@ class OrderMessage(Base):
     )
     sender_name: Mapped[str] = mapped_column(String(80))
     body: Mapped[str] = mapped_column(String(800))
+    # "text" is a person talking; "escalation" is the thread saying a member of
+    # staff called the venue's manager in. The app words it in the reader's language.
+    kind: Mapped[str] = mapped_column(String(12), default="text", server_default="text")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     order: Mapped["Order"] = relationship()  # noqa: F821

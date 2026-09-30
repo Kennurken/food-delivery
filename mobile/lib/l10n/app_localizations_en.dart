@@ -1407,4 +1407,15 @@ class L10nEn extends L10n {
   @override
   String get removeCourierAsk =>
       'Remove this courier? They will stop seeing your orders.';
+
+  @override
+  String get chatCallManager => 'Call the manager';
+
+  @override
+  String chatManagerCalled(String name) {
+    return '$name called the manager';
+  }
+
+  @override
+  String get chatManagerSnack => 'The manager has been notified';
 }

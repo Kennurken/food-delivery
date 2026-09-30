@@ -89,6 +89,25 @@ class _OrderChatScreenState extends ConsumerState<OrderChatScreen> {
     }
   }
 
+  Future<void> _callManager() async {
+    final t = context.l10n;
+    try {
+      final msg = await ref
+          .read(orderRepositoryProvider)
+          .callManager(widget.orderId);
+      Haptics.success();
+      if (!mounted) return;
+      _ingest(msg);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(t.chatManagerSnack)));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.l10n;
@@ -116,6 +135,20 @@ class _OrderChatScreenState extends ConsumerState<OrderChatScreen> {
               ),
           ],
         ),
+        actions: [
+          // Neither the guest nor the courier: the server accepts it from the
+          // venue's own staff only and says no to anyone else.
+          if (order != null &&
+              !closed &&
+              me != null &&
+              me != order.customer.id &&
+              me != order.courier?.id)
+            IconButton(
+              icon: const Icon(Icons.support_agent),
+              tooltip: t.chatCallManager,
+              onPressed: _callManager,
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -145,6 +178,7 @@ class _OrderChatScreenState extends ConsumerState<OrderChatScreen> {
                     itemCount: _rows.length,
                     itemBuilder: (_, i) {
                       final msg = _rows[_rows.length - 1 - i];
+                      if (msg.isEscalation) return _Note(msg: msg);
                       return _Bubble(
                         msg: msg,
                         mine: me != null && msg.userId == me,
@@ -201,6 +235,37 @@ class _OrderChatScreenState extends ConsumerState<OrderChatScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// "X called the manager": the thread talking, not a person.
+class _Note extends StatelessWidget {
+  const _Note({required this.msg});
+
+  final ChatMessage msg;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Center(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: scheme.tertiaryContainer,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Text(
+              context.l10n.chatManagerCalled(msg.senderName),
+              style: Theme.of(context).textTheme.labelMedium
+                  ?.copyWith(color: scheme.onTertiaryContainer),
+            ),
+          ),
+        ),
       ),
     );
   }

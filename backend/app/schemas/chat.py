@@ -23,4 +23,5 @@ class ChatMessageOut(BaseModel):
     user_id: int | None
     sender_name: str
     body: str
+    kind: str = "text"
     created_at: datetime

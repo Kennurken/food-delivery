@@ -142,6 +142,12 @@ def sync_payment(order_id: int, db: DB, user: CurrentUser) -> Order:
     return order_service.sync_payment(db, order)
 
 
+@router.post("/{order_id}/messages/escalate", response_model=ChatMessageOut, status_code=201)
+def escalate_chat(order_id: int, db: DB, user: CurrentUser):
+    """Staff calls the venue's manager into the order thread."""
+    return chat_service.escalate(db, user, order_id)
+
+
 @router.get("/{order_id}/messages", response_model=list[ChatMessageOut])
 def list_messages(order_id: int, db: DB, user: CurrentUser) -> list:
     return chat_service.list_messages(db, user, order_id)

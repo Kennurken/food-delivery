@@ -140,6 +140,12 @@ class OrderRepository {
     );
     return ChatMessage.fromJson(r.data as Map<String, dynamic>);
   }
+
+  /// Staff asks the venue's manager to join the conversation.
+  Future<ChatMessage> callManager(int orderId) async {
+    final r = await _dio.post('/api/v1/orders/$orderId/messages/escalate');
+    return ChatMessage.fromJson(r.data as Map<String, dynamic>);
+  }
 }
 
 final orderRepositoryProvider = Provider(

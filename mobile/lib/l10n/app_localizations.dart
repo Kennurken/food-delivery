@@ -2900,6 +2900,132 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Test error sent. It should appear in Sentry within a minute.'**
   String get testErrorSent;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @termsOfUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of use'**
+  String get termsOfUse;
+
+  /// No description provided for @support.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get support;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copy;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your personal details will be erased and you will be signed out. Orders you placed stay in the restaurants\' history, without your name. This cannot be undone.'**
+  String get deleteAccountBody;
+
+  /// No description provided for @passwordToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Password to confirm'**
+  String get passwordToConfirm;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get accountDeleted;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgotPassword;
+
+  /// No description provided for @forgotPasswordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset by e-mail isn\'t available yet.'**
+  String get forgotPasswordBody;
+
+  /// No description provided for @forgotPasswordStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant owners and couriers: contact the platform and we\'ll give you a temporary password.'**
+  String get forgotPasswordStaff;
+
+  /// No description provided for @forgotPasswordGuests.
+  ///
+  /// In en, this message translates to:
+  /// **'Guests can simply create a new account.'**
+  String get forgotPasswordGuests;
+
+  /// No description provided for @agreeToLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'By creating an account you agree to the {terms} and the {privacy}.'**
+  String agreeToLegal(String terms, String privacy);
+
+  /// No description provided for @agreeTermsLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of use'**
+  String get agreeTermsLink;
+
+  /// No description provided for @agreePrivacyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get agreePrivacyLink;
+
+  /// No description provided for @resetOwnerPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset owner password'**
+  String get resetOwnerPassword;
+
+  /// No description provided for @resetOwnerPasswordAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a temporary password for {email}? Their current password stops working at once.'**
+  String resetOwnerPasswordAsk(String email);
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @temporaryPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary password'**
+  String get temporaryPassword;
+
+  /// No description provided for @temporaryPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Give it to the owner by phone; ask them to change it in their profile.'**
+  String get temporaryPasswordHint;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

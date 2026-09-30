@@ -10,7 +10,9 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/motion.dart';
 import '../../../core/widgets/animated_gradient.dart';
 import '../../../core/widgets/pressable.dart';
+import '../../profile/data/account_repository.dart';
 import 'auth_controller.dart';
+import 'forgot_password_dialog.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -24,6 +26,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController(text: kDebugMode ? 'user@food.dev' : '');
   final _password = TextEditingController(text: kDebugMode ? 'user123' : '');
   var _obscure = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetched now so "Forgot password?" opens with the support contacts
+    // already in it, instead of them popping in a moment later.
+    ref.read(metaProvider);
+  }
 
   @override
   void dispose() {
@@ -124,7 +134,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         validator: (v) => v != null && v.length >= 6 ? null : t.minChars(6),
         onFieldSubmitted: (_) => _submit(),
       ),
-      const SizedBox(height: 24),
+      Align(
+        alignment: Alignment.centerRight,
+        child: TextButton(
+          onPressed: () => ForgotPasswordDialog.show(context),
+          child: Text(t.forgotPassword),
+        ),
+      ),
+      const SizedBox(height: 8),
       Pressable(
         onTap: auth.isLoading ? null : _submit,
         child: FilledButton(

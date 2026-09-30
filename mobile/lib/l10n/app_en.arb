@@ -758,5 +758,43 @@
   "errorReportingOn": "Error reporting: on (Sentry)",
   "errorReportingOff": "Error reporting: off — set SENTRY_DSN",
   "sendTestError": "Send test error",
-  "testErrorSent": "Test error sent. It should appear in Sentry within a minute."
+  "testErrorSent": "Test error sent. It should appear in Sentry within a minute.",
+  "privacyPolicy": "Privacy policy",
+  "termsOfUse": "Terms of use",
+  "support": "Support",
+  "close": "Close",
+  "copy": "Copy",
+  "deleteAccount": "Delete account",
+  "deleteAccountBody": "Your personal details will be erased and you will be signed out. Orders you placed stay in the restaurants' history, without your name. This cannot be undone.",
+  "passwordToConfirm": "Password to confirm",
+  "accountDeleted": "Account deleted",
+  "forgotPassword": "Forgot password?",
+  "forgotPasswordBody": "Password reset by e-mail isn't available yet.",
+  "forgotPasswordStaff": "Restaurant owners and couriers: contact the platform and we'll give you a temporary password.",
+  "forgotPasswordGuests": "Guests can simply create a new account.",
+  "agreeToLegal": "By creating an account you agree to the {terms} and the {privacy}.",
+  "@agreeToLegal": {
+    "placeholders": {
+      "terms": {
+        "type": "String"
+      },
+      "privacy": {
+        "type": "String"
+      }
+    }
+  },
+  "agreeTermsLink": "Terms of use",
+  "agreePrivacyLink": "Privacy policy",
+  "resetOwnerPassword": "Reset owner password",
+  "resetOwnerPasswordAsk": "Set a temporary password for {email}? Their current password stops working at once.",
+  "@resetOwnerPasswordAsk": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "reset": "Reset",
+  "temporaryPassword": "Temporary password",
+  "temporaryPasswordHint": "Give it to the owner by phone; ask them to change it in their profile."
 }

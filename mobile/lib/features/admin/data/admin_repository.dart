@@ -253,6 +253,17 @@ class AdminRepository {
     );
     return PlatformVenue.fromJson(r.data as Map<String, dynamic>);
   }
+
+  /// Replaces the user's password with a one-off one and returns it. There is
+  /// no reset e-mail yet, so this is how a locked-out owner gets back in: the
+  /// platform reads it to them over the phone.
+  Future<String> resetPassword(String email) async {
+    final r = await _dio.post(
+      '/api/v1/platform/users/reset-password',
+      data: {'email': email},
+    );
+    return (r.data as Map)['temporary_password'] as String;
+  }
 }
 
 final adminRepositoryProvider = Provider(

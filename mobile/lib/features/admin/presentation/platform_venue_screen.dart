@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -74,6 +75,11 @@ class PlatformVenueScreen extends ConsumerWidget {
                 else
                   for (final person in v.staff)
                     _ContactCard(person).stagger(i++),
+                if (_ownerEmail(v) case final email?)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: _ResetOwnerPassword(email: email),
+                  ).stagger(i++),
                 const SizedBox(height: 16),
                 Text(
                   t.recentOrders,
@@ -91,6 +97,146 @@ class PlatformVenueScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+/// Whose password the platform may reset for this venue. Only by e-mail: that
+/// is the login, and an owner known only by phone has nothing to reset.
+String? _ownerEmail(PlatformVenue v) {
+  final owner = v.owner ?? v.staff.where((p) => p.role == 'owner').firstOrNull;
+  final email = owner?.email ?? '';
+  return email.isEmpty ? null : email;
+}
+
+/// For an owner locked out of their account. There is no reset e-mail yet, so
+/// the platform sets a one-off password and reads it to them over the phone.
+class _ResetOwnerPassword extends ConsumerStatefulWidget {
+  const _ResetOwnerPassword({required this.email});
+
+  final String email;
+
+  @override
+  ConsumerState<_ResetOwnerPassword> createState() =>
+      _ResetOwnerPasswordState();
+}
+
+class _ResetOwnerPasswordState extends ConsumerState<_ResetOwnerPassword> {
+  var _busy = false;
+
+  Future<void> _reset() async {
+    final t = context.l10n;
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t.resetOwnerPassword),
+        content: Text(t.resetOwnerPasswordAsk(widget.email)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t.reset),
+          ),
+        ],
+      ),
+    );
+    if (sure != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      final temporary = await ref
+          .read(adminRepositoryProvider)
+          .resetPassword(widget.email);
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        // Not dismissed by a stray tap outside: it is the only time the
+        // password can be read, the server keeps nothing but its hash.
+        barrierDismissible: false,
+        builder: (_) => _TemporaryPasswordDialog(password: temporary),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: _busy ? null : _reset,
+      icon: _busy
+          ? const SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.lock_reset),
+      label: Text(context.l10n.resetOwnerPassword),
+    );
+  }
+}
+
+class _TemporaryPasswordDialog extends StatefulWidget {
+  const _TemporaryPasswordDialog({required this.password});
+
+  final String password;
+
+  @override
+  State<_TemporaryPasswordDialog> createState() =>
+      _TemporaryPasswordDialogState();
+}
+
+class _TemporaryPasswordDialogState extends State<_TemporaryPasswordDialog> {
+  var _copied = false;
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: widget.password));
+    if (mounted) setState(() => _copied = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    final text = Theme.of(context).textTheme;
+    return AlertDialog(
+      title: Text(t.temporaryPassword),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SelectableText(
+            widget.password,
+            style: text.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              fontFamily: 'monospace',
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            t.temporaryPasswordHint,
+            style: text.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton.icon(
+          onPressed: _copy,
+          icon: Icon(_copied ? Icons.check : Icons.copy),
+          label: Text(_copied ? t.copied : t.copy),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(t.done),
+        ),
+      ],
     );
   }
 }

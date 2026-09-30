@@ -1511,4 +1511,76 @@ class L10nKk extends L10n {
   @override
   String get testErrorSent =>
       'Сынақ қатесі жіберілді. Ол бір минут ішінде Sentry-де пайда болады.';
+
+  @override
+  String get privacyPolicy => 'Құпиялылық саясаты';
+
+  @override
+  String get termsOfUse => 'Пайдалану шарттары';
+
+  @override
+  String get support => 'Қолдау қызметі';
+
+  @override
+  String get close => 'Жабу';
+
+  @override
+  String get copy => 'Көшіру';
+
+  @override
+  String get deleteAccount => 'Аккаунтты жою';
+
+  @override
+  String get deleteAccountBody =>
+      'Жеке деректеріңіз өшіріліп, аккаунттан шығасыз. Жасаған тапсырыстарыңыз мейрамханалар тарихында сіздің атыңызсыз сақталады. Мұны қайтару мүмкін емес.';
+
+  @override
+  String get passwordToConfirm => 'Растау үшін құпиясөз';
+
+  @override
+  String get accountDeleted => 'Аккаунт жойылды';
+
+  @override
+  String get forgotPassword => 'Құпиясөзді ұмыттыңыз ба?';
+
+  @override
+  String get forgotPasswordBody =>
+      'E-mail арқылы құпиясөзді қалпына келтіру әзірге қолжетімсіз.';
+
+  @override
+  String get forgotPasswordStaff =>
+      'Мейрамхана иелері мен курьерлер: платформаға хабарласыңыз, біз уақытша құпиясөз береміз.';
+
+  @override
+  String get forgotPasswordGuests =>
+      'Қонақтар жай ғана жаңа аккаунт аша алады.';
+
+  @override
+  String agreeToLegal(String terms, String privacy) {
+    return 'Аккаунт аша отырып, сіз $terms және $privacy келісесіз.';
+  }
+
+  @override
+  String get agreeTermsLink => 'Пайдалану шарттарымен';
+
+  @override
+  String get agreePrivacyLink => 'Құпиялылық саясатымен';
+
+  @override
+  String get resetOwnerPassword => 'Иесінің құпиясөзін қалпына келтіру';
+
+  @override
+  String resetOwnerPasswordAsk(String email) {
+    return '$email үшін уақытша құпиясөз орнатылсын ба? Қазіргі құпиясөз бірден жарамсыз болады.';
+  }
+
+  @override
+  String get reset => 'Қалпына келтіру';
+
+  @override
+  String get temporaryPassword => 'Уақытша құпиясөз';
+
+  @override
+  String get temporaryPasswordHint =>
+      'Оны иесіне телефон арқылы айтыңыз және профилінде өзгертуін сұраңыз.';
 }

@@ -16,4 +16,6 @@ class DeviceToken(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     token: Mapped[str] = mapped_column(String(512))
     platform: Mapped[str] = mapped_column(String(20), default="android")
+    # The app's language when it registered: push texts are written in it.
+    lang: Mapped[str | None] = mapped_column(String(5), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

@@ -103,9 +103,13 @@ def notify(db: Session, order: Order, *, cause: str = "status") -> None:
         push_fanout(
             db,
             targets,
-            title=f"Order #{order.id}",
-            body=f"{order.restaurant_name} · {order.status.value.replace('_', ' ')}",
-            data={"order_id": str(order.id), "status": order.status.value},
+            key="order.status",
+            params={
+                "order_id": order.id,
+                "venue": order.restaurant_name,
+                "status": order.status.value,
+            },
+            data={"order_id": str(order.id), "status": order.status.value, "cause": "status"},
         )
 
 

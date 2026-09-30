@@ -159,7 +159,7 @@ def list_memberships(db: DB, user: CurrentUser) -> list[dict]:
 
 @router.put("/devices", status_code=status.HTTP_204_NO_CONTENT)
 def save_device(data: DeviceIn, db: DB, user: CurrentUser) -> None:
-    register_token(db, user.id, data.token, data.platform)
+    register_token(db, user.id, data.token, data.platform, data.lang)
 
 
 @router.delete("/devices", status_code=status.HTTP_204_NO_CONTENT)

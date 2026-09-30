@@ -24,6 +24,7 @@ import jwt
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.core import push_texts
 from app.core.config import settings
 from app.models.device import DeviceToken
 
@@ -46,16 +47,20 @@ _lock = threading.Lock()
 _access: tuple[str, float] | None = None  # (token, epoch seconds it expires)
 
 
-def register_token(db: Session, user_id: int, token: str, platform: str) -> DeviceToken:
+def register_token(
+    db: Session, user_id: int, token: str, platform: str, lang: str | None = None
+) -> DeviceToken:
     token = token.strip()
     row = db.scalar(select(DeviceToken).where(DeviceToken.token == token))
     if row:
         row.user_id = user_id
         row.platform = platform
+        if lang:
+            row.lang = lang
         db.commit()
         db.refresh(row)
         return row
-    row = DeviceToken(user_id=user_id, token=token, platform=platform)
+    row = DeviceToken(user_id=user_id, token=token, platform=platform, lang=lang)
     db.add(row)
     db.commit()
     db.refresh(row)
@@ -75,16 +80,34 @@ def fanout(
     db: Session,
     user_ids: set[int],
     *,
-    title: str,
-    body: str,
+    title: str | None = None,
+    body: str | None = None,
+    key: str | None = None,
+    params: dict | None = None,
     data: dict[str, str] | None = None,
 ) -> int:
+    """Push to every device of these people.
+
+    Either fixed `title`/`body`, or a `key` from push_texts rendered per device
+    in the language that device registered with.
+    """
     if not user_ids:
         return 0
-    tokens = list(
-        db.scalars(select(DeviceToken.token).where(DeviceToken.user_id.in_(user_ids)))
-    )
-    sent, stale = _deliver(tokens, title=title, body=body, data=data or {})
+    rows = db.execute(
+        select(DeviceToken.token, DeviceToken.lang).where(DeviceToken.user_id.in_(user_ids))
+    ).all()
+    by_lang: dict[str, list[str]] = {}
+    for token, lang in rows:
+        by_lang.setdefault(push_texts.normalise(lang) if key else "", []).append(token)
+    sent, stale = 0, []
+    for lang, tokens in by_lang.items():
+        if key:
+            title_l, body_l = push_texts.render(key, lang, **(params or {}))
+        else:
+            title_l, body_l = title or "", body or ""
+        n, gone = _deliver(tokens, title=title_l, body=body_l, data=data or {})
+        sent += n
+        stale += gone
     if stale:
         # The app was uninstalled or the token was reissued. Keeping it means
         # paying for a failed request on every future order.

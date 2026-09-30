@@ -673,6 +673,7 @@ def ensure_hours_loyalty_schema() -> None:
     flag_off = "0" if engine.dialect.name == "sqlite" else "FALSE"
     wanted["promos"] = [("new_customers_only", f"BOOLEAN NOT NULL DEFAULT {flag_off}")]
     wanted["order_messages"] = [("kind", "VARCHAR(12) NOT NULL DEFAULT 'text'")]
+    wanted["device_tokens"] = [("lang", "VARCHAR(5)")]
     wanted["restaurants"] += [
         ("approval", "VARCHAR(12) NOT NULL DEFAULT 'approved'"),
         ("offers_delivery", f"BOOLEAN NOT NULL DEFAULT {flag_on}"),

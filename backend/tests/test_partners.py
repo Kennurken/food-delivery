@@ -420,7 +420,8 @@ class TestWhoHearsAboutIt:
         admin_id = client.get("/api/v1/auth/me", headers=admin).json()["id"]
         ids, kw = pushed[-1]
         assert admin_id in ids
-        assert body["venue_name"] in kw["body"] and kw["data"]["cause"] == "application"
+        assert kw["key"] == "application.new" and kw["params"]["venue"] == body["venue_name"]
+        assert kw["data"]["cause"] == "application"
 
     def test_the_owner_is_told_the_decision(self, client, admin, applied, pushed):
         rid = applied["restaurant_id"]
@@ -428,7 +429,7 @@ class TestWhoHearsAboutIt:
 
         ids, kw = pushed[-1]
         assert ids == {applied["user"]["id"]}
-        assert "approved" in kw["title"] and kw["data"]["cause"] == "approval"
+        assert kw["key"] == "application.approved" and kw["data"]["cause"] == "approval"
 
     def test_a_rejection_carries_the_reason(self, client, admin, applied, pushed):
         rid = applied["restaurant_id"]
@@ -438,4 +439,5 @@ class TestWhoHearsAboutIt:
             headers=admin,
         )
 
-        assert pushed[-1][1]["body"] == "Нет санитарной книжки"
+        assert pushed[-1][1]["key"] == "application.declined"
+        assert pushed[-1][1]["params"]["reason"] == "Нет санитарной книжки"

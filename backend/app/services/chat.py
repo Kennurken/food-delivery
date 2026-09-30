@@ -68,8 +68,8 @@ def _publish(db: Session, order: Order, row: OrderMessage, *, sender_id: int) ->
     push_fanout(
         db,
         others,
-        title=f"Order #{order.id}",
-        body=f"{row.sender_name}: {preview}",
+        key="order.chat",
+        params={"order_id": order.id, "sender": row.sender_name, "text": preview},
         data={"order_id": str(order.id), "cause": "chat"},
     )
 
@@ -137,8 +137,8 @@ def escalate(db: Session, user: User, order_id: int) -> OrderMessage:
     push_fanout(
         db,
         managers,
-        title=f"Order #{order.id}: manager needed",
-        body=f"{user.name} asks you to join the chat",
+        key="order.escalation",
+        params={"order_id": order.id, "sender": user.name},
         data={"order_id": str(order.id), "cause": "escalation"},
     )
     return row

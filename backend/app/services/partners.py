@@ -82,8 +82,13 @@ def apply(
     push_fanout(
         db,
         admins,
-        title="New restaurant application",
-        body=f"{venue.name} ({venue.cuisine}) · {contact_name}, {phone}",
+        key="application.new",
+        params={
+            "venue": venue.name,
+            "cuisine": venue.cuisine,
+            "contact": contact_name,
+            "phone": phone,
+        },
         data={"cause": "application", "restaurant_id": str(venue.id)},
     )
     return owner, venue
@@ -108,12 +113,8 @@ def decide(db: Session, venue: Restaurant, *, approve: bool, reason: str | None 
         push_fanout(
             db,
             {owner.id},
-            title=f"{venue.name}: approved" if approve else f"{venue.name}: application declined",
-            body=(
-                "Guests can now see and order from you. The free month has started."
-                if approve
-                else (venue.rejection_reason or "Contact the platform for details.")
-            ),
+            key="application.approved" if approve else "application.declined",
+            params={"venue": venue.name, "reason": venue.rejection_reason},
             data={"cause": "approval", "restaurant_id": str(venue.id)},
         )
     return venue

@@ -29,6 +29,7 @@ import '../../restaurants/presentation/restaurant_screen.dart'
     show QuantityStepper;
 import '../domain/schedule_slots.dart';
 import 'cart_controller.dart';
+import 'cart_loyalty.dart';
 import '../../../core/widgets/anim_icon.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
@@ -268,6 +269,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         ? 0.0
         : (quote?.fee ?? restaurant?.deliveryFee ?? 0);
     final outOfRange = quote?.outOfRange ?? false;
+    final bonuses = ref.watch(cartLoyaltyUsedProvider);
+    final payable = (cart.payable(fee) - bonuses).clamp(0.0, double.infinity);
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
@@ -505,6 +508,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               ),
             ).stagger(idx++),
           ],
+          const _LoyaltyTile(),
           const SizedBox(height: 12),
           SegmentedButton<String>(
             segments: [
@@ -598,8 +602,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                     ),
                   if (cart.promoDiscount > 0)
                     _Row(t.discount, '-${formatMoney(cart.promoDiscount)}'),
+                  if (bonuses > 0)
+                    _Row(t.paidWithBonuses, '-${formatMoney(bonuses)}'),
                   const Divider(height: 20),
-                  _Row(t.total, formatMoney(cart.payable(fee)), bold: true),
+                  _Row(t.total, formatMoney(payable), bold: true),
                 ],
               ),
             ),
@@ -633,7 +639,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         children: [
                           Text(t.placeOrder),
                           SlidingNumber(
-                            formatMoney(cart.payable(fee)),
+                            formatMoney(payable),
                             style: TextStyle(
                               color: scheme.onPrimary,
                               fontWeight: FontWeight.w800,
@@ -707,6 +713,31 @@ class _Row extends StatelessWidget {
           Text(label, style: style),
           SlidingNumber(value, style: style),
         ],
+      ),
+    );
+  }
+}
+
+/// "Pay 200 ₸ with bonuses". Only there when the venue has a programme and the
+/// diner has something to spend; otherwise the cart looks exactly as before.
+class _LoyaltyTile extends ConsumerWidget {
+  const _LoyaltyTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final quote = ref.watch(cartLoyaltyQuoteProvider).value;
+    if (quote == null) return const SizedBox.shrink();
+    final t = context.l10n;
+    final on = ref.watch(cartProvider.select((c) => c.useLoyalty));
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        secondary: const Icon(Icons.card_giftcard),
+        title: Text(t.useBonuses(formatMoney(quote.usable ?? 0))),
+        subtitle: Text(t.bonusBalance(formatMoney(quote.balance))),
+        value: on,
+        onChanged: (v) => ref.read(cartProvider.notifier).setLoyalty(v),
       ),
     );
   }

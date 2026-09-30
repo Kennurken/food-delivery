@@ -20,6 +20,7 @@ class CartState {
     this.scheduledFor,
     this.promoCode,
     this.promoDiscount = 0,
+    this.useLoyalty = false,
   });
 
   final int? restaurantId;
@@ -36,6 +37,7 @@ class CartState {
   final DateTime? scheduledFor;
   final String? promoCode;
   final double promoDiscount;
+  final bool useLoyalty;
 
   int get count => items.values.fold(0, (s, i) => s + i.quantity);
   double get subtotal => items.values.fold(0.0, (s, i) => s + i.lineTotal);
@@ -69,6 +71,8 @@ class CartState {
     String? promoCode,
     double? promoDiscount,
     bool clearPromo = false,
+    bool? useLoyalty,
+    bool clearLoyalty = false,
   }) => CartState(
     restaurantId: restaurantId ?? this.restaurantId,
     items: items ?? this.items,
@@ -80,6 +84,7 @@ class CartState {
     scheduledFor: clearSchedule ? null : (scheduledFor ?? this.scheduledFor),
     promoCode: clearPromo ? null : (promoCode ?? this.promoCode),
     promoDiscount: clearPromo ? 0 : (promoDiscount ?? this.promoDiscount),
+    useLoyalty: clearLoyalty ? false : (useLoyalty ?? this.useLoyalty),
   );
 
   factory CartState.fromJson(Map<String, dynamic> json) {
@@ -105,6 +110,7 @@ class CartState {
           : DateTime.tryParse(json['scheduled_for'] as String),
       promoCode: json['promo_code'] as String?,
       promoDiscount: (json['promo_discount'] as num?)?.toDouble() ?? 0,
+      useLoyalty: json['use_loyalty'] as bool? ?? false,
       items: parsed,
     );
   }
@@ -119,6 +125,7 @@ class CartState {
     'scheduled_for': scheduledFor?.toIso8601String(),
     'promo_code': promoCode,
     'promo_discount': promoDiscount,
+    'use_loyalty': useLoyalty,
     'items': {for (final e in items.entries) e.key: e.value.toJson()},
   };
 }
@@ -265,6 +272,7 @@ class CartController extends Notifier<CartState> {
       scheduledFor: token != null ? null : state.scheduledFor,
       promoCode: state.promoCode,
       promoDiscount: state.promoDiscount,
+      useLoyalty: false,
     );
     _save();
   }
@@ -300,6 +308,16 @@ class CartController extends Notifier<CartState> {
     _save();
   }
 
+  void setLoyalty(bool use) {
+    state = state.copyWith(useLoyalty: use);
+    _save();
+  }
+
+  void clearLoyalty() {
+    state = state.copyWith(clearLoyalty: true);
+    _save();
+  }
+
   int quantityOf(int menuItemId) => state.quantityOf(menuItemId);
 
   /// Replace the cart with these lines (one restaurant). Empty list clears.
@@ -323,6 +341,7 @@ class CartController extends Notifier<CartState> {
       destLng: state.destLng,
       destLine: state.destLine,
       scheduledFor: state.scheduledFor,
+      useLoyalty: false,
     );
     Haptics.add();
     _save();

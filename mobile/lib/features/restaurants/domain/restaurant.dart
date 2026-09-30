@@ -26,6 +26,7 @@ class Restaurant {
     this.openNow = true,
     this.opensAt,
     this.loyaltyPercent = 0,
+    this.loyaltyMaxShare = 0.5,
     this.hours = const [],
   });
 
@@ -65,6 +66,9 @@ class Restaurant {
 
   /// Share of paid food returned as bonuses; 0 = no programme.
   final double loyaltyPercent;
+
+  /// Largest share (0–1) of an order's food that bonuses may pay.
+  final double loyaltyMaxShare;
 
   /// The week, when the API sent it (the venue detail does; lists don't).
   final List<OpeningStretch> hours;
@@ -110,6 +114,7 @@ class Restaurant {
     openNow: json['open_now'] as bool? ?? true,
     opensAt: wallClock(json['opens_at'] as String?),
     loyaltyPercent: (json['loyalty_percent'] as num?)?.toDouble() ?? 0,
+    loyaltyMaxShare: (json['loyalty_max_share'] as num?)?.toDouble() ?? 0.5,
     hours: [
       for (final h in json['hours'] as List<dynamic>? ?? const [])
         OpeningStretch.fromJson(h as Map<String, dynamic>),

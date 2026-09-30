@@ -32,6 +32,7 @@ class OrderRepository {
         'comment': comment,
         'pay_method': payMethod,
         if (cart.promoCode != null) 'promo_code': cart.promoCode,
+        if (cart.useLoyalty) 'use_loyalty': true,
         if (cart.scheduledFor != null)
           'scheduled_for': cart.scheduledFor!.toUtc().toIso8601String(),
         'items': [

@@ -144,6 +144,7 @@ class Order {
     this.scheduledFor,
     this.promoCode,
     this.discount = 0,
+    this.loyaltySpent = 0,
   });
 
   final int id;
@@ -176,6 +177,9 @@ class Order {
   final DateTime? scheduledFor;
   final String? promoCode;
   final double discount;
+
+  /// Bonuses applied at checkout, in tenge; already taken off [total].
+  final double loyaltySpent;
 
   bool get isCash => payMethod == 'cash';
   bool get isPaid => payStatus == 'paid';
@@ -237,6 +241,7 @@ class Order {
         : parseServerTime(json['scheduled_for'] as String),
     promoCode: json['promo_code'] as String?,
     discount: (json['discount'] as num?)?.toDouble() ?? 0,
+    loyaltySpent: (json['loyalty_spent'] as num?)?.toDouble() ?? 0,
   );
 }
 

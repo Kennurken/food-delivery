@@ -17,7 +17,9 @@ import 'admin_reservations_sheet.dart';
 import 'stop_list_sheet.dart';
 import 'billing_screen.dart';
 import 'manage_actions.dart';
+import '../../restaurants/data/restaurant_repository.dart';
 import 'admin_hours_sheet.dart';
+import 'admin_loyalty_sheet.dart';
 import 'admin_offers_sheet.dart';
 
 class AdminMenuScreen extends ConsumerWidget {
@@ -124,6 +126,27 @@ class AdminMenuScreen extends ConsumerWidget {
                           shape: AnimShape.bag,
                           label: t.openingHours,
                           onTap: () => editHours(context, ref, restaurantId),
+                        ),
+                        ManageAction(
+                          shape: AnimShape.wallet,
+                          label: t.bonusProgramme,
+                          onTap: () async {
+                            // Start from what is saved: opening the sheet on
+                            // defaults and pressing save would zero a live
+                            // programme.
+                            final r = await ref.read(
+                              restaurantProvider(restaurantId).future,
+                            );
+                            if (!context.mounted) return;
+                            await editLoyalty(
+                              context,
+                              ref,
+                              restaurantId,
+                              percent: r.loyaltyPercent,
+                              maxShare: r.loyaltyMaxShare,
+                            );
+                            ref.invalidate(restaurantProvider(restaurantId));
+                          },
                         ),
                         ManageAction(
                           shape: AnimShape.bell,

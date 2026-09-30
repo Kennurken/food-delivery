@@ -1,3 +1,6 @@
+import '../../loyalty/data/loyalty_repository.dart';
+import '../../../core/utils/money.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -237,6 +240,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onTap: () => context.push('/reservations'),
             ),
           ).stagger(3),
+          const _BonusesCard(),
           const SizedBox(height: 28),
           Text(
             t.language,
@@ -730,6 +734,46 @@ class _AddressSheetState extends State<_AddressSheet> {
             ),
             const SizedBox(height: 16),
             FilledButton(onPressed: _save, child: Text(t.saveAddress)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bonuses held at each venue. Nothing at all when there are none, or when
+/// they can't be loaded: it is a nicety, not something to show an error for.
+class _BonusesCard extends ConsumerWidget {
+  const _BonusesCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rows = ref.watch(myBonusesProvider).value;
+    if (rows == null || rows.isEmpty) return const SizedBox.shrink();
+    final t = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.card_giftcard),
+              title: Text(t.myBonuses),
+            ),
+            for (final row in rows)
+              ListTile(
+                dense: true,
+                title: Text(
+                  row.restaurantName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Text(
+                  '${formatMoney(row.balance)} ₸',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
           ],
         ),
       ),

@@ -14,6 +14,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import Response
 
 from app.api.v1.router import api_router
+from app.core import monitoring
 from app.core.config import settings
 from app.core.events import hub
 from app.core.ratelimit import limiter
@@ -25,6 +26,8 @@ from app.web.site import router as site_router
 from app.web.site import templates as site_templates
 
 SITE_STATIC = SITE_ROOT / "static"
+
+monitoring.init()
 
 
 @asynccontextmanager

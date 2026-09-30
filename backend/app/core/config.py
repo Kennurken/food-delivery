@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     public_site_url: str = "https://food-delivery-api-jet.vercel.app"
     # Share of the delivery fee the courier keeps. The rest covers the platform.
     courier_fee_share: float = 0.8
+    # Error reporting. Empty = off; nothing is sent and the SDK is never touched.
+    sentry_dsn: str = ""
+    sentry_traces_sample_rate: float = 0.0
     firebase_project_id: str = ""  # web client id; FCM send still needs a service account
 
     @field_validator("allow_ephemeral_db", mode="before")

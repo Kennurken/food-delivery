@@ -1,4 +1,5 @@
 import asyncio
+import re
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
@@ -150,12 +151,30 @@ async def _not_found(request: Request, exc: StarletteHTTPException):
     )
 
 
+_REQUEST_ID = re.compile(r"[A-Za-z0-9._-]{1,64}")
+# form-action is left open on purpose: checkout answers a form POST with a
+# redirect to Stripe, and browsers apply form-action to that redirect too.
+_SITE_CSP = (
+    "default-src 'none'; img-src https: data:; style-src 'self' https://fonts.googleapis.com; "
+    "font-src https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'none'"
+)
+
+
 @app.middleware("http")
 async def request_context(request: Request, call_next) -> Response:
-    rid = request.headers.get("x-request-id") or uuid4().hex[:16]
+    # The caller's id is echoed back and written to the audit log, so only a
+    # short plain token is taken; anything else gets a fresh one.
+    given = request.headers.get("x-request-id") or ""
+    rid = given if _REQUEST_ID.fullmatch(given) else uuid4().hex[:16]
     request.state.request_id = rid
     response = await call_next(request)
     response.headers["X-Request-ID"] = rid
+    if response.headers.get("content-type", "").startswith("text/html") and not (
+        request.url.path.startswith(("/docs", "/redoc"))
+    ):
+        # The public site runs no scripts of its own, so it says so: an injected
+        # tag has nothing to execute with. (Not on /docs, which loads Swagger.)
+        response.headers["Content-Security-Policy"] = _SITE_CSP
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"

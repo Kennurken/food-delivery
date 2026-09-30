@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     cors_origins: str = "*"  # comma-separated allowlist in prod; empty/`none` = none
     cors_origin_regex: str = ""  # e.g. https://.*\\.vercel\\.app
     login_rate_limit: str = "10/minute"
+    # Placing an order or writing to a public page. Generous for a person, tight
+    # for a script: a full kitchen and a wall of fake reviews are the same abuse.
+    write_rate_limit: str = "30/minute"
     env: str = "dev"  # "prod" enables safety checks
     allow_ephemeral_db: bool = False  # sqlite in /tmp on Vercel — data dies on cold start
     geo_provider: str = "photon"  # photon (OSM) | fixture (tests, offline)

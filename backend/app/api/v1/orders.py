@@ -6,6 +6,8 @@ from sqlalchemy import or_, select
 
 from app.api.deps import DB, CourierUser, CurrentUser
 from app.core.access import require_restaurant
+from app.core.config import settings
+from app.core.ratelimit import limiter
 from app.models import Order, OrderStatus, UserRole
 from app.schemas.chat import ChatMessageCreate, ChatMessageOut
 from app.schemas.order import (
@@ -25,6 +27,7 @@ _PAID_OR_CASH = or_(Order.pay_method != "online", Order.pay_status == "paid")
 
 
 @router.post("", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
+@limiter.limit(lambda: settings.write_rate_limit)
 def create_order(
     data: OrderCreate,
     db: DB,
@@ -157,7 +160,10 @@ def cancel_order(order_id: int, db: DB, user: CurrentUser) -> Order:
 
 
 @router.post("/{order_id}/rate", response_model=OrderOut)
-def rate_order(order_id: int, data: OrderRate, db: DB, user: CurrentUser) -> Order:
+@limiter.limit(lambda: settings.write_rate_limit)
+def rate_order(
+    request: Request, order_id: int, data: OrderRate, db: DB, user: CurrentUser
+) -> Order:
     return order_service.rate_order(
         db, user, order_service.get_visible_order(db, user, order_id), data.rating, data.review
     )

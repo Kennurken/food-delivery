@@ -2,6 +2,7 @@ import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")  # CI/PG can override
 os.environ["LOGIN_RATE_LIMIT"] = "1000/minute"  # every fixture logs in from 127.0.0.1
+os.environ["WRITE_RATE_LIMIT"] = "1000/minute"  # ...and the suite places hundreds of orders
 os.environ["GEO_PROVIDER"] = "fixture"
 os.environ["STRIPE_SECRET_KEY"] = ""
 os.environ["STRIPE_PUBLISHABLE_KEY"] = ""

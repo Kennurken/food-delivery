@@ -1128,6 +1128,31 @@ def ensure_admin(email: str, password: str, name: str = "Admin") -> bool:
     return ensure_user(email, password, UserRole.admin, name)
 
 
+def set_platform_admin(email: str, password: str, name: str = "Admin") -> str:
+    """Make `email` a platform admin with this password: create the account or
+    promote and re-key an existing one. Returns "created" or "updated"."""
+    if len(password) < 10:
+        raise ValueError("Password must be at least 10 characters")
+    with SessionLocal() as db:
+        user = db.scalar(select(User).where(User.email == email))
+        if user is None:
+            db.add(
+                User(
+                    email=email,
+                    name=name,
+                    hashed_password=hash_password(password),
+                    role=UserRole.admin,
+                )
+            )
+            outcome = "created"
+        else:
+            user.role = UserRole.admin
+            user.hashed_password = hash_password(password)
+            outcome = "updated"
+        db.commit()
+    return outcome
+
+
 def seed_demo_users() -> None:
     with SessionLocal() as db:
         if db.scalar(select(User).limit(1)):

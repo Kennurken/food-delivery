@@ -133,3 +133,27 @@ class TestTenantWalls:
         r = client.get("/api/v1/me/loyalty/1", headers=courier)
 
         assert r.status_code == 200 and r.json()["balance"] == 0
+
+
+def test_setting_the_platform_admin_creates_then_rekeys(client):
+    import secrets
+
+    import pytest
+
+    from app.db.seed import set_platform_admin
+
+    email = f"boss.{secrets.token_hex(3)}@food.dev"
+    assert set_platform_admin(email, "first-long-pass") == "created"
+    r = client.post("/api/v1/auth/login/json", json={"email": email, "password": "first-long-pass"})
+    assert r.status_code == 200
+    token = r.json()["access_token"]
+    me = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"}).json()
+    assert me["role"] == "admin"
+
+    assert set_platform_admin(email, "second-long-pass") == "updated"
+    old = client.post("/api/v1/auth/login/json", json={"email": email, "password": "first-long-pass"})
+    new = client.post("/api/v1/auth/login/json", json={"email": email, "password": "second-long-pass"})
+    assert (old.status_code, new.status_code) == (401, 200)
+
+    with pytest.raises(ValueError):
+        set_platform_admin(email, "short")

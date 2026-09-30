@@ -1351,4 +1351,32 @@ class L10nEn extends L10n {
 
   @override
   String get courierRatingLabel => 'Rating';
+
+  @override
+  String get applications => 'Applications';
+
+  @override
+  String get approve => 'Approve';
+
+  @override
+  String get reject => 'Reject';
+
+  @override
+  String get noApplications => 'No applications waiting';
+
+  @override
+  String get ownCouriers => 'Own couriers';
+
+  @override
+  String get noCouriersPickupOnly => 'No couriers: pickup and table only';
+
+  @override
+  String get rejectReason => 'Reason (optional)';
+
+  @override
+  String get pendingApproval =>
+      'Waiting for approval: guests can\'t see this restaurant yet';
+
+  @override
+  String get rejectedVenue => 'Application rejected';
 }

@@ -669,6 +669,12 @@ def ensure_hours_loyalty_schema() -> None:
     wanted["users"] = [("on_shift", f"BOOLEAN NOT NULL DEFAULT {flag_on}")]
     flag_off = "0" if engine.dialect.name == "sqlite" else "FALSE"
     wanted["promos"] = [("new_customers_only", f"BOOLEAN NOT NULL DEFAULT {flag_off}")]
+    wanted["restaurants"] += [
+        ("approval", "VARCHAR(12) NOT NULL DEFAULT 'approved'"),
+        ("offers_delivery", f"BOOLEAN NOT NULL DEFAULT {flag_on}"),
+        ("applied_at", "TIMESTAMP"),
+        ("rejection_reason", "VARCHAR(300)"),
+    ]
     with engine.begin() as conn:
         for table, columns in wanted.items():
             have = _columns(conn, table)

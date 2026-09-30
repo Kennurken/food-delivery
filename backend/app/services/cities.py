@@ -32,6 +32,7 @@ RESERVED_SLUGS = frozenset(
         "logout",
         "openapi.json",
         "orders",
+        "partners",
         "r",
         "redoc",
         "register",

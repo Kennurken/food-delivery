@@ -26,11 +26,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.api.v1.partners import Application as ApplicationIn
 from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models import City, MenuItem, Order, OrderStatus, Restaurant, User, UserRole
 from app.schemas.order import OrderCreate
 from app.services import cities, hours, loyalty, offers, order_service
+from app.services import partners as partners_service
 from app.services import reviews as review_service
 from app.services.schedule import utcnow
 from app.web import cart as cart_store
@@ -265,7 +267,11 @@ def _opening_spec(schedule: list[hours.Stretch]) -> list[dict]:
 def _landing(request: Request, db: Session, city: City | None) -> HTMLResponse:
     """The landing page for one city — or for every venue when there is no city
     at all (a database the city seed hasn't reached yet)."""
-    query = select(Restaurant).order_by(Restaurant.is_open.desc(), Restaurant.rating.desc())
+    query = (
+        select(Restaurant)
+        .where(Restaurant.approval == "approved")
+        .order_by(Restaurant.is_open.desc(), Restaurant.rating.desc())
+    )
     if city is not None:
         query = query.where(Restaurant.city_id == city.id)
     everyone = list(db.scalars(query))
@@ -347,7 +353,8 @@ def home(request: Request, db: Session = DB) -> HTMLResponse:
 @router.get("/kk/r/{slug}/", response_class=HTMLResponse)
 def restaurant_page(slug: str, request: Request, db: Session = DB) -> HTMLResponse:
     restaurant = db.scalar(select(Restaurant).where(Restaurant.slug == slug))
-    if restaurant is None:
+    # Not yet approved looks exactly like not existing, on the site too.
+    if restaurant is None or restaurant.approval != "approved":
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No such restaurant")
     items = list(
         db.scalars(
@@ -823,6 +830,106 @@ def order_page(order_id: int, request: Request, db: Session = DB) -> Response:
     )
 
 
+_FORM_FIELDS = (
+    "venue_name",
+    "cuisine",
+    "city_slug",
+    "has_couriers",
+    "description",
+    "contact_name",
+    "phone",
+    "email",
+)
+
+
+@router.get("/partners/", response_class=HTMLResponse)
+@router.get("/kk/partners/", response_class=HTMLResponse)
+def partners_form(request: Request, db: Session = DB) -> HTMLResponse:
+    return _render(
+        request,
+        "partners.html",
+        {
+            "title": "Подключить ресторан",
+            "description": "Заявка ресторана: первый месяц бесплатно, свои курьеры или самовывоз.",
+            "form": {name: "" for name in _FORM_FIELDS},
+            "canonical": f"{_base_url()}{i18n.PREFIX[_lang(request)]}/partners/",
+        },
+        db=db,
+        alternates=True,
+    )
+
+
+@router.post("/partners/")
+@router.post("/kk/partners/")
+def partners_apply(
+    request: Request,
+    venue_name: str = Form(""),
+    cuisine: str = Form(""),
+    city_slug: str = Form(""),
+    has_couriers: str = Form("yes"),
+    description: str = Form(""),
+    contact_name: str = Form(""),
+    phone: str = Form(""),
+    email: str = Form(""),
+    password: str = Form(""),
+    db: Session = DB,
+) -> Response:
+    form = {
+        "venue_name": venue_name,
+        "cuisine": cuisine,
+        "city_slug": city_slug,
+        "has_couriers": has_couriers,
+        "description": description,
+        "contact_name": contact_name,
+        "phone": phone,
+        "email": email,
+    }
+
+    def again(message: str, code: int = status.HTTP_400_BAD_REQUEST) -> HTMLResponse:
+        return _render(
+            request,
+            "partners.html",
+            {"title": "Подключить ресторан", "description": "", "form": form, "error": message},
+            db=db,
+            status_code=code,
+        )
+
+    try:
+        data = ApplicationIn(
+            venue_name=venue_name.strip(),
+            cuisine=cuisine.strip(),
+            contact_name=contact_name.strip(),
+            email=email.strip(),
+            phone=phone.strip(),
+            password=password,
+            has_couriers=has_couriers != "no",
+            city_slug=city_slug or None,
+            description=description.strip(),
+        )
+    except ValidationError:
+        return again("Проверьте поля: название, кухня, имя, телефон, почта и пароль от 8 символов")
+    try:
+        partners_service.apply(db, **data.model_dump())
+    except HTTPException as exc:
+        return again(
+            "Эта почта уже зарегистрирована" if exc.status_code == status.HTTP_409_CONFLICT else str(exc.detail)
+        )
+    return RedirectResponse(
+        f"{i18n.PREFIX[_lang(request)]}/partners/thanks/", status_code=status.HTTP_303_SEE_OTHER
+    )
+
+
+@router.get("/partners/thanks/", response_class=HTMLResponse)
+@router.get("/kk/partners/thanks/", response_class=HTMLResponse)
+def partners_thanks(request: Request, db: Session = DB) -> HTMLResponse:
+    return _render(
+        request,
+        "partners_thanks.html",
+        {"title": "Заявка принята", "description": "", "noindex": True},
+        db=db,
+    )
+
+
 @router.post("/orders/{order_id}/repeat")
 def repeat_order(order_id: int, request: Request, db: Session = DB) -> Response:
     """Put a past order's dishes back in the basket, as the menu stands today."""
@@ -927,7 +1034,11 @@ def sitemap(db: Session = DB) -> Response:
     urls = [f"{base}/", f"{base}/actions/", f"{base}/delivery/", f"{base}/about/"]
     urls += [
         f"{base}/r/{slug}/"
-        for slug in db.scalars(select(Restaurant.slug).where(Restaurant.slug.is_not(None)))
+        for slug in db.scalars(
+            select(Restaurant.slug).where(
+                Restaurant.slug.is_not(None), Restaurant.approval == "approved"
+            )
+        )
     ]
     # Only running campaigns: a sitemap that lists a finished one sends a
     # crawler to a 404 and spends its budget doing it.
@@ -939,7 +1050,9 @@ def sitemap(db: Session = DB) -> Response:
         if default and c.id == default.id:
             continue
         has_venue = db.scalar(
-            select(Restaurant.id).where(Restaurant.city_id == c.id).limit(1)
+            select(Restaurant.id)
+            .where(Restaurant.city_id == c.id, Restaurant.approval == "approved")
+            .limit(1)
         )
         if has_venue:
             urls.append(f"{base}/{c.slug}/")

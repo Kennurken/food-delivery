@@ -7,7 +7,7 @@ from app.models import MenuItem, Restaurant
 from app.schemas.admin import PromoQuote
 from app.schemas.reservation import TableOut
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
-from app.services import cities, delivery_pricing
+from app.services import cities, delivery_pricing, partners
 from app.services import reservation as reserve_service
 from app.services.promo import quote as quote_promo
 from app.services.restaurant_view import to_detail, to_out
@@ -31,7 +31,9 @@ def list_restaurants(
     sort: str = Query(default="rating", pattern="^(rating|eta|fee)$"),
     city: str | None = Query(default=None, max_length=40),
 ) -> list[RestaurantOut]:
-    stmt = select(Restaurant).where(Restaurant.is_open.is_(True))
+    stmt = select(Restaurant).where(
+        Restaurant.is_open.is_(True), Restaurant.approval == partners.APPROVED
+    )
     if city:
         # An unknown or switched-off city is an empty list, not every venue in
         # the country: someone who picked Astana must never be shown Almaty's
@@ -58,7 +60,7 @@ def list_restaurants(
 def list_cuisines(db: DB) -> list[str]:
     stmt = (
         select(Restaurant.cuisine)
-        .where(Restaurant.is_open.is_(True))
+        .where(Restaurant.is_open.is_(True), Restaurant.approval == partners.APPROVED)
         .distinct()
         .order_by(Restaurant.cuisine)
     )
@@ -66,16 +68,18 @@ def list_cuisines(db: DB) -> list[str]:
 
 
 @router.get("/{restaurant_id}", response_model=RestaurantDetail)
-def get_restaurant(restaurant_id: int, db: DB) -> RestaurantDetail:
+def get_restaurant(restaurant_id: int, db: DB, user: OptionalUser) -> RestaurantDetail:
     r = db.get(Restaurant, restaurant_id)
-    if not r:
+    # A venue that hasn't been approved looks exactly like one that doesn't exist.
+    if not r or not partners.visible_to(db, r, user):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
     return to_detail(db, r)
 
 
 @router.get("/{restaurant_id}/menu", response_model=list[MenuItemOut])
-def get_menu(restaurant_id: int, db: DB) -> list[MenuItem]:
-    if not db.get(Restaurant, restaurant_id):
+def get_menu(restaurant_id: int, db: DB, user: OptionalUser) -> list[MenuItem]:
+    r = db.get(Restaurant, restaurant_id)
+    if not r or not partners.visible_to(db, r, user):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
     return list(db.scalars(select(MenuItem).where(MenuItem.restaurant_id == restaurant_id)))
 

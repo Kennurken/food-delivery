@@ -18,6 +18,7 @@ import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
 import '../../orders/presentation/orders_screen.dart';
 import '../data/admin_repository.dart';
+import 'platform_applications_tab.dart';
 import 'platform_cities_tab.dart';
 import 'platform_income_tab.dart';
 import 'platform_venues_screen.dart';
@@ -235,7 +236,11 @@ class _RestaurantsTab extends ConsumerWidget {
                         leading: const Icon(Icons.restaurant_menu),
                         title: Text(r.name),
                         subtitle: Text(
-                          '${r.cuisine} · ${r.planCode ?? 'pro'} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))} · ${r.isOpen ? context.l10n.open : context.l10n.closed}',
+                          '${r.cuisine} · ${r.planCode ?? 'pro'} · ${context.l10n.deliveryFee(formatMoney(r.deliveryFee))} · ${r.isPending
+                              ? context.l10n.pendingApproval
+                              : r.isRejected
+                              ? context.l10n.rejectedVenue
+                              : (r.isOpen ? context.l10n.open : context.l10n.closed)}',
                         ),
                         onTap: () => context.push('/admin/restaurants/${r.id}'),
                         trailing: StretchSwitch(
@@ -374,7 +379,7 @@ class _PlatformTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.l10n;
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Column(
         children: [
           TabBar(
@@ -384,6 +389,7 @@ class _PlatformTab extends StatelessWidget {
               Tab(text: t.directory),
               Tab(text: t.income),
               Tab(text: t.cities),
+              Tab(text: t.applications),
             ],
           ),
           const Expanded(
@@ -393,6 +399,7 @@ class _PlatformTab extends StatelessWidget {
                 PlatformVenuesTab(),
                 PlatformIncomeTab(),
                 PlatformCitiesTab(),
+                PlatformApplicationsTab(),
               ],
             ),
           ),

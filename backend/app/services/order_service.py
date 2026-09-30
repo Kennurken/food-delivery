@@ -186,7 +186,7 @@ def create_order(
             status.HTTP_409_CONFLICT,
             f"{restaurant.name} has a full kitchen right now. Try again in a few minutes.",
         )
-    if not restaurant or not restaurant.is_open:
+    if not restaurant or not restaurant.is_open or restaurant.approval != "approved":
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found or closed")
     # The schedule closes a venue the owner left switched on. A later slot is
     # checked against the hours at that time instead — ordering ahead for the
@@ -238,6 +238,10 @@ def create_order(
     else:
         if not flags.enabled("delivery.enabled"):
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Delivery is not on this plan")
+        if not restaurant.offers_delivery:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, f"{restaurant.name} takes pickup and table orders only"
+            )
 
     slot = parse_slot(data.scheduled_for)
     if slot is not None and channel == "qr_table":

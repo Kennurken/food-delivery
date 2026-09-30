@@ -24,7 +24,7 @@ def to_out(db: Session, r: Restaurant) -> RestaurantOut:
     flags = entitlements(db, r)
     return RestaurantOut.model_validate(r).model_copy(
         update={
-            "channels": channels_of(flags),
+            "channels": _channels(r, flags),
             "reservations": flags.enabled("reservations"),
             **_load_fields(db, r),
             **_city_fields(r),
@@ -36,12 +36,18 @@ def to_detail(db: Session, r: Restaurant) -> RestaurantDetail:
     flags = entitlements(db, r)
     return RestaurantDetail.model_validate(r).model_copy(
         update={
-            "channels": channels_of(flags),
+            "channels": _channels(r, flags),
             "reservations": flags.enabled("reservations"),
             **_load_fields(db, r),
             **_city_fields(r),
         }
     )
+
+
+def _channels(r: Restaurant, flags) -> list[str]:
+    """What the plan allows, minus delivery for a venue with no couriers."""
+    out = channels_of(flags)
+    return out if r.offers_delivery else [c for c in out if c != "delivery"]
 
 
 def _city_fields(r: Restaurant) -> dict:

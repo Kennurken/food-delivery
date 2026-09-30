@@ -28,6 +28,8 @@ class Restaurant {
     this.loyaltyPercent = 0,
     this.loyaltyMaxShare = 0.5,
     this.hours = const [],
+    this.approval = 'approved',
+    this.offersDelivery = true,
   });
 
   final int id;
@@ -73,6 +75,14 @@ class Restaurant {
   /// The week, when the API sent it (the venue detail does; lists don't).
   final List<OpeningStretch> hours;
 
+  /// pending | approved | rejected. Guests only ever get approved venues; an
+  /// owner sees their own whatever it is.
+  final String approval;
+  final bool offersDelivery;
+
+  bool get isPending => approval == 'pending';
+  bool get isRejected => approval == 'rejected';
+
   bool get hasPin =>
       lat != null &&
       lng != null &&
@@ -114,6 +124,8 @@ class Restaurant {
     openNow: json['open_now'] as bool? ?? true,
     opensAt: wallClock(json['opens_at'] as String?),
     loyaltyPercent: (json['loyalty_percent'] as num?)?.toDouble() ?? 0,
+    approval: json['approval'] as String? ?? 'approved',
+    offersDelivery: json['offers_delivery'] as bool? ?? true,
     loyaltyMaxShare: (json['loyalty_max_share'] as num?)?.toDouble() ?? 0.5,
     hours: [
       for (final h in json['hours'] as List<dynamic>? ?? const [])

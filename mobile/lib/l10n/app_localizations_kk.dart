@@ -1348,4 +1348,32 @@ class L10nKk extends L10n {
 
   @override
   String get courierRatingLabel => 'Рейтинг';
+
+  @override
+  String get applications => 'Өтінімдер';
+
+  @override
+  String get approve => 'Мақұлдау';
+
+  @override
+  String get reject => 'Қабылдамау';
+
+  @override
+  String get noApplications => 'Күтіп тұрған өтінім жоқ';
+
+  @override
+  String get ownCouriers => 'Өз курьерлері';
+
+  @override
+  String get noCouriersPickupOnly => 'Курьерсіз: өзі алып кету және үстел';
+
+  @override
+  String get rejectReason => 'Себебі (міндетті емес)';
+
+  @override
+  String get pendingApproval =>
+      'Мақұлдауды күтуде: қонақтар бұл мейрамхананы әлі көрмейді';
+
+  @override
+  String get rejectedVenue => 'Өтінім қабылданбады';
 }

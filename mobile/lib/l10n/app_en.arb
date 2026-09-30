@@ -678,5 +678,14 @@
   "cityNameKk": "Name in Kazakh",
   "cityNameInKk": "Kazakh “in the city” form (e.g. Астанада)",
   "rateCourier": "And the courier?",
-  "courierRatingLabel": "Rating"
+  "courierRatingLabel": "Rating",
+  "applications": "Applications",
+  "approve": "Approve",
+  "reject": "Reject",
+  "noApplications": "No applications waiting",
+  "ownCouriers": "Own couriers",
+  "noCouriersPickupOnly": "No couriers: pickup and table only",
+  "rejectReason": "Reason (optional)",
+  "pendingApproval": "Waiting for approval: guests can't see this restaurant yet",
+  "rejectedVenue": "Application rejected"
 }

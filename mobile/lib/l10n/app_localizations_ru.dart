@@ -1350,4 +1350,32 @@ class L10nRu extends L10n {
 
   @override
   String get courierRatingLabel => 'Рейтинг';
+
+  @override
+  String get applications => 'Заявки';
+
+  @override
+  String get approve => 'Одобрить';
+
+  @override
+  String get reject => 'Отклонить';
+
+  @override
+  String get noApplications => 'Заявок нет';
+
+  @override
+  String get ownCouriers => 'Свои курьеры';
+
+  @override
+  String get noCouriersPickupOnly => 'Без курьеров: самовывоз и столик';
+
+  @override
+  String get rejectReason => 'Причина (необязательно)';
+
+  @override
+  String get pendingApproval =>
+      'Ждёт одобрения: гости пока не видят этот ресторан';
+
+  @override
+  String get rejectedVenue => 'Заявка отклонена';
 }

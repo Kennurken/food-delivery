@@ -2606,6 +2606,60 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Rating'**
   String get courierRatingLabel;
+
+  /// No description provided for @applications.
+  ///
+  /// In en, this message translates to:
+  /// **'Applications'**
+  String get applications;
+
+  /// No description provided for @approve.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get approve;
+
+  /// No description provided for @reject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get reject;
+
+  /// No description provided for @noApplications.
+  ///
+  /// In en, this message translates to:
+  /// **'No applications waiting'**
+  String get noApplications;
+
+  /// No description provided for @ownCouriers.
+  ///
+  /// In en, this message translates to:
+  /// **'Own couriers'**
+  String get ownCouriers;
+
+  /// No description provided for @noCouriersPickupOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'No couriers: pickup and table only'**
+  String get noCouriersPickupOnly;
+
+  /// No description provided for @rejectReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get rejectReason;
+
+  /// No description provided for @pendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for approval: guests can\'t see this restaurant yet'**
+  String get pendingApproval;
+
+  /// No description provided for @rejectedVenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Application rejected'**
+  String get rejectedVenue;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

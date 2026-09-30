@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block narrow">
+  <h1>{{ _("Подключить ресторан") }}</h1>
+  <p class="lede">{{ _("Оставьте заявку: мы позвоним, включим ваш ресторан и поможем заполнить меню. Первый месяц бесплатно.") }}</p>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+  <form method="post" action="{{ lp }}/partners/" class="form">
+    <label>{{ _("Название ресторана") }}
+      <input type="text" name="venue_name" value="{{ form.venue_name }}" required maxlength="150">
+    </label>
+    <label>{{ _("Кухня") }}
+      <input type="text" name="cuisine" value="{{ form.cuisine }}" required maxlength="50" placeholder="{{ _('Например: казахская, пицца, суши') }}">
+    </label>
+    {% if city_links and city_links|length > 1 %}
+    <label>{{ _("Город") }}
+      <select name="city_slug">
+        {% for c, _href in city_links %}
+        <option value="{{ c.slug }}"{% if form.city_slug == c.slug %} selected{% endif %}>{{ cname(c) }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    <fieldset>
+      <legend>{{ _("Есть ли у вас свои курьеры?") }}</legend>
+      <label class="radio"><input type="radio" name="has_couriers" value="yes" {% if form.has_couriers != 'no' %}checked{% endif %}> {{ _("Да, доставляем сами") }}</label>
+      <label class="radio"><input type="radio" name="has_couriers" value="no" {% if form.has_couriers == 'no' %}checked{% endif %}> {{ _("Нет: только самовывоз и заказ за столиком") }}</label>
+      <span class="hint">{{ _("Курьеров сервис не нанимает. Без них гости смогут забирать заказ сами и заказывать за столиком по QR.") }}</span>
+    </fieldset>
+    <label>{{ _("Коротко о ресторане") }}
+      <input type="text" name="description" value="{{ form.description }}" maxlength="500">
+    </label>
+
+    <h2>{{ _("Контакты владельца") }}</h2>
+    <label>{{ _("Ваше имя") }}
+      <input type="text" name="contact_name" value="{{ form.contact_name }}" required maxlength="100">
+    </label>
+    <label>{{ _("Телефон") }}
+      <input type="tel" name="phone" value="{{ form.phone }}" required maxlength="30" placeholder="+7 701 000 00 00">
+    </label>
+    <label>{{ _("Почта") }}
+      <input type="email" name="email" value="{{ form.email }}" required>
+    </label>
+    <label>{{ _("Пароль") }}
+      <input type="password" name="password" required minlength="8" maxlength="128">
+      <span class="hint">{{ _("Не короче 8 символов. С ним вы войдёте в приложение и заполните меню.") }}</span>
+    </label>
+    <button class="btn" type="submit">{{ _("Отправить заявку") }}</button>
+  </form>
+</section>
+{% endblock %}

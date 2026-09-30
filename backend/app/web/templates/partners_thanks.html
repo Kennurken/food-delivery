@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block narrow">
+  <h1>{{ _("Заявка принята") }}</h1>
+  <p class="lede">{{ _("Мы позвоним вам в ближайшее время. Пока ждёте, войдите в приложение с почтой и паролем из заявки и заполните меню: гости увидят ресторан, как только мы его включим.") }}</p>
+  <div class="hero-actions">
+    <a class="btn" href="{{ app_url }}/#/">{{ _("Открыть приложение") }}</a>
+    <a class="btn ghost" href="{{ lp }}/">{{ _("На главную") }}</a>
+  </div>
+</section>
+{% endblock %}

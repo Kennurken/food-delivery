@@ -65,6 +65,9 @@ class RestaurantOut(BaseModel):
     lng: float | None = None
     city_slug: str | None = None
     city_name: str | None = None
+    # pending | approved | rejected. Guests only ever see approved venues.
+    approval: str = "approved"
+    offers_delivery: bool = True
     # By the venue's opening hours; `accepting_orders` already folds it in.
     open_now: bool = True
     # When closed by the schedule: the next opening, on the venue's own clock

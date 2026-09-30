@@ -511,5 +511,14 @@
   "cityNameKk": "Қазақша атауы",
   "cityNameInKk": "Қазақша «қалада» түрі (мысалы, Астанада)",
   "rateCourier": "Ал курьер ше?",
-  "courierRatingLabel": "Рейтинг"
+  "courierRatingLabel": "Рейтинг",
+  "applications": "Өтінімдер",
+  "approve": "Мақұлдау",
+  "reject": "Қабылдамау",
+  "noApplications": "Күтіп тұрған өтінім жоқ",
+  "ownCouriers": "Өз курьерлері",
+  "noCouriersPickupOnly": "Курьерсіз: өзі алып кету және үстел",
+  "rejectReason": "Себебі (міндетті емес)",
+  "pendingApproval": "Мақұлдауды күтуде: қонақтар бұл мейрамхананы әлі көрмейді",
+  "rejectedVenue": "Өтінім қабылданбады"
 }

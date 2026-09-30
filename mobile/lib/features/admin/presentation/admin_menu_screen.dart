@@ -89,9 +89,33 @@ class AdminMenuScreen extends ConsumerWidget {
             itemBuilder: (_, i) {
               if (i == 0) {
                 final t = context.l10n;
+                final venue = ref.watch(restaurantProvider(restaurantId)).value;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // The owner built the menu while waiting: say plainly why
+                    // guests can't see the venue yet.
+                    if (venue != null &&
+                        (venue.isPending || venue.isRejected)) ...[
+                      Material(
+                        color: Theme.of(context).colorScheme.tertiaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(
+                            venue.isPending
+                                ? t.pendingApproval
+                                : t.rejectedVenue,
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onTertiaryContainer,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     ManageActions(
                       actions: [
                         ManageAction(

@@ -8,6 +8,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    true,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -36,6 +37,15 @@ class Restaurant(Base):
     max_active_orders: Mapped[int | None] = mapped_column(Integer, nullable=True)
     delivery_time_min: Mapped[int] = mapped_column(Integer, default=30)
     is_open: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Whether guests can see and order from this venue. A venue that applied
+    # through the site starts "pending" and is invisible until the platform
+    # approves it; every venue that existed before applications is "approved".
+    approval: Mapped[str] = mapped_column(String(12), default="approved", server_default="approved")
+    # Does the venue have its own couriers? Asked when it applies. Without them
+    # it takes pickup and table orders only — the platform hires no couriers.
+    offers_delivery: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    rejection_reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
     # Share of what a diner paid for food that comes back to them as bonuses
     # (5 = 5 %). 0 = no programme. Earning also needs the Premium `loyalty`
     # entitlement: a venue that stops paying for it stops giving, though what

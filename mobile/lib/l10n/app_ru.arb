@@ -511,5 +511,14 @@
   "cityNameKk": "Название по-казахски",
   "cityNameInKk": "Казахская форма «в городе» (например, Астанада)",
   "rateCourier": "А курьер?",
-  "courierRatingLabel": "Рейтинг"
+  "courierRatingLabel": "Рейтинг",
+  "applications": "Заявки",
+  "approve": "Одобрить",
+  "reject": "Отклонить",
+  "noApplications": "Заявок нет",
+  "ownCouriers": "Свои курьеры",
+  "noCouriersPickupOnly": "Без курьеров: самовывоз и столик",
+  "rejectReason": "Причина (необязательно)",
+  "pendingApproval": "Ждёт одобрения: гости пока не видят этот ресторан",
+  "rejectedVenue": "Заявка отклонена"
 }

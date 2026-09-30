@@ -10,6 +10,7 @@ from app.api.v1 import (
     loyalty,
     me,
     orders,
+    partners,
     platform,
     qr,
     reservations,
@@ -24,6 +25,7 @@ api_router.include_router(me.router)
 api_router.include_router(loyalty.router)
 api_router.include_router(hours.router)
 api_router.include_router(reviews.router)
+api_router.include_router(partners.router)
 api_router.include_router(restaurants.router)
 api_router.include_router(cities.router)
 api_router.include_router(cities.admin_router)

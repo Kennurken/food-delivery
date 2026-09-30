@@ -72,6 +72,9 @@ class RestaurantOut(BaseModel):
     opens_at: datetime | None = None
     # 0 unless the venue runs a bonus programme and its plan includes one.
     loyalty_percent: float = 0
+    # Largest share of an order's food that bonuses may pay. Meaningful only
+    # with loyalty_percent > 0; the owner's settings sheet starts from it.
+    loyalty_max_share: float = 0.5
 
 
 class HoursOut(BaseModel):

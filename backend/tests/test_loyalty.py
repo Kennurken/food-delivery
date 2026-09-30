@@ -190,3 +190,17 @@ class TestWhoMaySwitchItOn:
 
         assert client.get(f"/api/v1/restaurants/{venue['id']}").json()["loyalty_percent"] == 0
         assert _balance(client, auth, venue)["balance"] == 0
+
+
+class TestSettingsRoundTrip:
+    def test_the_card_carries_what_the_owner_set(self, client, admin, venue):
+        client.put(
+            f"/api/v1/admin/restaurants/{venue['id']}/loyalty",
+            json={"percent": 7.5, "max_share": 0.3},
+            headers=admin,
+        )
+
+        card = client.get(f"/api/v1/restaurants/{venue['id']}").json()
+
+        assert card["loyalty_percent"] == 7.5
+        assert card["loyalty_max_share"] == 0.3

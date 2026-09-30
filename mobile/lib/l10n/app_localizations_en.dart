@@ -1632,4 +1632,19 @@ class L10nEn extends L10n {
 
   @override
   String get menuImportTooMany => 'more than 500 rows — split the list';
+
+  @override
+  String get myVenues => 'My restaurants';
+
+  @override
+  String get roleOwner => 'Owner';
+
+  @override
+  String get roleManager => 'Manager';
+
+  @override
+  String get roleStaff => 'Staff';
+
+  @override
+  String get roleCourier => 'Courier';
 }

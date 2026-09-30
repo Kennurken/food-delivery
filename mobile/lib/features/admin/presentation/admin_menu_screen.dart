@@ -221,6 +221,13 @@ class AdminMenuScreen extends ConsumerWidget {
                               editReservations(context, ref, restaurantId),
                         ),
                         ManageAction(
+                          shape: AnimShape.chart,
+                          label: t.statistics,
+                          onTap: () => context.push(
+                            '/admin/restaurants/$restaurantId/stats',
+                          ),
+                        ),
+                        ManageAction(
                           shape: AnimShape.plus,
                           label: t.menuImport,
                           onTap: () => importMenu(context, ref, restaurantId),

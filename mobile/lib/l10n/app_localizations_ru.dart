@@ -1633,4 +1633,19 @@ class L10nRu extends L10n {
 
   @override
   String get menuImportTooMany => 'больше 500 строк — разбейте список';
+
+  @override
+  String get myVenues => 'Мои рестораны';
+
+  @override
+  String get roleOwner => 'Владелец';
+
+  @override
+  String get roleManager => 'Менеджер';
+
+  @override
+  String get roleStaff => 'Сотрудник';
+
+  @override
+  String get roleCourier => 'Курьер';
 }

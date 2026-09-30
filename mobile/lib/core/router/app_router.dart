@@ -8,6 +8,7 @@ import '../../features/admin/presentation/admin_menu_screen.dart';
 import '../../features/admin/presentation/admin_screen.dart';
 import '../../features/admin/presentation/platform_venue_screen.dart';
 import '../../features/admin/presentation/kitchen_screen.dart';
+import '../../features/admin/presentation/stats_tab.dart';
 import '../../features/auth/domain/user.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/login_screen.dart';
@@ -38,7 +39,11 @@ bool roleAllows(User user, String location) {
   final onChat = location.startsWith('/chat/');
   if (user.isAdmin) return onAdmin || onMap || onChat;
   if (user.isCourier) return onCourier || onMap || onChat;
-  return !onAdmin && !onCourier;
+  // A restaurant's own staff are "customers" with a membership. They may use
+  // one venue's screens; the server decides whose venue it is on every call,
+  // so letting the route through shows nothing it wouldn't allow anyway.
+  final onVenue = location.startsWith('/admin/restaurants/');
+  return !onCourier && (!onAdmin || onVenue);
 }
 
 /// Bridges Riverpod auth state to GoRouter's refreshListenable.
@@ -142,6 +147,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/restaurants/:id/floor',
         builder: (_, s) =>
             FloorPlanScreen(restaurantId: int.parse(s.pathParameters['id']!)),
+      ),
+      GoRoute(
+        path: '/admin/restaurants/:id/stats',
+        builder: (_, s) =>
+            VenueStatsScreen(restaurantId: int.parse(s.pathParameters['id']!)),
       ),
       GoRoute(
         path: '/admin/restaurants/:id/kitchen',

@@ -665,5 +665,10 @@
   "menuImportNoName": "атауы жоқ",
   "menuImportBadPrice": "баға танылмады",
   "menuImportNameTooLong": "атауы 150 таңбадан ұзын",
-  "menuImportTooMany": "500-ден көп жол — тізімді бөліңіз"
+  "menuImportTooMany": "500-ден көп жол — тізімді бөліңіз",
+  "myVenues": "Менің мейрамханаларым",
+  "roleOwner": "Иесі",
+  "roleManager": "Менеджер",
+  "roleStaff": "Қызметкер",
+  "roleCourier": "Курьер"
 }

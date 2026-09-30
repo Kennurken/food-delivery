@@ -852,5 +852,10 @@
   "menuImportNoName": "no dish name",
   "menuImportBadPrice": "price not understood",
   "menuImportNameTooLong": "name is longer than 150 characters",
-  "menuImportTooMany": "more than 500 rows — split the list"
+  "menuImportTooMany": "more than 500 rows — split the list",
+  "myVenues": "My restaurants",
+  "roleOwner": "Owner",
+  "roleManager": "Manager",
+  "roleStaff": "Staff",
+  "roleCourier": "Courier"
 }

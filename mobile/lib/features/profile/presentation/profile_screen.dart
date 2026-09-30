@@ -432,6 +432,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
           ),
           const SizedBox(height: 28),
+          if (!isGuest && !(user?.isAdmin ?? false)) const _MyVenuesCard(),
           const _LegalCard(),
           if (!isGuest) ...[
             const SizedBox(height: 8),
@@ -449,6 +450,53 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 }
+
+/// The venues this person runs or works at, each opening its panel. Hidden
+/// for everyone else: most people using the app are only ordering food.
+class _MyVenuesCard extends ConsumerWidget {
+  const _MyVenuesCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final venues = ref.watch(myVenuesProvider).value ?? const [];
+    if (venues.isEmpty) return const SizedBox.shrink();
+    final t = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Text(
+                t.myVenues,
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            for (final v in venues)
+              ListTile(
+                leading: const Icon(Icons.storefront_outlined),
+                title: Text(v.name),
+                subtitle: Text(staffRoleLabel(t, v.role)),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () =>
+                    context.push('/admin/restaurants/${v.restaurantId}'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String staffRoleLabel(L10n t, String role) => switch (role) {
+  'owner' => t.roleOwner,
+  'admin' || 'manager' || 'delivery_manager' => t.roleManager,
+  'delivery_courier' => t.roleCourier,
+  _ => t.roleStaff,
+};
 
 /// Privacy policy, terms and support. Everyone sees these, table guests
 /// included: reading the rules takes no account.

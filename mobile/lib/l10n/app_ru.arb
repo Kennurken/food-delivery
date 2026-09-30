@@ -665,5 +665,10 @@
   "menuImportNoName": "нет названия",
   "menuImportBadPrice": "цена не распознана",
   "menuImportNameTooLong": "название длиннее 150 символов",
-  "menuImportTooMany": "больше 500 строк — разбейте список"
+  "menuImportTooMany": "больше 500 строк — разбейте список",
+  "myVenues": "Мои рестораны",
+  "roleOwner": "Владелец",
+  "roleManager": "Менеджер",
+  "roleStaff": "Сотрудник",
+  "roleCourier": "Курьер"
 }

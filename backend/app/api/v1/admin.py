@@ -99,16 +99,23 @@ def all_restaurants(db: DB, _: AdminUser) -> list[RestaurantOut]:
 
 
 @router.get("/restaurants/{restaurant_id}", response_model=RestaurantDetail)
-def restaurant_detail(restaurant_id: int, db: DB, _: AdminUser) -> RestaurantDetail:
-    return to_detail(db, _restaurant_or_404(db, restaurant_id))
+def restaurant_detail(restaurant_id: int, db: DB, user: CurrentUser) -> RestaurantDetail:
+    """The venue panel's own view: the platform, or anyone working there."""
+    _restaurant_or_404(db, restaurant_id)
+    return to_detail(db, require_restaurant(db, user, restaurant_id, "orders.read"))
 
 
 @router.patch("/restaurants/{restaurant_id}", response_model=RestaurantOut)
 def update_restaurant(
-    restaurant_id: int, data: RestaurantUpdate, db: DB, user: AdminUser, request: Request
+    restaurant_id: int, data: RestaurantUpdate, db: DB, user: CurrentUser, request: Request
 ) -> RestaurantOut:
     r = _restaurant_or_404(db, restaurant_id)
     updates = data.model_dump(exclude_unset=True)
+    # A venue runs its own settings; what it pays and whether it is paid up is
+    # the platform's word, never the venue's.
+    if {"plan_code", "billing_status"} & set(updates) and user.role != UserRole.admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the platform changes the plan")
+    require_restaurant(db, user, restaurant_id, "restaurant.settings.write")
     if "plan_code" in updates:
         if updates["plan_code"] not in PLANS:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unknown plan")
@@ -245,8 +252,9 @@ def _require_promos(db, restaurant: Restaurant) -> None:
 
 
 @router.get("/restaurants/{restaurant_id}/promos", response_model=list[PromoOut])
-def list_promos(restaurant_id: int, db: DB, _: AdminUser) -> list[Promo]:
+def list_promos(restaurant_id: int, db: DB, user: CurrentUser) -> list[Promo]:
     _restaurant_or_404(db, restaurant_id)
+    require_restaurant(db, user, restaurant_id, "menu.write")
     return list(db.scalars(select(Promo).where(Promo.restaurant_id == restaurant_id)))
 
 
@@ -255,8 +263,9 @@ def list_promos(restaurant_id: int, db: DB, _: AdminUser) -> list[Promo]:
     response_model=PromoOut,
     status_code=status.HTTP_201_CREATED,
 )
-def create_promo(restaurant_id: int, data: PromoCreate, db: DB, _: AdminUser) -> Promo:
-    restaurant = _restaurant_or_404(db, restaurant_id)
+def create_promo(restaurant_id: int, data: PromoCreate, db: DB, user: CurrentUser) -> Promo:
+    _restaurant_or_404(db, restaurant_id)
+    restaurant = require_restaurant(db, user, restaurant_id, "menu.write")
     _require_promos(db, restaurant)
     code = _promo_code(data.code)
     _validate_promo(data.kind, data.value)
@@ -279,10 +288,11 @@ def create_promo(restaurant_id: int, data: PromoCreate, db: DB, _: AdminUser) ->
 
 
 @router.patch("/promos/{promo_id}", response_model=PromoOut)
-def update_promo(promo_id: int, data: PromoUpdate, db: DB, _: AdminUser) -> Promo:
+def update_promo(promo_id: int, data: PromoUpdate, db: DB, user: CurrentUser) -> Promo:
     row = db.get(Promo, promo_id)
     if not row:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Promo not found")
+    require_restaurant(db, user, row.restaurant_id, "menu.write")
     _require_promos(db, row.restaurant)
     updates = data.model_dump(exclude_unset=True)
     kind = updates.get("kind", row.kind)
@@ -296,10 +306,11 @@ def update_promo(promo_id: int, data: PromoUpdate, db: DB, _: AdminUser) -> Prom
 
 
 @router.delete("/promos/{promo_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_promo(promo_id: int, db: DB, _: AdminUser) -> None:
+def delete_promo(promo_id: int, db: DB, user: CurrentUser) -> None:
     row = db.get(Promo, promo_id)
     if not row:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Promo not found")
+    require_restaurant(db, user, row.restaurant_id, "menu.write")
     _require_promos(db, row.restaurant)
     db.delete(row)
     db.commit()

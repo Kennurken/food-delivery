@@ -1632,4 +1632,19 @@ class L10nKk extends L10n {
 
   @override
   String get menuImportTooMany => '500-ден көп жол — тізімді бөліңіз';
+
+  @override
+  String get myVenues => 'Менің мейрамханаларым';
+
+  @override
+  String get roleOwner => 'Иесі';
+
+  @override
+  String get roleManager => 'Менеджер';
+
+  @override
+  String get roleStaff => 'Қызметкер';
+
+  @override
+  String get roleCourier => 'Курьер';
 }

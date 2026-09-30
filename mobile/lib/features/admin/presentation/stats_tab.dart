@@ -39,6 +39,27 @@ class StatsTab extends ConsumerWidget {
   }
 }
 
+/// One venue's numbers on their own page — for its owner and managers, who
+/// don't get the platform's all-venues admin screen.
+class VenueStatsScreen extends ConsumerWidget {
+  const VenueStatsScreen({super.key, required this.restaurantId});
+
+  final int restaurantId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final venue = ref.watch(adminRestaurantProvider(restaurantId));
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.statistics)),
+      body: venue.when(
+        loading: () => const ListSkeleton(count: 3, rowHeight: 110),
+        error: (e, _) => Center(child: Text(errorMessage(e))),
+        data: (r) => _Body(venues: [r], restaurantId: restaurantId),
+      ),
+    );
+  }
+}
+
 class _Body extends ConsumerWidget {
   const _Body({required this.venues, required this.restaurantId});
 

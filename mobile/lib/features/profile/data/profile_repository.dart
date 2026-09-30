@@ -10,6 +10,17 @@ class ProfileRepository {
 
   final Dio _dio;
 
+  /// Venues this person works at. Staff and owners are ordinary accounts with
+  /// a membership, so this list is the only thing that makes them staff here.
+  Future<List<VenueMembership>> memberships() async {
+    final r = await _dio.get('/api/v1/me/memberships');
+    return [
+      for (final row in r.data as List)
+        if ((row as Map)['is_active'] != false)
+          VenueMembership.fromJson(Map<String, dynamic>.from(row)),
+    ];
+  }
+
   Future<User> update({String? name, String? phone}) async {
     final r = await _dio.patch(
       '/api/v1/me',
@@ -82,4 +93,27 @@ final profileRepositoryProvider = Provider(
 
 final addressesProvider = FutureProvider.autoDispose<List<Address>>(
   (ref) => ref.watch(profileRepositoryProvider).addresses(),
+);
+
+class VenueMembership {
+  const VenueMembership({
+    required this.restaurantId,
+    required this.name,
+    required this.role,
+  });
+
+  final int restaurantId;
+  final String name;
+  final String role;
+
+  factory VenueMembership.fromJson(Map<String, dynamic> json) =>
+      VenueMembership(
+        restaurantId: (json['restaurant_id'] as num).toInt(),
+        name: json['name'] as String? ?? '',
+        role: json['role'] as String? ?? '',
+      );
+}
+
+final myVenuesProvider = FutureProvider.autoDispose<List<VenueMembership>>(
+  (ref) => ref.watch(profileRepositoryProvider).memberships(),
 );

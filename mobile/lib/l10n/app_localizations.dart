@@ -3104,6 +3104,36 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'more than 500 rows — split the list'**
   String get menuImportTooMany;
+
+  /// No description provided for @myVenues.
+  ///
+  /// In en, this message translates to:
+  /// **'My restaurants'**
+  String get myVenues;
+
+  /// No description provided for @roleOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get roleOwner;
+
+  /// No description provided for @roleManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get roleManager;
+
+  /// No description provided for @roleStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get roleStaff;
+
+  /// No description provided for @roleCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier'**
+  String get roleCourier;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

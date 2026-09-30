@@ -18,6 +18,7 @@ import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order.dart';
 import '../../orders/presentation/orders_screen.dart';
 import '../data/admin_repository.dart';
+import 'platform_cities_tab.dart';
 import 'platform_income_tab.dart';
 import 'platform_venues_screen.dart';
 import 'stats_tab.dart';
@@ -373,7 +374,7 @@ class _PlatformTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.l10n;
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Column(
         children: [
           TabBar(
@@ -382,6 +383,7 @@ class _PlatformTab extends StatelessWidget {
               Tab(text: t.overview),
               Tab(text: t.directory),
               Tab(text: t.income),
+              Tab(text: t.cities),
             ],
           ),
           const Expanded(
@@ -390,6 +392,7 @@ class _PlatformTab extends StatelessWidget {
                 _PlatformOverview(),
                 PlatformVenuesTab(),
                 PlatformIncomeTab(),
+                PlatformCitiesTab(),
               ],
             ),
           ),

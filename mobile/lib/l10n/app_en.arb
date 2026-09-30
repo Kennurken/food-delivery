@@ -754,5 +754,9 @@
   "zoomIn": "Zoom in",
   "fitToScreen": "Fit to screen",
   "resetView": "Reset view",
-  "copyTableQr": "Copy table QR link"
+  "copyTableQr": "Copy table QR link",
+  "errorReportingOn": "Error reporting: on (Sentry)",
+  "errorReportingOff": "Error reporting: off — set SENTRY_DSN",
+  "sendTestError": "Send test error",
+  "testErrorSent": "Test error sent. It should appear in Sentry within a minute."
 }

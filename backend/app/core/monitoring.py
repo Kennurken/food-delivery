@@ -13,11 +13,15 @@ from app.core.config import settings
 
 log = logging.getLogger(__name__)
 
+_on = False
+
 
 def init() -> bool:
     """Start reporting. Returns whether it is on."""
+    global _on
     dsn = (settings.sentry_dsn or "").strip()
     if not dsn:
+        _on = False
         return False
     import sentry_sdk
 
@@ -29,4 +33,24 @@ def init() -> bool:
         traces_sample_rate=settings.sentry_traces_sample_rate,
     )
     log.info("error reporting on")
+    _on = True
     return True
+
+
+def enabled() -> bool:
+    return _on
+
+
+def send_test(actor_id: int) -> str | None:
+    """Report a harmless exception the way a real one would be reported, and
+    return its event id. No flush on purpose: the point is to see whether an
+    ordinary error survives the serverless host freezing after the response.
+    """
+    if not _on:
+        return None
+    import sentry_sdk
+
+    try:
+        raise RuntimeError(f"Monitoring check from the platform panel (admin {actor_id})")
+    except RuntimeError as exc:
+        return sentry_sdk.capture_exception(exc)

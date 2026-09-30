@@ -587,5 +587,9 @@
   "zoomIn": "Үлкейту",
   "fitToScreen": "Экранға сыйдыру",
   "resetView": "Көріністі қалпына келтіру",
-  "copyTableQr": "Үстел QR сілтемесін көшіру"
+  "copyTableQr": "Үстел QR сілтемесін көшіру",
+  "errorReportingOn": "Қателер мониторингі: қосулы (Sentry)",
+  "errorReportingOff": "Қателер мониторингі: өшірулі — SENTRY_DSN керек",
+  "sendTestError": "Сынақ қатесін жіберу",
+  "testErrorSent": "Сынақ қатесі жіберілді. Ол бір минут ішінде Sentry-де пайда болады."
 }

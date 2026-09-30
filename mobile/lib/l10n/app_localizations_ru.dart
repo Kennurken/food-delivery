@@ -1499,4 +1499,18 @@ class L10nRu extends L10n {
 
   @override
   String get copyTableQr => 'Скопировать ссылку QR стола';
+
+  @override
+  String get errorReportingOn => 'Мониторинг ошибок: включён (Sentry)';
+
+  @override
+  String get errorReportingOff =>
+      'Мониторинг ошибок: выключен — нужен SENTRY_DSN';
+
+  @override
+  String get sendTestError => 'Отправить тестовую ошибку';
+
+  @override
+  String get testErrorSent =>
+      'Тестовая ошибка отправлена. Она появится в Sentry в течение минуты.';
 }

@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy import func, select
 
 from app.api.deps import DB, AdminUser, CurrentUser
-from app.core import audit, subscriptions
+from app.core import audit, monitoring, subscriptions
 from app.core.access import require_restaurant, valid_staff_role
 from app.core.billing import parse_webhook, public_config
 from app.core.features import (
@@ -85,7 +85,18 @@ def overview(db: DB, _: AdminUser) -> dict:
         "orders_today": orders_today,
         "plans": {code: n for code, n in plan_rows},
         "billing": "stripe" if public_config()["card"] else "unconfigured",
+        "error_reporting": monitoring.enabled(),
     }
+
+
+@router.post("/platform/monitoring/test", status_code=status.HTTP_202_ACCEPTED)
+def monitoring_test(user: AdminUser) -> dict:
+    """Send one test error to Sentry, so the platform can see reporting works
+    before a real failure is the first thing to go through it."""
+    event_id = monitoring.send_test(user.id)
+    if event_id is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Error reporting is off (no SENTRY_DSN)")
+    return {"event_id": event_id}
 
 
 @router.get("/admin/restaurants/{restaurant_id}/workspace")

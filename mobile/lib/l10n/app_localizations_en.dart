@@ -1499,4 +1499,17 @@ class L10nEn extends L10n {
 
   @override
   String get copyTableQr => 'Copy table QR link';
+
+  @override
+  String get errorReportingOn => 'Error reporting: on (Sentry)';
+
+  @override
+  String get errorReportingOff => 'Error reporting: off — set SENTRY_DSN';
+
+  @override
+  String get sendTestError => 'Send test error';
+
+  @override
+  String get testErrorSent =>
+      'Test error sent. It should appear in Sentry within a minute.';
 }

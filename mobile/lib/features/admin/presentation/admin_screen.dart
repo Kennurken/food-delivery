@@ -412,6 +412,17 @@ class _PlatformTab extends StatelessWidget {
 class _PlatformOverview extends ConsumerWidget {
   const _PlatformOverview();
 
+  Future<void> _sendTestError(BuildContext context, WidgetRef ref) async {
+    final t = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(adminRepositoryProvider).sendTestError();
+      messenger.showSnackBar(SnackBar(content: Text(t.testErrorSent)));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(errorMessage(e))));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final overview = ref.watch(platformOverviewProvider);
@@ -450,6 +461,21 @@ class _PlatformOverview extends ConsumerWidget {
                     : t.billingConnected('${d['billing']}'),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+              const SizedBox(height: 6),
+              Text(
+                d['error_reporting'] == true
+                    ? t.errorReportingOn
+                    : t.errorReportingOff,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              if (d['error_reporting'] == true)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () => _sendTestError(context, ref),
+                    child: Text(t.sendTestError),
+                  ),
+                ),
             ],
           ),
         );

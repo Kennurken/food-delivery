@@ -587,5 +587,9 @@
   "zoomIn": "Увеличить",
   "fitToScreen": "Вписать в экран",
   "resetView": "Сбросить вид",
-  "copyTableQr": "Скопировать ссылку QR стола"
+  "copyTableQr": "Скопировать ссылку QR стола",
+  "errorReportingOn": "Мониторинг ошибок: включён (Sentry)",
+  "errorReportingOff": "Мониторинг ошибок: выключен — нужен SENTRY_DSN",
+  "sendTestError": "Отправить тестовую ошибку",
+  "testErrorSent": "Тестовая ошибка отправлена. Она появится в Sentry в течение минуты."
 }

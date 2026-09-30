@@ -175,6 +175,12 @@ class AdminRepository {
     return r.data as Map<String, dynamic>;
   }
 
+  /// Sends one harmless error through Sentry. Returns its event id.
+  Future<String> sendTestError() async {
+    final r = await _dio.post('/api/v1/platform/monitoring/test');
+    return (r.data as Map)['event_id'] as String? ?? '';
+  }
+
   Future<Map<String, dynamic>> workspace(int restaurantId) async {
     final r = await _dio.get(
       '/api/v1/admin/restaurants/$restaurantId/workspace',

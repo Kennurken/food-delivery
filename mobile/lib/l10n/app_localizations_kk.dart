@@ -1497,4 +1497,18 @@ class L10nKk extends L10n {
 
   @override
   String get copyTableQr => 'Үстел QR сілтемесін көшіру';
+
+  @override
+  String get errorReportingOn => 'Қателер мониторингі: қосулы (Sentry)';
+
+  @override
+  String get errorReportingOff =>
+      'Қателер мониторингі: өшірулі — SENTRY_DSN керек';
+
+  @override
+  String get sendTestError => 'Сынақ қатесін жіберу';
+
+  @override
+  String get testErrorSent =>
+      'Сынақ қатесі жіберілді. Ол бір минут ішінде Sentry-де пайда болады.';
 }

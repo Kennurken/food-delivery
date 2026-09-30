@@ -2876,6 +2876,30 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Copy table QR link'**
   String get copyTableQr;
+
+  /// No description provided for @errorReportingOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Error reporting: on (Sentry)'**
+  String get errorReportingOn;
+
+  /// No description provided for @errorReportingOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Error reporting: off — set SENTRY_DSN'**
+  String get errorReportingOff;
+
+  /// No description provided for @sendTestError.
+  ///
+  /// In en, this message translates to:
+  /// **'Send test error'**
+  String get sendTestError;
+
+  /// No description provided for @testErrorSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Test error sent. It should appear in Sentry within a minute.'**
+  String get testErrorSent;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

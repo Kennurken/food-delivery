@@ -29,6 +29,7 @@ import '../domain/restaurant.dart';
 import '../domain/sort.dart';
 import 'city_picker.dart';
 import 'favorite_button.dart';
+import 'hours_text.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -560,6 +561,15 @@ class _RestaurantCard extends StatelessWidget {
                         child: _Pill(
                           icon: Icons.local_fire_department_outlined,
                           label: context.l10n.kitchenBusy,
+                        ),
+                      )
+                    else if (opensLabel(context, r) != null)
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: _Pill(
+                          icon: Icons.schedule,
+                          label: opensLabel(context, r)!,
                         ),
                       ),
                   ],

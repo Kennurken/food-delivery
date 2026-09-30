@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
@@ -19,7 +20,9 @@ import '../../cart/presentation/cart_controller.dart';
 import '../../map/presentation/restaurant_map_preview.dart';
 import '../data/restaurant_repository.dart';
 import '../domain/menu_item.dart';
+import '../domain/opening_hours.dart';
 import 'favorite_button.dart';
+import 'hours_text.dart';
 
 class RestaurantScreen extends ConsumerWidget {
   const RestaurantScreen({
@@ -184,6 +187,36 @@ class RestaurantScreen extends ConsumerWidget {
                         ),
                       ).stagger(idx++),
                     ],
+                    if (r.isOpen &&
+                        !r.openNow &&
+                        !r.kitchenBusy &&
+                        opensLabel(context, r) != null) ...[
+                      const SizedBox(height: 12),
+                      Material(
+                        color: scheme.tertiaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.schedule,
+                                color: scheme.onTertiaryContainer,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${opensLabel(context, r)} · ${t.preorderHint}',
+                                  style: text.bodyMedium?.copyWith(
+                                    color: scheme.onTertiaryContainer,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ).stagger(idx++),
+                    ],
                     const SizedBox(height: 8),
                     if (tableLabel != null) ...[
                       Material(
@@ -231,6 +264,16 @@ class RestaurantScreen extends ConsumerWidget {
                           formatMoney(r.deliveryFee),
                           scheme.tertiary,
                         ),
+                        if (r.loyaltyPercent > 0)
+                          _InfoChip(
+                            Icons.card_giftcard,
+                            t.earnBonus(
+                              r.loyaltyPercent == r.loyaltyPercent.toInt()
+                                  ? r.loyaltyPercent.toInt().toString()
+                                  : r.loyaltyPercent.toStringAsFixed(1),
+                            ),
+                            scheme.secondary,
+                          ),
                       ],
                     ).stagger(idx++),
                     if (r.allowsReservations) ...[
@@ -249,6 +292,17 @@ class RestaurantScreen extends ConsumerWidget {
                         lng: r.lng!,
                       ).stagger(idx++),
                     ],
+                    if (r.hours.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      Text(
+                        t.openingHours,
+                        style: text.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ).stagger(idx++),
+                      const SizedBox(height: 12),
+                      _OpeningHoursView(hours: r.hours).stagger(idx++),
+                    ],
                     const SizedBox(height: 20),
                     for (final entry in byCategory.entries) ...[
                       Text(
@@ -261,7 +315,9 @@ class RestaurantScreen extends ConsumerWidget {
                       for (final m in entry.value)
                         _MenuTile(
                           m,
-                          restaurantOpen: r.acceptingOrders,
+                          // Allow ordering when switched on, even if closed by hours
+                          // (for pre-orders). Kitchen busy still blocks.
+                          restaurantOpen: r.isOpen && !r.kitchenBusy,
                           tableToken: tableToken,
                         ).stagger(idx++),
                       const SizedBox(height: 16),
@@ -586,6 +642,83 @@ class _StepBtn extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// Shows the weekly opening hours. Today's row is bold.
+class _OpeningHoursView extends StatelessWidget {
+  const _OpeningHoursView({required this.hours});
+
+  final List<OpeningStretch> hours;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    final text = Theme.of(context).textTheme;
+    final now = DateTime.now();
+    final today = now.weekday - 1; // Dart: Mon=1..Sun=7; the API: Mon=0
+
+    // Group stretches by weekday
+    final byDay = <int, List<OpeningStretch>>{};
+    for (final s in hours) {
+      byDay.putIfAbsent(s.weekday, () => []).add(s);
+    }
+
+    // Use a known Monday (2024-01-01 was a Monday) to format day names
+    final baseMonday = DateTime(2024, 1, 1);
+    final localeName = Localizations.localeOf(context).toLanguageTag();
+
+    return Column(
+      children: List.generate(7, (i) {
+        final stretches = byDay[i] ?? const [];
+        final isToday = i == today;
+        final dayName = DateFormat.EEEE(localeName)
+            .format(baseMonday.add(Duration(days: i)));
+
+        String label;
+        if (stretches.isEmpty) {
+          label = t.dayOff;
+        } else {
+          final parts = <String>[];
+          for (final s in stretches) {
+            if (s.opens == s.closes) {
+              parts.add(t.roundTheClock);
+            } else {
+              parts.add('${s.opens}–${s.closes}');
+            }
+          }
+          label = parts.join(', ');
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 100,
+                child: Text(
+                  dayName,
+                  style: text.bodyMedium?.copyWith(
+                    fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  label,
+                  style: text.bodyMedium?.copyWith(
+                    fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
+                    color: isToday
+                        ? null
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
 }
 
 /// animate-ui Sheet: item detail, modifiers, price, stepper.

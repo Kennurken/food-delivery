@@ -17,6 +17,7 @@ import 'admin_reservations_sheet.dart';
 import 'stop_list_sheet.dart';
 import 'billing_screen.dart';
 import 'manage_actions.dart';
+import 'admin_hours_sheet.dart';
 import 'admin_offers_sheet.dart';
 
 class AdminMenuScreen extends ConsumerWidget {
@@ -118,6 +119,11 @@ class AdminMenuScreen extends ConsumerWidget {
                           shape: AnimShape.card,
                           label: t.promo,
                           onTap: () => editPromos(context, ref, restaurantId),
+                        ),
+                        ManageAction(
+                          shape: AnimShape.bag,
+                          label: t.openingHours,
+                          onTap: () => editHours(context, ref, restaurantId),
                         ),
                         ManageAction(
                           shape: AnimShape.bell,

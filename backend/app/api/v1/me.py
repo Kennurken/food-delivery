@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, Request, status
-from sqlalchemy import select
+from pydantic import BaseModel
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import DB, CourierUser, CurrentUser
@@ -7,7 +8,7 @@ from app.core.config import settings
 from app.core.push import drop_token, register_token
 from app.core.ratelimit import limiter
 from app.core.security import hash_password, verify_password
-from app.models import Address, Favorite, Restaurant, User
+from app.models import Address, Favorite, Order, OrderStatus, Restaurant, User
 from app.models.member import RestaurantMember
 from app.schemas.address import AddressCreate, AddressOut, AddressUpdate
 from app.schemas.restaurant import RestaurantOut
@@ -197,3 +198,38 @@ def earnings_history(
         ],
         "next_before": next_before,
     }
+
+
+class ShiftIn(BaseModel):
+    on: bool
+
+
+@router.get("/shift")
+def shift(courier: CourierUser) -> dict:
+    return {"on_shift": courier.on_shift}
+
+
+@router.post("/shift")
+def set_shift(data: ShiftIn, db: DB, courier: CourierUser) -> dict:
+    """Go on or off the line.
+
+    Off the line a courier sees no new orders and can't take one. They can't go
+    off while carrying one: an order with nobody answering for it is worse than
+    a courier who ends their day a little late.
+    """
+    if not data.on:
+        carrying = db.scalar(
+            select(func.count(Order.id)).where(
+                Order.courier_id == courier.id,
+                Order.status.in_(
+                    (OrderStatus.confirmed, OrderStatus.preparing, OrderStatus.on_the_way)
+                ),
+            )
+        )
+        if carrying:
+            raise HTTPException(
+                status.HTTP_409_CONFLICT, "Finish your current orders before going off the line"
+            )
+    courier.on_shift = data.on
+    db.commit()
+    return {"on_shift": courier.on_shift}

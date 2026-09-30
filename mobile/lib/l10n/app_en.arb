@@ -658,5 +658,7 @@
   "venueReply": "Reply from the venue",
   "reviewGuest": "Guest",
   "replyToReview": "Reply",
-  "noReviewsYet": "No reviews yet"
+  "noReviewsYet": "No reviews yet",
+  "onTheLine": "On the line",
+  "offTheLineHint": "You are off the line: new orders are hidden"
 }

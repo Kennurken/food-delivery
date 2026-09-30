@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, String, func
+from sqlalchemy import Boolean, DateTime, Enum, Float, String, func, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -31,6 +31,9 @@ class User(Base):
     last_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     last_heading: Mapped[float | None] = mapped_column(Float, nullable=True)
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # A courier chooses when they take orders. True by default so couriers who
+    # predate shifts keep seeing orders until they switch off.
+    on_shift: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
 
     orders: Mapped[list["Order"]] = relationship(back_populates="user", foreign_keys="Order.user_id")  # noqa: F821
     addresses: Mapped[list["Address"]] = relationship(  # noqa: F821

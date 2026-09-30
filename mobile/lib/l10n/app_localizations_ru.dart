@@ -1318,4 +1318,10 @@ class L10nRu extends L10n {
 
   @override
   String get noReviewsYet => 'Отзывов пока нет';
+
+  @override
+  String get onTheLine => 'На линии';
+
+  @override
+  String get offTheLineHint => 'Вы не на линии: новые заказы скрыты';
 }

@@ -1,6 +1,6 @@
 """Platform-level admin: overview, plans, staff, audit. No fake MRR."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from pydantic import BaseModel, EmailStr
@@ -17,12 +17,13 @@ from app.core.features import (
     plan_of,
     public_plans,
 )
-from app.models import MenuItem, Order, Restaurant, User
+from app.models import MenuItem, Order, Restaurant, User, UserRole
 from app.models.audit import AuditLog
 from app.models.feature_flag import FeatureOverride
 from app.models.floor_plan import Floor
 from app.models.member import RestaurantMember
 from app.services import platform_directory
+from app.services.schedule import utcnow
 
 router = APIRouter(tags=["platform"])
 
@@ -69,9 +70,18 @@ def overview(db: DB, _: AdminUser) -> dict:
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)  # noqa: DTZ005
     orders_today = db.scalar(select(func.count()).select_from(Order).where(Order.created_at >= today)) or 0
     plan_rows = db.execute(select(Restaurant.plan_code, func.count()).group_by(Restaurant.plan_code)).all()
+    # On the line and heard from recently: a courier who switched on and closed
+    # the app is not someone an order can be handed to.
+    lately = utcnow() - timedelta(minutes=15)
+    couriers_online = db.scalar(
+        select(func.count()).select_from(User).where(
+            User.role == UserRole.courier, User.on_shift.is_(True), User.last_seen_at >= lately
+        )
+    ) or 0
     return {
         "restaurants": restaurants,
         "open": open_n,
+        "couriers_online": int(couriers_online),
         "orders_today": orders_today,
         "plans": {code: n for code, n in plan_rows},
         "billing": "stripe" if public_config()["card"] else "unconfigured",

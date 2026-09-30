@@ -662,6 +662,8 @@ def ensure_hours_loyalty_schema() -> None:
             ("reviewed_at", "TIMESTAMP"),
         ],
     }
+    flag_on = "1" if engine.dialect.name == "sqlite" else "TRUE"
+    wanted["users"] = [("on_shift", f"BOOLEAN NOT NULL DEFAULT {flag_on}")]
     with engine.begin() as conn:
         for table, columns in wanted.items():
             have = _columns(conn, table)

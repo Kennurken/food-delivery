@@ -26,6 +26,8 @@ class UserOut(BaseModel):
     # A table session has no mailbox and no password: the app uses this to stop
     # offering account settings that cannot mean anything.
     is_guest: bool = False
+    # Meaningful for couriers: whether they are taking orders.
+    on_shift: bool = True
 
 
 class UserUpdate(BaseModel):

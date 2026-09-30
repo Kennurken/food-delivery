@@ -67,8 +67,10 @@ def my_orders(
 
 
 @router.get("/available", response_model=list[OrderOut])
-def available_orders(db: DB, _: CourierUser) -> list[Order]:
-    """Unassigned orders a courier can pick up."""
+def available_orders(db: DB, courier: CourierUser) -> list[Order]:
+    """Unassigned orders a courier can pick up — none while they are off the line."""
+    if not courier.on_shift:
+        return []
     stmt = (
         select(Order)
         .where(

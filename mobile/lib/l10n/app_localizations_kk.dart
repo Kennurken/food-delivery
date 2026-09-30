@@ -1316,4 +1316,10 @@ class L10nKk extends L10n {
 
   @override
   String get noReviewsYet => 'Әзірге пікір жоқ';
+
+  @override
+  String get onTheLine => 'Желіде';
+
+  @override
+  String get offTheLineHint => 'Сіз желіде емессіз: жаңа тапсырыстар жасырын';
 }

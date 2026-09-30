@@ -1,3 +1,5 @@
+import '../data/shift_repository.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -73,8 +75,38 @@ class _AvailableTab extends ConsumerWidget {
     }
   }
 
+  Future<void> _toggle(BuildContext context, WidgetRef ref, bool on) async {
+    try {
+      await ref.read(shiftProvider.notifier).set(on);
+      ref.invalidate(availableOrdersProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage(e))));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.l10n;
+    // Until the server answers, assume on: that is what every courier was
+    // before shifts, and a switch that flashes off would be a lie.
+    final on = ref.watch(shiftProvider).value ?? true;
+    return Column(
+      children: [
+        SwitchListTile(
+          title: Text(t.onTheLine),
+          subtitle: on ? null : Text(t.offTheLineHint),
+          value: on,
+          onChanged: (v) => _toggle(context, ref, v),
+        ),
+        Expanded(child: _list(context, ref)),
+      ],
+    );
+  }
+
+  Widget _list(BuildContext context, WidgetRef ref) {
     return _OrderList(
       orders: ref.watch(availableOrdersProvider),
       empty: EmptyState(

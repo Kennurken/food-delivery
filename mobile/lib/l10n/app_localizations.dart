@@ -2546,6 +2546,18 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'No reviews yet'**
   String get noReviewsYet;
+
+  /// No description provided for @onTheLine.
+  ///
+  /// In en, this message translates to:
+  /// **'On the line'**
+  String get onTheLine;
+
+  /// No description provided for @offTheLineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You are off the line: new orders are hidden'**
+  String get offTheLineHint;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

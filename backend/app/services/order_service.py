@@ -423,6 +423,8 @@ def apply_stripe_event(db: Session, event: dict) -> Order | None:
 
 
 def accept_order(db: Session, courier: User, order: Order) -> Order:
+    if not courier.on_shift:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Go on the line to take orders")
     locked = db.scalar(select(Order).where(Order.id == order.id).with_for_update())
     if locked is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")

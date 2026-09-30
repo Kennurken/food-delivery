@@ -501,5 +501,7 @@
   "venueReply": "Ответ заведения",
   "reviewGuest": "Гость",
   "replyToReview": "Ответить",
-  "noReviewsYet": "Отзывов пока нет"
+  "noReviewsYet": "Отзывов пока нет",
+  "onTheLine": "На линии",
+  "offTheLineHint": "Вы не на линии: новые заказы скрыты"
 }

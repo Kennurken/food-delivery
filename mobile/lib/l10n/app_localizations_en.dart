@@ -1319,4 +1319,10 @@ class L10nEn extends L10n {
 
   @override
   String get noReviewsYet => 'No reviews yet';
+
+  @override
+  String get onTheLine => 'On the line';
+
+  @override
+  String get offTheLineHint => 'You are off the line: new orders are hidden';
 }

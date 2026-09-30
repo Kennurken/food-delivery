@@ -501,5 +501,7 @@
   "venueReply": "Мекеменің жауабы",
   "reviewGuest": "Қонақ",
   "replyToReview": "Жауап беру",
-  "noReviewsYet": "Әзірге пікір жоқ"
+  "noReviewsYet": "Әзірге пікір жоқ",
+  "onTheLine": "Желіде",
+  "offTheLineHint": "Сіз желіде емессіз: жаңа тапсырыстар жасырын"
 }

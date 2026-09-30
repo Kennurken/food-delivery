@@ -1387,4 +1387,22 @@ class L10nKk extends L10n {
   String billingGrace(int days) {
     return 'Төлем мерзімі өтті. Тапсырыстар $days күннен кейін жабылады — ашық қалуы үшін төлеңіз.';
   }
+
+  @override
+  String get couriers => 'Курьерлер';
+
+  @override
+  String get noCouriersYet =>
+      'Әзірге курьер жоқ. Қосымшада тіркелген адамды қосыңыз.';
+
+  @override
+  String get courierEmailHint => 'Курьер поштасы';
+
+  @override
+  String get courierMustRegister =>
+      'Курьер алдымен қосымшада тіркелуі керек. Содан кейін оның поштасын осында қосыңыз.';
+
+  @override
+  String get removeCourierAsk =>
+      'Бұл курьерді алып тастау керек пе? Ол сіздің тапсырыстарыңызды көрмейді.';
 }

@@ -22,7 +22,7 @@ from app.models.audit import AuditLog
 from app.models.feature_flag import FeatureOverride
 from app.models.floor_plan import Floor
 from app.models.member import RestaurantMember
-from app.services import platform_directory
+from app.services import couriers, platform_directory
 from app.services.schedule import utcnow
 
 router = APIRouter(tags=["platform"])
@@ -172,6 +172,8 @@ def add_staff(restaurant_id: int, data: StaffAdd, db: DB, user: CurrentUser, req
     else:
         member = RestaurantMember(user_id=person.id, restaurant_id=restaurant_id, role=data.role)
         db.add(member)
+    if data.role == couriers.COURIER_ROLE:
+        couriers.hire(person)
     audit.record(
         db,
         actor_id=user.id,
@@ -196,7 +198,13 @@ def remove_staff(restaurant_id: int, user_id: int, db: DB, user: CurrentUser) ->
     )
     if not member:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Not a member")
+    was_courier = member.role == couriers.COURIER_ROLE
     db.delete(member)
+    db.flush()
+    if was_courier:
+        person = db.get(User, user_id)
+        if person:
+            couriers.release(db, person)
     db.commit()
 
 

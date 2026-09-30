@@ -18,7 +18,7 @@ from app.schemas.order import (
     OrderStatusUpdate,
 )
 from app.services import chat as chat_service
-from app.services import order_service
+from app.services import couriers, order_service
 from app.services.schedule import utcnow
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -85,6 +85,9 @@ def available_orders(db: DB, courier: CourierUser) -> list[Order]:
         )
         .order_by(Order.created_at)
     )
+    venues = couriers.scoped_venues(db, courier)
+    if venues is not None:
+        stmt = stmt.where(Order.restaurant_id.in_(venues))
     return list(db.scalars(stmt))
 
 

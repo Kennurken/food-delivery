@@ -1389,4 +1389,22 @@ class L10nEn extends L10n {
   String billingGrace(int days) {
     return 'Payment overdue. Orders will close in $days days — pay to keep them open.';
   }
+
+  @override
+  String get couriers => 'Couriers';
+
+  @override
+  String get noCouriersYet =>
+      'No couriers yet. Add someone who has registered in the app.';
+
+  @override
+  String get courierEmailHint => 'Courier email';
+
+  @override
+  String get courierMustRegister =>
+      'The courier must register in the app first. Then add their email here.';
+
+  @override
+  String get removeCourierAsk =>
+      'Remove this courier? They will stop seeing your orders.';
 }

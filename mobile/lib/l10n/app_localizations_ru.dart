@@ -1389,4 +1389,22 @@ class L10nRu extends L10n {
   String billingGrace(int days) {
     return 'Оплата просрочена. Заказы закроются через $days дн. — оплатите, чтобы они продолжали приходить.';
   }
+
+  @override
+  String get couriers => 'Курьеры';
+
+  @override
+  String get noCouriersYet =>
+      'Курьеров пока нет. Добавьте того, кто уже зарегистрировался в приложении.';
+
+  @override
+  String get courierEmailHint => 'Почта курьера';
+
+  @override
+  String get courierMustRegister =>
+      'Курьер должен сначала зарегистрироваться в приложении. Потом добавьте его почту здесь.';
+
+  @override
+  String get removeCourierAsk =>
+      'Убрать этого курьера? Он перестанет видеть ваши заказы.';
 }

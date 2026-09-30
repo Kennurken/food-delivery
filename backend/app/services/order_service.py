@@ -27,7 +27,7 @@ from app.models.floor_plan import FloorObject
 from app.models.idempotency import IdempotencyRecord
 from app.models.member import RestaurantMember
 from app.schemas.order import OrderCreate, OrderOut
-from app.services import delivery_pricing, kitchen_load, loyalty
+from app.services import couriers, delivery_pricing, kitchen_load, loyalty
 from app.services import hours as opening_hours
 from app.services import promo as promo_service
 from app.services.schedule import due_for_courier, parse_slot, utcnow
@@ -65,7 +65,7 @@ def audience(db: Session, order: Order, *, pool: bool = False) -> set[int]:
         and order.status in COURIER_PICKABLE
         and due_for_courier(order.scheduled_for)
     ):
-        targets.update(db.scalars(select(User.id).where(User.role == UserRole.courier)))
+        targets.update(couriers.pool_courier_ids(db))
     return targets
 
 
@@ -435,6 +435,8 @@ def accept_order(db: Session, courier: User, order: Order) -> Order:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")
     if not _is_delivery(locked):
         raise HTTPException(status.HTTP_409_CONFLICT, "Not a delivery order")
+    if not couriers.may_take(db, courier, locked):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Not a delivery for your restaurant")
     if locked.courier_id is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Order already taken")
     if locked.status not in COURIER_PICKABLE:

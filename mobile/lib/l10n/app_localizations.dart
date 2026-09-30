@@ -2672,6 +2672,36 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Payment overdue. Orders will close in {days} days — pay to keep them open.'**
   String billingGrace(int days);
+
+  /// No description provided for @couriers.
+  ///
+  /// In en, this message translates to:
+  /// **'Couriers'**
+  String get couriers;
+
+  /// No description provided for @noCouriersYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No couriers yet. Add someone who has registered in the app.'**
+  String get noCouriersYet;
+
+  /// No description provided for @courierEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier email'**
+  String get courierEmailHint;
+
+  /// No description provided for @courierMustRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'The courier must register in the app first. Then add their email here.'**
+  String get courierMustRegister;
+
+  /// No description provided for @removeCourierAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this courier? They will stop seeing your orders.'**
+  String get removeCourierAsk;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

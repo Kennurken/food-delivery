@@ -145,3 +145,74 @@ class TestBonuses:
         assert "Оплатить бонусами" not in web.get("/checkout/").text
         with SessionLocal() as db:
             assert db.get(Restaurant, 1).loyalty_percent == 0
+
+
+class TestTheLiveOrderPage:
+    """The order page is where a website customer waits, so it has to be enough
+    to finish the delivery: the handover code, fresh status, no scripts."""
+
+    def _delivery(self, client, web):
+        _fill(web, _menu(client)[0])
+        _signed_up(web)
+        return _placed(web)
+
+    def _progress(self, client, admin, courier, oid, *steps):
+        client.patch(f"/api/v1/orders/{oid}/status", json={"status": "confirmed"}, headers=admin)
+        client.post(f"/api/v1/orders/{oid}/accept", headers=courier)
+        for step in steps:
+            if step == "preparing":
+                client.patch(f"/api/v1/orders/{oid}/status", json={"status": "preparing"}, headers=admin)
+            else:
+                client.post(f"/api/v1/orders/{oid}/advance", headers=courier)
+
+    def test_a_live_order_refreshes_itself(self, client, web):
+        order = self._delivery(client, web)
+
+        assert '<meta http-equiv="refresh"' in web.get(f"/orders/{order.id}/").text
+
+    def test_no_code_before_a_courier_has_it(self, client, web):
+        order = self._delivery(client, web)
+
+        assert "Код для курьера" not in web.get(f"/orders/{order.id}/").text
+
+    def test_the_customer_sees_the_code_once_a_courier_takes_it(self, client, web, admin, courier):
+        order = self._delivery(client, web)
+        self._progress(client, admin, courier, order.id, "preparing", "advance")
+        client.post("/api/v1/courier/location", json={"lat": 43.24, "lng": 76.9}, headers=courier)
+
+        page = web.get(f"/orders/{order.id}/").text
+
+        with SessionLocal() as db:
+            code = db.get(Order, order.id).handover_code
+        assert code and f'class="code">{code}<' in page
+        assert "Курьер на связи" in page
+
+    def test_the_code_closes_the_delivery(self, client, web, admin, courier):
+        """The end-to-end reason the code is on the page."""
+        order = self._delivery(client, web)
+        self._progress(client, admin, courier, order.id, "preparing", "advance")
+        code = re.search(r'class="code">(\d+)<', web.get(f"/orders/{order.id}/").text).group(1)
+
+        r = client.post(f"/api/v1/orders/{order.id}/advance", json={"code": code}, headers=courier)
+
+        assert r.status_code == 200 and r.json()["status"] == "delivered"
+
+    def test_a_finished_order_stops_refreshing_and_hides_the_code(self, client, web, admin, courier):
+        order = self._delivery(client, web)
+        self._progress(client, admin, courier, order.id, "preparing", "advance")
+        code = re.search(r'class="code">(\d+)<', web.get(f"/orders/{order.id}/").text).group(1)
+        client.post(f"/api/v1/orders/{order.id}/advance", json={"code": code}, headers=courier)
+
+        page = web.get(f"/orders/{order.id}/").text
+
+        assert '<meta http-equiv="refresh"' not in page
+        assert "Код для курьера" not in page
+
+    def test_nobody_else_sees_it(self, client, web, admin, courier):
+        order = self._delivery(client, web)
+        self._progress(client, admin, courier, order.id, "preparing", "advance")
+
+        stranger = TestClient(app)
+        _signed_up(stranger)
+
+        assert stranger.get(f"/orders/{order.id}/").status_code == 404

@@ -27,10 +27,11 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db
 from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password
-from app.models import City, MenuItem, Order, Restaurant, User, UserRole
+from app.models import City, MenuItem, Order, OrderStatus, Restaurant, User, UserRole
 from app.schemas.order import OrderCreate
 from app.services import cities, hours, loyalty, offers, order_service
 from app.services import reviews as review_service
+from app.services.schedule import utcnow
 from app.web import cart as cart_store
 from app.web import session as web_session
 
@@ -679,6 +680,14 @@ def order_page(order_id: int, request: Request, db: Session = DB) -> Response:
     if order is None or order.user_id != user.id:
         # Someone else's ticket looks exactly like one that never existed.
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No such order")
+    live = order.status in (
+        OrderStatus.pending,
+        OrderStatus.confirmed,
+        OrderStatus.preparing,
+        OrderStatus.on_the_way,
+    )
+    seen = order.courier_seen_at
+    minutes = None if seen is None else max(0, int((utcnow() - seen).total_seconds() // 60))
     return _render(
         request,
         "order.html",
@@ -686,6 +695,17 @@ def order_page(order_id: int, request: Request, db: Session = DB) -> Response:
             "title": f"Заказ #{order.id}",
             "description": "Статус заказа.",
             "order": order,
+            # No scripts on this site, so a live ticket refreshes itself.
+            "auto_refresh": live,
+            # The four digits the courier asks for at the door. Without them on
+            # this page a delivery ordered from the site could never be closed.
+            # Only the owner sees the page, and the courier's own API never shows it.
+            "handover_code": (
+                order.handover_code
+                if order.channel == "delivery" and order.courier_id is not None and live
+                else None
+            ),
+            "courier_minutes": minutes if order.status == OrderStatus.on_the_way else None,
         },
         db=db,
     )

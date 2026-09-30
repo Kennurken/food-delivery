@@ -30,7 +30,7 @@ from app.schemas.admin import (
     RestaurantUpdate,
 )
 from app.schemas.restaurant import MenuItemOut, RestaurantDetail, RestaurantOut
-from app.services import cities
+from app.services import cities, menu_import
 from app.services import restaurant_stats as restaurant_stats_service
 from app.services.restaurant_view import to_detail, to_out
 from app.services.slugs import unique_slug
@@ -147,6 +147,18 @@ def create_menu_item(
     db.commit()
     db.refresh(item)
     return item
+
+
+class MenuImportIn(BaseModel):
+    text: str = Field(min_length=1, max_length=100_000)
+    dry_run: bool = True
+
+
+@router.post("/restaurants/{restaurant_id}/menu/import")
+def import_menu(restaurant_id: int, data: MenuImportIn, db: DB, user: CurrentUser) -> dict:
+    """Rows pasted from a spreadsheet: a preview first (dry_run), then the write."""
+    require_restaurant(db, user, restaurant_id, "menu.write")
+    return menu_import.run(db, restaurant_id, data.text, apply=not data.dry_run)
 
 
 @router.patch("/menu/{item_id}", response_model=MenuItemOut)

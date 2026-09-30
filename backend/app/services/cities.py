@@ -26,6 +26,8 @@ RESERVED_SLUGS = frozenset(
         "delivery",
         "docs",
         "health",
+        "kk",
+        "lang",
         "login",
         "logout",
         "openapi.json",

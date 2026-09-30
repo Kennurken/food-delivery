@@ -32,6 +32,8 @@ def list_cities(db: DB) -> list:
 class CityAdminOut(CityOut):
     id: int
     name_in: str | None = None
+    name_kk: str | None = None
+    name_in_kk: str | None = None
     utc_offset_min: int
     is_active: bool
     sort_order: int
@@ -43,6 +45,8 @@ class CityCreate(BaseModel):
     slug: str = Field(pattern=r"^[a-z][a-z0-9-]{1,39}$")
     name: str = Field(min_length=1, max_length=80)
     name_in: str | None = Field(default=None, max_length=80)
+    name_kk: str | None = Field(default=None, max_length=80)
+    name_in_kk: str | None = Field(default=None, max_length=80)
     lat: float | None = Field(default=None, ge=-90, le=90)
     lng: float | None = Field(default=None, ge=-180, le=180)
     utc_offset_min: int = Field(default=300, ge=-720, le=840)
@@ -55,6 +59,8 @@ class CityUpdate(BaseModel):
     # a different address is a new city.
     name: str | None = Field(default=None, min_length=1, max_length=80)
     name_in: str | None = Field(default=None, max_length=80)
+    name_kk: str | None = Field(default=None, max_length=80)
+    name_in_kk: str | None = Field(default=None, max_length=80)
     lat: float | None = Field(default=None, ge=-90, le=90)
     lng: float | None = Field(default=None, ge=-180, le=180)
     utc_offset_min: int | None = Field(default=None, ge=-720, le=840)

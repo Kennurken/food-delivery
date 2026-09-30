@@ -9,7 +9,7 @@
   "servesCuisine": {{ restaurant.cuisine|tojson }},
   "image": {{ (restaurant.image_url or '')|tojson }},
   "url": {{ canonical|tojson }},
-  "address": {"@type": "PostalAddress", "addressLocality": {{ (city.name if city else "")|tojson }}, "addressCountry": "KZ"},
+  "address": {"@type": "PostalAddress", "addressLocality": {{ (cname(city) if city else "")|tojson }}, "addressCountry": "KZ"},
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": {{ '%.1f'|format(restaurant.rating) }},
@@ -20,7 +20,7 @@
     {% for r in reviews[:5] %}
     {
       "@type": "Review",
-      "author": {"@type": "Person", "name": {{ (r.author or "Гость")|tojson }}},
+      "author": {"@type": "Person", "name": {{ (r.author or _("Гость"))|tojson }}},
       "reviewRating": {"@type": "Rating", "ratingValue": {{ r.rating }}, "bestRating": 5},
       "reviewBody": {{ r.text|tojson }}
     }{% if not loop.last %},{% endif %}
@@ -41,24 +41,24 @@
     <img class="venue-photo" src="{{ restaurant.image_url }}" alt="{{ restaurant.name }}" width="520" height="340">
     {% endif %}
     <div>
-      <p class="kicker">{{ restaurant.cuisine }}{% if city %} · {{ city.name }}{% endif %}</p>
+      <p class="kicker">{{ restaurant.cuisine }}{% if city %} · {{ cname(city) }}{% endif %}</p>
       <h1>{{ restaurant.name }}</h1>
       {% if restaurant.description %}<p class="lede">{{ restaurant.description }}</p>{% endif %}
       <p class="meta">
         <span class="rate">★ {{ '%.1f'|format(restaurant.rating) }}</span>
-        <span class="muted">{{ restaurant.rating_count }} оценок</span>
-        <span class="muted">· {{ restaurant.delivery_time_min }} мин</span>
-        <span class="muted">· доставка от {{ restaurant.delivery_fee|round|int }} ₸</span>
+        <span class="muted">{{ _("%(n)s оценок", n=restaurant.rating_count) }}</span>
+        <span class="muted">· {{ _("%(n)s мин", n=restaurant.delivery_time_min) }}</span>
+        <span class="muted">{{ _("· доставка от %(fee)s ₸", fee=restaurant.delivery_fee|round|int) }}</span>
       </p>
       {% if not restaurant.is_open %}
-      <p class="notice">Сейчас закрыто. Меню и цены актуальны.</p>
+      <p class="notice">{{ _("Сейчас закрыто. Меню и цены актуальны.") }}</p>
       {% endif %}
       {% if hours_note %}
-      <p class="notice hours-notice">{{ hours_note }} · Можно заказать заранее — к открытию</p>
+      <p class="notice hours-notice">{{ hours_note }} {{ _("· Можно заказать заранее — к открытию") }}</p>
       {% endif %}
       <div class="hero-actions">
-        <a class="btn" href="#menu">Смотреть меню</a>
-        {% if cart_count %}<a class="btn ghost" href="/cart/">В корзине · {{ cart_count }}</a>{% endif %}
+        <a class="btn" href="#menu">{{ _("Смотреть меню") }}</a>
+        {% if cart_count %}<a class="btn ghost" href="/cart/">{{ _("В корзине · %(n)s", n=cart_count) }}</a>{% endif %}
       </div>
     </div>
   </div>
@@ -66,7 +66,7 @@
 
 {% if hours_week %}
 <section class="wrap block hours-section" id="hours">
-  <h2>Часы работы</h2>
+  <h2>{{ _("Часы работы") }}</h2>
   <ul class="hours-list">
     {% for day, times in hours_week %}
     <li><span class="hours-day">{{ day }}</span><span class="hours-times">{{ times }}</span></li>
@@ -77,19 +77,19 @@
 
 {% if reviews %}
 <section class="wrap block reviews" id="reviews">
-  <h2>Отзывы</h2>
+  <h2>{{ _("Отзывы") }}</h2>
   {% for r in reviews %}
   <article class="review">
-    <p class="review-head"><strong>{{ r.author or "Гость" }}</strong> <span class="rate">{{ "★" * r.rating }}</span></p>
+    <p class="review-head"><strong>{{ r.author or _("Гость") }}</strong> <span class="rate">{{ "★" * r.rating }}</span></p>
     <p>{{ r.text }}</p>
-    {% if r.reply %}<p class="review-reply"><strong>Ответ заведения:</strong> {{ r.reply }}</p>{% endif %}
+    {% if r.reply %}<p class="review-reply"><strong>{{ _("Ответ заведения:") }}</strong> {{ r.reply }}</p>{% endif %}
   </article>
   {% endfor %}
 </section>
 {% endif %}
 
 <section class="wrap block" id="menu">
-  <h2>Меню{% if item_count %} · {{ item_count }} блюд{% endif %}</h2>
+  <h2>{{ _("Меню") }}{% if item_count %} · {{ _("%(n)s блюд", n=item_count) }}{% endif %}</h2>
   {% for section in sections %}
   <h3 class="section">{{ section.name }}</h3>
   <div class="grid cards">
@@ -107,7 +107,7 @@
           <form method="post" action="/cart/add">
             <input type="hidden" name="restaurant_id" value="{{ restaurant.id }}">
             <input type="hidden" name="item_id" value="{{ item.id }}">
-            <button class="chip add" type="submit">В корзину</button>
+            <button class="chip add" type="submit">{{ _("В корзину") }}</button>
           </form>
           {% endif %}
         </div>
@@ -116,7 +116,7 @@
     {% endfor %}
   </div>
   {% else %}
-  <p class="muted">Меню обновляется.</p>
+  <p class="muted">{{ _("Меню обновляется.") }}</p>
   {% endfor %}
 </section>
 {% endblock %}

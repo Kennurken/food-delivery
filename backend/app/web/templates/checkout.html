@@ -2,67 +2,67 @@
 
 {% block content %}
 <section class="wrap block">
-  <h1>Оформление заказа</h1>
+  <h1>{{ _("Оформление заказа") }}</h1>
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
 
   <div class="checkout">
     <form method="post" action="/checkout/" class="form">
       <fieldset>
-        <legend>Как получить</legend>
+        <legend>{{ _("Как получить") }}</legend>
         <label class="radio">
           <input type="radio" name="channel" value="delivery" {% if channel != 'pickup' %}checked{% endif %}>
-          Доставка
+          {{ _("Доставка") }}
         </label>
         <label class="radio">
           <input type="radio" name="channel" value="pickup" {% if channel == 'pickup' %}checked{% endif %}>
-          Самовывоз
+          {{ _("Самовывоз") }}
         </label>
       </fieldset>
 
-      <label>Адрес доставки
-        <input type="text" name="address" value="{{ address or '' }}" placeholder="Улица, дом, квартира">
-        <span class="hint">Для самовывоза адрес не нужен. Стоимость доставки считается от расстояния.</span>
+      <label>{{ _("Адрес доставки") }}
+        <input type="text" name="address" value="{{ address or '' }}" placeholder="{{ _("Улица, дом, квартира") }}">
+        <span class="hint">{{ _("Для самовывоза адрес не нужен. Стоимость доставки считается от расстояния.") }}</span>
       </label>
 
-      <label>Комментарий
-        <input type="text" name="comment" value="{{ comment or '' }}" maxlength="500" placeholder="Код домофона, этаж">
+      <label>{{ _("Комментарий") }}
+        <input type="text" name="comment" value="{{ comment or '' }}" maxlength="500" placeholder="{{ _("Код домофона, этаж") }}">
       </label>
 
-      <label>Промокод
+      <label>{{ _("Промокод") }}
         <input type="text" name="promo_code" value="{{ promo_code or '' }}" maxlength="24">
       </label>
 
       <fieldset>
-        <legend>Чаевые курьеру</legend>
-        <label class="radio"><input type="radio" name="tip" value="0" {% if not tip %}checked{% endif %}> Без чаевых</label>
+        <legend>{{ _("Чаевые курьеру") }}</legend>
+        <label class="radio"><input type="radio" name="tip" value="0" {% if not tip %}checked{% endif %}> {{ _("Без чаевых") }}</label>
         {% for amount in tips %}
         <label class="radio"><input type="radio" name="tip" value="{{ amount }}" {% if tip == amount %}checked{% endif %}> {{ amount }} ₸</label>
         {% endfor %}
-        <span class="hint">Только для доставки. Курьер получает всю сумму.</span>
+        <span class="hint">{{ _("Только для доставки. Курьер получает всю сумму.") }}</span>
       </fieldset>
 
       {% if bonus_usable %}
       <label class="radio">
         <input type="checkbox" name="use_loyalty" value="1" {% if use_loyalty %}checked{% endif %}>
-        Оплатить бонусами (до {{ bonus_usable }} ₸, на счёте {{ bonus_balance }} ₸)
+        {{ _("Оплатить бонусами (до %(usable)s ₸, на счёте %(held)s ₸)", usable=bonus_usable, held=bonus_balance) }}
       </label>
       {% endif %}
 
       <fieldset>
-        <legend>Оплата</legend>
+        <legend>{{ _("Оплата") }}</legend>
         <label class="radio">
           <input type="radio" name="pay_method" value="cash" {% if pay_method != 'online' %}checked{% endif %}>
-          Наличными при получении
+          {{ _("Наличными при получении") }}
         </label>
         <label class="radio{% if not card_enabled %} off{% endif %}">
           <input type="radio" name="pay_method" value="online" {% if pay_method == 'online' %}checked{% endif %}
                  {% if not card_enabled %}disabled{% endif %}>
-          Картой онлайн
-          {% if not card_enabled %}<span class="hint">Сейчас недоступно</span>{% endif %}
+          {{ _("Картой онлайн") }}
+          {% if not card_enabled %}<span class="hint">{{ _("Сейчас недоступно") }}</span>{% endif %}
         </label>
       </fieldset>
 
-      <button class="btn" type="submit">Подтвердить заказ</button>
+      <button class="btn" type="submit">{{ _("Подтвердить заказ") }}</button>
     </form>
 
     <aside class="summary">
@@ -74,10 +74,10 @@
       </div>
       {% endfor %}
       <div class="total-row">
-        <span>Блюда</span><strong>{{ subtotal|round|int }} ₸</strong>
+        <span>{{ _("Блюда") }}</span><strong>{{ subtotal|round|int }} ₸</strong>
       </div>
-      <p class="muted">Доставка добавится после проверки адреса.</p>
-      <a class="under" href="/cart/">Изменить состав</a>
+      <p class="muted">{{ _("Доставка добавится после проверки адреса.") }}</p>
+      <a class="under" href="/cart/">{{ _("Изменить состав") }}</a>
     </aside>
   </div>
 </section>

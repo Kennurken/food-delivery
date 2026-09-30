@@ -5,10 +5,10 @@
 {% block content %}
 <section class="wrap block narrow">
   <p class="kicker">{{ order.restaurant_name }}</p>
-  <h1>Заказ #{{ order.id }}</h1>
+  <h1>{{ _("Заказ #%(id)s", id=order.id) }}</h1>
 
   <ol class="track">
-    {% set steps = [('pending','Принят'),('confirmed','Подтверждён'),('preparing','Готовится'),('on_the_way','В пути'),('delivered','Доставлен')] %}
+    {% set steps = [('pending',_('Принят')),('confirmed',_('Подтверждён')),('preparing',_('Готовится')),('on_the_way',_('В пути')),('delivered',_('Доставлен'))] %}
     {% set order_index = {'pending':0,'confirmed':1,'preparing':2,'on_the_way':3,'delivered':4,'cancelled':-1} %}
     {% set now = order_index.get(order.status.value, 0) %}
     {% for code, label in steps %}
@@ -16,13 +16,13 @@
     {% endfor %}
   </ol>
   {% if handover_code %}
-  <p class="notice">Код для курьера: <strong class="code">{{ handover_code }}</strong>. Назовите его, когда получите заказ.</p>
+  <p class="notice">{{ _('Код для курьера: <strong class="code">%(code)s</strong>. Назовите его, когда получите заказ.', code=handover_code) }}</p>
   {% endif %}
   {% if courier_minutes is not none %}
-  <p class="muted">Курьер на связи{% if courier_minutes %} · {{ courier_minutes }} мин назад{% endif %}</p>
+  <p class="muted">{{ _("Курьер на связи") }}{% if courier_minutes %} · {{ _("%(n)s мин назад", n=courier_minutes) }}{% endif %}</p>
   {% endif %}
   {% if order.status.value == 'cancelled' %}
-  <p class="error">Заказ отменён.</p>
+  <p class="error">{{ _("Заказ отменён.") }}</p>
   {% endif %}
 
   <div class="lines">
@@ -37,25 +37,25 @@
     {% endfor %}
   </div>
 
-  <div class="total-row small"><span>Блюда</span><span>{{ order.subtotal|round|int }} ₸</span></div>
-  {% if order.discount %}<div class="total-row small"><span>Скидка</span><span>−{{ order.discount|round|int }} ₸</span></div>{% endif %}
-  <div class="total-row small"><span>Доставка</span><span>{{ order.delivery_fee|round|int }} ₸</span></div>
-  {% if order.tip %}<div class="total-row small"><span>Чаевые курьеру</span><span>{{ order.tip|round|int }} ₸</span></div>{% endif %}
-  {% if order.loyalty_spent %}<div class="total-row small"><span>Оплачено бонусами</span><span>−{{ order.loyalty_spent|round|int }} ₸</span></div>{% endif %}
-  <div class="total-row"><span>Итого</span><strong>{{ order.total|round|int }} ₸</strong></div>
+  <div class="total-row small"><span>{{ _("Блюда") }}</span><span>{{ order.subtotal|round|int }} ₸</span></div>
+  {% if order.discount %}<div class="total-row small"><span>{{ _("Скидка") }}</span><span>−{{ order.discount|round|int }} ₸</span></div>{% endif %}
+  <div class="total-row small"><span>{{ _("Доставка") }}</span><span>{{ order.delivery_fee|round|int }} ₸</span></div>
+  {% if order.tip %}<div class="total-row small"><span>{{ _("Чаевые курьеру") }}</span><span>{{ order.tip|round|int }} ₸</span></div>{% endif %}
+  {% if order.loyalty_spent %}<div class="total-row small"><span>{{ _("Оплачено бонусами") }}</span><span>−{{ order.loyalty_spent|round|int }} ₸</span></div>{% endif %}
+  <div class="total-row"><span>{{ _("Итого") }}</span><strong>{{ order.total|round|int }} ₸</strong></div>
 
   <p class="muted">
-    Оплата: {% if order.pay_method == 'online' %}картой{% else %}наличными{% endif %} ·
-    {% if order.pay_status == 'paid' %}оплачен{% elif order.pay_status == 'collected' %}деньги получены{% elif order.pay_status == 'refunded' %}возвращён{% else %}не оплачен{% endif %}
+    {{ _("Оплата:") }} {% if order.pay_method == 'online' %}{{ _("картой") }}{% else %}{{ _("наличными") }}{% endif %} ·
+    {% if order.pay_status == 'paid' %}{{ _("оплачен") }}{% elif order.pay_status == 'collected' %}{{ _("деньги получены") }}{% elif order.pay_status == 'refunded' %}{{ _("возвращён") }}{% else %}{{ _("не оплачен") }}{% endif %}
   </p>
 
   {% if order.checkout_url and order.pay_status == 'pending' %}
-  <div class="hero-actions"><a class="btn" href="{{ order.checkout_url }}">Оплатить</a></div>
+  <div class="hero-actions"><a class="btn" href="{{ order.checkout_url }}">{{ _("Оплатить") }}</a></div>
   {% endif %}
 
-  <p class="muted">Код передачи и карта курьера — в приложении.</p>
+  <p class="muted">{{ _("Код передачи и карта курьера — в приложении.") }}</p>
   <div class="hero-actions">
-    <a class="btn ghost" href="{{ app_url }}/#/orders/{{ order.id }}">Открыть в приложении</a>
+    <a class="btn ghost" href="{{ app_url }}/#/orders/{{ order.id }}">{{ _("Открыть в приложении") }}</a>
   </div>
 </section>
 {% endblock %}

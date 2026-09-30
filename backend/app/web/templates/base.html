@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="{{ lang|default('ru') }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,7 +7,13 @@
 <meta name="description" content="{{ description }}">
 {% if noindex %}<meta name="robots" content="noindex">{% endif %}
 {% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
+{% if alt_ru %}
+<link rel="alternate" hreflang="ru" href="{{ base_url }}{{ alt_ru }}">
+<link rel="alternate" hreflang="kk" href="{{ base_url }}{{ alt_kk }}">
+<link rel="alternate" hreflang="x-default" href="{{ base_url }}{{ alt_ru }}">
+{% endif %}
 <meta property="og:type" content="website">
+<meta property="og:locale" content="{{ 'kk_KZ' if lang == 'kk' else 'ru_RU' }}">
 <meta property="og:title" content="{{ title }}">
 <meta property="og:description" content="{{ description }}">
 {% if canonical %}<meta property="og:url" content="{{ canonical }}">{% endif %}
@@ -22,30 +28,39 @@
 <body>
 <header class="bar">
   <div class="wrap bar-inner">
-    <a class="brand" href="/">
+    <a class="brand" href="{{ lp }}/">
       <span class="dot"></span>
       Food Delivery
     </a>
     <a class="cta" href="/cart/">
-      Корзина{% if cart_count %} · {{ cart_count }}{% endif %}
+      {{ _("Корзина") }}{% if cart_count %} · {{ cart_count }}{% endif %}
     </a>
   </div>
   <div class="wrap nav-row">
     <nav class="nav">
-      <a href="/actions/">Акции</a>
-      <a href="/delivery/">Доставка</a>
-      <a href="/about/">О сервисе</a>
+      <a href="{{ lp }}/actions/">{{ _("Акции") }}</a>
+      <a href="{{ lp }}/delivery/">{{ _("Доставка") }}</a>
+      <a href="{{ lp }}/about/">{{ _("О сервисе") }}</a>
       {% if viewer %}
-        <a href="/orders/">Заказы</a>
-        <form method="post" action="/logout/" class="inline"><button class="link-btn">Выйти</button></form>
+        <a href="/orders/">{{ _("Заказы") }}</a>
+        <form method="post" action="/logout/" class="inline"><button class="link-btn">{{ _("Выйти") }}</button></form>
       {% else %}
-        <a href="/login/">Войти</a>
+        <a href="/login/">{{ _("Войти") }}</a>
+      {% endif %}
+    </nav>
+    <nav class="langs" aria-label="Тіл / Язык">
+      {% if alt_ru %}
+      <a href="{{ alt_ru }}" hreflang="ru"{% if lang != 'kk' %} aria-current="true"{% endif %}>RU</a>
+      <a href="{{ alt_kk }}" hreflang="kk"{% if lang == 'kk' %} aria-current="true"{% endif %}>ҚАЗ</a>
+      {% else %}
+      <a href="/lang/ru?next={{ here|urlencode }}"{% if lang != 'kk' %} aria-current="true"{% endif %}>RU</a>
+      <a href="/lang/kk?next={{ here|urlencode }}"{% if lang == 'kk' %} aria-current="true"{% endif %}>ҚАЗ</a>
       {% endif %}
     </nav>
     {% if city_links and city_links|length > 1 %}
-    <nav class="cities" aria-label="Город">
+    <nav class="cities" aria-label="{{ _("Город") }}">
       {% for c, href in city_links %}
-      <a href="{{ href }}"{% if city and c.id == city.id %} aria-current="page"{% endif %}>{{ c.name }}</a>
+      <a href="{{ href }}"{% if city and c.id == city.id %} aria-current="page"{% endif %}>{{ cname(c) }}</a>
       {% endfor %}
     </nav>
     {% endif %}
@@ -58,15 +73,15 @@
   <div class="wrap foot-inner">
     <div>
       <p class="foot-brand">Food Delivery</p>
-      <p class="muted">Доставка еды {{ cities_in }}</p>
+      <p class="muted">{{ _("Доставка еды %(where)s", where=cities_in) }}</p>
     </div>
     <nav class="foot-nav">
-      <a href="/">Главная</a>
-      <a href="/actions/">Акции</a>
-      <a href="/delivery/">Доставка и оплата</a>
-      <a href="/about/">О сервисе</a>
-      <a href="/cart/">Корзина</a>
-      <a href="{{ app_url }}/#/">Открыть приложение</a>
+      <a href="{{ lp }}/">{{ _("Главная") }}</a>
+      <a href="{{ lp }}/actions/">{{ _("Акции") }}</a>
+      <a href="{{ lp }}/delivery/">{{ _("Доставка и оплата") }}</a>
+      <a href="{{ lp }}/about/">{{ _("О сервисе") }}</a>
+      <a href="/cart/">{{ _("Корзина") }}</a>
+      <a href="{{ app_url }}/#/">{{ _("Открыть приложение") }}</a>
     </nav>
   </div>
 </footer>

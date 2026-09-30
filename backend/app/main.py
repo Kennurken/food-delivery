@@ -18,6 +18,7 @@ from app.core.config import settings
 from app.core.events import hub
 from app.core.ratelimit import limiter
 from app.db.session import SessionLocal
+from app.web.i18n import PREFIX, lang_of, translate
 from app.web.site import ASSET_VERSION as site_asset_version
 from app.web.site import HERE as SITE_ROOT
 from app.web.site import router as site_router
@@ -142,8 +143,11 @@ async def _not_found(request: Request, exc: StarletteHTTPException):
         request,
         "404.html",
         {
-            "title": "Страница не найдена",
+            "title": translate("Страница не найдена", lang_of(request)),
             "description": "Такой страницы нет.",
+            "lang": lang_of(request),
+            "lp": PREFIX[lang_of(request)],
+            "here": request.url.path,
             "app_url": settings.public_app_url.rstrip("/"),
             "asset_version": site_asset_version,
         },

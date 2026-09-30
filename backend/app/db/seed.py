@@ -608,10 +608,10 @@ def ensure_city_schema() -> None:
 
 # slug, name, lat, lng. Almaty first: every venue that predates cities trades
 # there, and it is what a request without a city means.
-# slug, name, as it reads after "в", lat, lng
+# slug, name, as it reads after "в", lat, lng, and the same two in Kazakh
 _CITIES = [
-    ("almaty", "Алматы", "Алматы", 43.2389, 76.8897),
-    ("astana", "Астана", "Астане", 51.1282, 71.4304),
+    ("almaty", "Алматы", "Алматы", 43.2389, 76.8897, "Алматы", "Алматыда"),
+    ("astana", "Астана", "Астане", 51.1282, 71.4304, "Астана", "Астанада"),
 ]
 
 
@@ -648,6 +648,8 @@ def ensure_hours_loyalty_schema() -> None:
     wanted = {
         "cities": [
             ("name_in", "VARCHAR(80)"),
+            ("name_kk", "VARCHAR(80)"),
+            ("name_in_kk", "VARCHAR(80)"),
             ("utc_offset_min", "INTEGER NOT NULL DEFAULT 300"),
         ],
         "restaurants": [
@@ -688,19 +690,25 @@ def ensure_cities() -> int:
 
     made = 0
     with SessionLocal() as db:
-        for order, (slug, name, name_in, lat, lng) in enumerate(_CITIES):
+        for order, (slug, name, name_in, lat, lng, name_kk, name_in_kk) in enumerate(_CITIES):
             existing = db.scalar(select(City).where(City.slug == slug))
             if existing is not None:
                 # Cities seeded before the column existed get their form once;
                 # one an admin already set is theirs.
                 if existing.name_in is None:
                     existing.name_in = name_in
+                if existing.name_kk is None:
+                    existing.name_kk = name_kk
+                if existing.name_in_kk is None:
+                    existing.name_in_kk = name_in_kk
                 continue
             db.add(
                 City(
                     slug=check_slug(slug),
                     name=name,
                     name_in=name_in,
+                    name_kk=name_kk,
+                    name_in_kk=name_in_kk,
                     lat=lat,
                     lng=lng,
                     is_active=True,

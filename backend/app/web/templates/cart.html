@@ -2,12 +2,12 @@
 
 {% block content %}
 <section class="wrap block">
-  <h1>Корзина</h1>
+  <h1>{{ _("Корзина") }}</h1>
   {% if not lines %}
-    <p class="muted">Пока пусто.</p>
-    <div class="hero-actions"><a class="btn" href="/">Выбрать ресторан</a></div>
+    <p class="muted">{{ _("Пока пусто.") }}</p>
+    <div class="hero-actions"><a class="btn" href="{{ lp }}/">{{ _("Выбрать ресторан") }}</a></div>
   {% else %}
-    <p class="muted">Заказ из «{{ restaurant.name }}»</p>
+    <p class="muted">{{ _("Заказ из «%(name)s»", name=restaurant.name) }}</p>
     <div class="lines">
       {% for line in lines %}
       <div class="line">
@@ -18,23 +18,23 @@
         <p class="price">{{ line.total|round|int }} ₸</p>
         <form method="post" action="/cart/update" class="qty">
           <input type="hidden" name="item_id" value="{{ line.item.id }}">
-          <button class="chip" name="quantity" value="{{ line.quantity - 1 }}" aria-label="Меньше">−</button>
-          <button class="chip" name="quantity" value="{{ line.quantity + 1 }}" aria-label="Больше">+</button>
-          <button class="chip danger" name="quantity" value="0" aria-label="Убрать">×</button>
+          <button class="chip" name="quantity" value="{{ line.quantity - 1 }}" aria-label="{{ _("Меньше") }}">−</button>
+          <button class="chip" name="quantity" value="{{ line.quantity + 1 }}" aria-label="{{ _("Больше") }}">+</button>
+          <button class="chip danger" name="quantity" value="0" aria-label="{{ _("Убрать") }}">×</button>
         </form>
       </div>
       {% endfor %}
     </div>
     <div class="total-row">
-      <span>Блюда</span><strong>{{ subtotal|round|int }} ₸</strong>
+      <span>{{ _("Блюда") }}</span><strong>{{ subtotal|round|int }} ₸</strong>
     </div>
-    <p class="muted">Стоимость доставки посчитается на следующем шаге — она зависит от адреса.</p>
+    <p class="muted">{{ _("Стоимость доставки посчитается на следующем шаге — она зависит от адреса.") }}</p>
     <div class="hero-actions">
-      <a class="btn" href="/checkout/">Оформить</a>
-      <a class="btn ghost" href="/r/{{ restaurant.slug }}/">Добавить ещё</a>
+      <a class="btn" href="/checkout/">{{ _("Оформить") }}</a>
+      <a class="btn ghost" href="{{ lp }}/r/{{ restaurant.slug }}/">{{ _("Добавить ещё") }}</a>
     </div>
     <form method="post" action="/cart/clear" class="mt">
-      <button class="link-btn">Очистить корзину</button>
+      <button class="link-btn">{{ _("Очистить корзину") }}</button>
     </form>
   {% endif %}
 </section>

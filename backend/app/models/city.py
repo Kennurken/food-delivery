@@ -24,6 +24,11 @@ class City(Base):
     # declines it and nothing can derive it from `name`, so it is stored. None
     # falls back to the plain name, which is right for indeclinable ones.
     name_in: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    # The same two in Kazakh ("Астана", "Астанада"): the public site has a /kk/
+    # version and Kazakh declines the city differently. None falls back to the
+    # Russian fields, which is right for a name that reads the same.
+    name_kk: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    name_in_kk: Mapped[str | None] = mapped_column(String(80), nullable=True)
     # Offset from UTC in minutes, for reading opening hours. A fixed number
     # rather than a tz name: Kazakhstan has one zone and no DST since 2024, and
     # a serverless runtime is not guaranteed to ship the tz database.

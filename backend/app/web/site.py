@@ -13,6 +13,7 @@ admin panel stay in the app.
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
@@ -33,10 +34,13 @@ from app.services import cities, hours, loyalty, offers, order_service
 from app.services import reviews as review_service
 from app.services.schedule import utcnow
 from app.web import cart as cart_store
+from app.web import i18n
 from app.web import session as web_session
 
 HERE = Path(__file__).parent
 templates = Jinja2Templates(directory=str(HERE / "templates"))
+templates.env.globals["_"] = i18n.gettext
+templates.env.globals["cname"] = i18n.city_name
 
 
 def _asset_version() -> str:
@@ -82,6 +86,19 @@ def _cart(request: Request) -> cart_store.Cart:
     return cart_store.read(request.cookies.get(cart_store.COOKIE))
 
 
+# Public pages exist once per language, at /… and /kk/…; these are the ones that
+# get hreflang alternates. Everything else is for one person and has no twin.
+_PUBLIC_PAGE = re.compile(r"^/(kk/)?(actions/[^/]+|actions|delivery|about|r/[^/]+|[a-z0-9-]+)?/?$")
+
+
+def _lang(request: Request) -> str:
+    return i18n.lang_of(request)
+
+
+def _t(request: Request, text: str, **params) -> str:
+    return i18n.translate(text, _lang(request), **params)
+
+
 def _render(
     request: Request,
     name: str,
@@ -89,21 +106,40 @@ def _render(
     *,
     db: Session | None = None,
     status_code: int = 200,
+    alternates: bool = False,
 ) -> HTMLResponse:
+    lang = _lang(request)
+    lp = i18n.PREFIX[lang]
+    context.setdefault("lang", lang)
+    context.setdefault("lp", lp)
+    # Titles and messages are written in Russian at the call site; a known one
+    # is put into the page's language here, an unknown one stays as written.
+    for key in ("title", "description", "error"):
+        if isinstance(context.get(key), str):
+            context[key] = i18n.translate(context[key], lang)
     context.setdefault("base_url", _base_url())
     context.setdefault("app_url", settings.public_app_url.rstrip("/"))
     context.setdefault("cart_count", _cart(request).count)
     context.setdefault("asset_version", ASSET_VERSION)
+    if alternates:
+        path = request.url.path
+        ru_path = (path[3:] or "/") if lang == "kk" else path
+        context.setdefault("alt_ru", ru_path)
+        context.setdefault("alt_kk", "/kk" + ru_path)
+    context.setdefault("here", request.url.path)
     if db is not None:
         context.setdefault("viewer", _viewer(request, db))
         live = cities.active(db)
         default = cities.default(db)
         context.setdefault("city", default)
-        context.setdefault("city_in", _in_city(context["city"]))
-        context.setdefault("cities_in", _in_cities(live))
+        context.setdefault("city_in", _in_city(context["city"], lang))
+        context.setdefault("cities_in", _in_cities(live, lang))
         context.setdefault(
             "city_links",
-            [(c, "/" if default and c.id == default.id else f"/{c.slug}/") for c in live],
+            [
+                (c, f"{lp}/" if default and c.id == default.id else f"{lp}/{c.slug}/")
+                for c in live
+            ],
         )
     return templates.TemplateResponse(request, name, context, status_code=status_code)
 
@@ -125,28 +161,39 @@ def _safe_next(value: str | None, fallback: str = "/") -> str:
     return fallback
 
 
-def _locative(city: City) -> str:
+def _locative(city: City, lang: str = "ru") -> str:
     """The city as it reads after "в" — stored, since Russian declines it and
-    the name alone can't say how ("Алматы" stays, "Астана" becomes "Астане")."""
+    the name alone can't say how ("Алматы" stays, "Астана" becomes "Астане").
+    Kazakh suffixes instead ("Астанада") and has its own stored form."""
+    if lang == "kk":
+        return city.name_in_kk or city.name_kk or city.name_in or city.name
     return city.name_in or city.name
 
 
-def _in_city(city: City | None) -> str:
-    """"в Астане" — or "" when there is no city to name."""
-    return "" if city is None else "в " + _locative(city)
+def _in_city(city: City | None, lang: str = "ru") -> str:
+    """"в Астане" / "Астанада" — or "" when there is no city to name."""
+    if city is None:
+        return ""
+    where = _locative(city, lang)
+    return where if lang == "kk" else "в " + where
 
 
-def _in_cities(items: list[City]) -> str:
+def _in_cities(items: list[City], lang: str = "ru") -> str:
     """"в Алматы и Астане" — every live city, for pages about the whole service."""
-    names = [_locative(c) for c in items]
+    names = [_locative(c, lang) for c in items]
     if not names:
         return ""
+    if lang == "kk":
+        return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " және " + names[-1]
     if len(names) == 1:
         return "в " + names[0]
     return "в " + ", ".join(names[:-1]) + " и " + names[-1]
 
 
-def _hours_note(restaurant: Restaurant) -> str | None:
+_SHORT_DAYS = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
+
+
+def _hours_note(restaurant: Restaurant, lang: str = "ru") -> str | None:
     """Human-readable note about when the venue opens next.
 
     Returns None when the venue is open now (or has no schedule). When closed
@@ -162,10 +209,11 @@ def _hours_note(restaurant: Restaurant) -> str | None:
     opens = state.opens_at
     at = _clock(opens)
     if opens.date() == today:
-        return f"Откроется в {at}"
+        return i18n.translate("Откроется в %(at)s", lang, at=at)
     if opens.date() == today + timedelta(days=1):
-        return f"Откроется завтра в {at}"
-    return f"Откроется в {['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'][opens.weekday()]}, {at}"
+        return i18n.translate("Откроется завтра в %(at)s", lang, at=at)
+    day = i18n.translate(_SHORT_DAYS[opens.weekday()], lang)
+    return i18n.translate("Откроется в %(day)s, %(at)s", lang, day=day, at=at)
 
 
 _DAYS_RU = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
@@ -176,19 +224,24 @@ def _clock(value) -> str:
     return value.strftime("%H:%M")
 
 
-def _week(schedule: list[hours.Stretch]) -> list[tuple[str, str]]:
+def _week(schedule: list[hours.Stretch], lang: str = "ru") -> list[tuple[str, str]]:
     """The seven days as (name, "10:00–22:00, 17:00–23:00"), for the page.
 
     Built here rather than in the template: a template that has to group
     stretches by weekday ends up writing the same filter seven times.
     """
+    round_the_clock = i18n.translate("Круглосуточно", lang)
     rows = []
-    for day, name in enumerate(_DAYS_RU):
+    for day, ru_name in enumerate(_DAYS_RU):
+        name = i18n.translate(ru_name, lang)
         today = [s for s in schedule if s.weekday == day]
         if not today:
-            rows.append((name, "Выходной"))
+            rows.append((name, i18n.translate("Выходной", lang)))
             continue
-        parts = ["Круглосуточно" if s.opens == s.closes else f"{_clock(s.opens)}–{_clock(s.closes)}" for s in today]
+        parts = [
+            round_the_clock if s.opens == s.closes else f"{_clock(s.opens)}–{_clock(s.closes)}"
+            for s in today
+        ]
         rows.append((name, ", ".join(parts)))
     return rows
 
@@ -221,21 +274,29 @@ def _landing(request: Request, db: Session, city: City | None) -> HTMLResponse:
     promos = offers.live(db, limit=6)
     default = cities.default(db)
     on_root = city is None or (default is not None and city.id == default.id)
-    where = f" {_in_city(city)}" if city else ""
+    lang = _lang(request)
+    lp = i18n.PREFIX[lang]
+    where = _in_city(city, lang) if city else ""
     # Hours notes for cards — schedule-closed venues show when they open
-    notes = {r.id: _hours_note(r) for r in restaurants}
+    notes = {r.id: _hours_note(r, lang) for r in restaurants}
     return _render(
         request,
         "home.html",
         {
-            "title": f"Доставка еды{where}",
-            "description": (
-                f"Доставка еды{where}: паназиатская кухня, пицца, бургеры. "
-                "Оплата картой или наличными, бронь столика."
+            "title": i18n.tidy(i18n.translate("Доставка еды %(where)s", lang, where=where)),
+            "description": i18n.tidy(
+                i18n.translate(
+                    "Доставка еды %(where)s: паназиатская кухня, пицца, бургеры. "
+                    "Оплата картой или наличными, бронь столика.",
+                    lang,
+                    where=where,
+                )
             ),
             "restaurants": restaurants,
             "promos": promos,
-            "canonical": f"{_base_url()}/" if on_root else f"{_base_url()}/{city.slug}/",
+            "canonical": (
+                f"{_base_url()}{lp}/" if on_root else f"{_base_url()}{lp}/{city.slug}/"
+            ),
             "city": city,
             "notes": notes,
             # A city with no venues yet is a thin page; keep it out of the index
@@ -243,15 +304,18 @@ def _landing(request: Request, db: Session, city: City | None) -> HTMLResponse:
             "noindex": not restaurants,
         },
         db=db,
+        alternates=True,
     )
 
 
 @router.get("/", response_class=HTMLResponse)
+@router.get("/kk/", response_class=HTMLResponse)
 def home(request: Request, db: Session = DB) -> HTMLResponse:
     return _landing(request, db, cities.default(db))
 
 
 @router.get("/r/{slug}/", response_class=HTMLResponse)
+@router.get("/kk/r/{slug}/", response_class=HTMLResponse)
 def restaurant_page(slug: str, request: Request, db: Session = DB) -> HTMLResponse:
     restaurant = db.scalar(select(Restaurant).where(Restaurant.slug == slug))
     if restaurant is None:
@@ -269,35 +333,44 @@ def restaurant_page(slug: str, request: Request, db: Session = DB) -> HTMLRespon
             sections.append(MenuSection(name=item.category, items=[]))
         sections[-1].items.append(item)
     city = restaurant.city or cities.default(db)
-    where = f" {_in_city(city)}" if city else ""
-    # Hours note for the restaurant page
-    note = _hours_note(restaurant)
+    lang = _lang(request)
+    where = _in_city(city, lang) if city else ""
+    note = _hours_note(restaurant, lang)
     schedule = hours.stretches(restaurant.hours)
     return _render(
         request,
         "restaurant.html",
         {
-            "title": f"{restaurant.name} — доставка{where}",
+            "title": i18n.tidy(
+                i18n.translate("%(name)s — доставка %(where)s", lang, name=restaurant.name, where=where)
+            ),
             "description": (
                 restaurant.description
-                or f"{restaurant.name}: доставка {restaurant.delivery_time_min} мин."
+                or i18n.translate(
+                    "%(name)s: доставка %(n)s мин.",
+                    lang,
+                    name=restaurant.name,
+                    n=restaurant.delivery_time_min,
+                )
             )[:300],
             "restaurant": restaurant,
             "sections": sections,
             "item_count": len(items),
-            "canonical": f"{_base_url()}/r/{restaurant.slug}/",
+            "canonical": f"{_base_url()}{i18n.PREFIX[lang]}/r/{restaurant.slug}/",
             "og_image": restaurant.image_url,
             "city": city,
             "hours_note": note,
             "reviews": [review_service.public_row(o) for o in review_service.recent(db, restaurant.id, limit=10)],
-            "hours_week": _week(schedule) if schedule else [],
+            "hours_week": _week(schedule, lang) if schedule else [],
             "hours_spec": _opening_spec(schedule),
         },
         db=db,
+        alternates=True,
     )
 
 
 @router.get("/actions/", response_class=HTMLResponse)
+@router.get("/kk/actions/", response_class=HTMLResponse)
 def offers_page(request: Request, db: Session = DB) -> HTMLResponse:
     running = offers.live(db)
     return _render(
@@ -307,13 +380,15 @@ def offers_page(request: Request, db: Session = DB) -> HTMLResponse:
             "title": "Акции и предложения",
             "description": "Действующие акции ресторанов: скидки, промокоды, комбо.",
             "offers": running,
-            "canonical": f"{_base_url()}/actions/",
+            "canonical": f"{_base_url()}{i18n.PREFIX[_lang(request)]}/actions/",
         },
         db=db,
+        alternates=True,
     )
 
 
 @router.get("/actions/{slug}", response_class=HTMLResponse)
+@router.get("/kk/actions/{slug}", response_class=HTMLResponse)
 def offer_page(slug: str, request: Request, db: Session = DB) -> HTMLResponse:
     offer = offers.by_slug(db, slug)
     if offer is None:
@@ -328,14 +403,16 @@ def offer_page(slug: str, request: Request, db: Session = DB) -> HTMLResponse:
             "description": (offer.subtitle or offer.body or offer.title)[:300],
             "offer": offer,
             "code": offers.usable_code(db, offer),
-            "canonical": f"{_base_url()}/actions/{offer.slug}",
+            "canonical": f"{_base_url()}{i18n.PREFIX[_lang(request)]}/actions/{offer.slug}",
             "og_image": offer.image_url,
         },
         db=db,
+        alternates=True,
     )
 
 
 @router.get("/delivery/", response_class=HTMLResponse)
+@router.get("/kk/delivery/", response_class=HTMLResponse)
 def delivery_page(request: Request, db: Session = DB) -> HTMLResponse:
     return _render(
         request,
@@ -343,13 +420,15 @@ def delivery_page(request: Request, db: Session = DB) -> HTMLResponse:
         {
             "title": "Доставка и оплата",
             "description": "Условия доставки, зоны, способы оплаты и возврат.",
-            "canonical": f"{_base_url()}/delivery/",
+            "canonical": f"{_base_url()}{i18n.PREFIX[_lang(request)]}/delivery/",
         },
         db=db,
+        alternates=True,
     )
 
 
 @router.get("/about/", response_class=HTMLResponse)
+@router.get("/kk/about/", response_class=HTMLResponse)
 def about_page(request: Request, db: Session = DB) -> HTMLResponse:
     return _render(
         request,
@@ -357,9 +436,10 @@ def about_page(request: Request, db: Session = DB) -> HTMLResponse:
         {
             "title": "О сервисе",
             "description": "Как устроен сервис доставки еды и что в нём есть.",
-            "canonical": f"{_base_url()}/about/",
+            "canonical": f"{_base_url()}{i18n.PREFIX[_lang(request)]}/about/",
         },
         db=db,
+        alternates=True,
     )
 
 
@@ -711,6 +791,26 @@ def order_page(order_id: int, request: Request, db: Session = DB) -> Response:
     )
 
 
+# ------------------------------------------------------------------ language
+
+
+@router.get("/lang/{code}")
+def choose_language(code: str, next: str | None = None) -> Response:
+    """The switcher on pages that have no URL in the other language (cart,
+    checkout, orders, sign-in): remember the choice, go back where you were."""
+    if code not in i18n.LANGS:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such language")
+    response = RedirectResponse(_safe_next(next), status_code=status.HTTP_303_SEE_OTHER)
+    response.set_cookie(
+        i18n.COOKIE,
+        code,
+        max_age=60 * 60 * 24 * 365,
+        samesite="lax",
+        secure=settings.is_prod,
+    )
+    return response
+
+
 # ------------------------------------------------------------------ crawlers
 
 
@@ -759,6 +859,9 @@ def sitemap(db: Session = DB) -> Response:
         )
         if has_venue:
             urls.append(f"{base}/{c.slug}/")
+    # Every public page has a Kazakh twin under /kk/, and says so with hreflang
+    # on the page itself; listing both is what lets a crawler find the twins.
+    urls += [url.replace(base, f"{base}/kk", 1) for url in urls]
     body = "".join(f"<url><loc>{url}</loc></url>" for url in urls)
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'
@@ -773,11 +876,14 @@ def sitemap(db: Session = DB) -> Response:
 # page registered after it. The slug itself can't collide with a page either —
 # see cities.RESERVED_SLUGS.
 @router.get("/{city_slug}/", response_class=HTMLResponse)
+@router.get("/kk/{city_slug}/", response_class=HTMLResponse)
 def city_page(city_slug: str, request: Request, db: Session = DB) -> Response:
     city = cities.by_slug(db, city_slug)
     if city is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No such city")
     default = cities.default(db)
     if default and city.id == default.id:
-        return RedirectResponse("/", status_code=status.HTTP_301_MOVED_PERMANENTLY)
+        return RedirectResponse(
+            f"{i18n.PREFIX[_lang(request)]}/", status_code=status.HTTP_301_MOVED_PERMANENTLY
+        )
     return _landing(request, db, city)

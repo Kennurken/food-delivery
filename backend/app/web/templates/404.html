@@ -2,11 +2,11 @@
 
 {% block content %}
 <section class="wrap block prose">
-  <h1>Страница не найдена</h1>
-  <p>Возможно, ресторан переименовали или ссылка устарела.</p>
+  <h1>{{ _("Страница не найдена") }}</h1>
+  <p>{{ _("Возможно, ресторан переименовали или ссылка устарела.") }}</p>
   <div class="hero-actions">
-    <a class="btn" href="/">На главную</a>
-    <a class="btn ghost" href="{{ app_url }}/#/">Открыть приложение</a>
+    <a class="btn" href="{{ lp }}/">{{ _("На главную") }}</a>
+    <a class="btn ghost" href="{{ app_url }}/#/">{{ _("Открыть приложение") }}</a>
   </div>
 </section>
 {% endblock %}

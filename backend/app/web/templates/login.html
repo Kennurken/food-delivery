@@ -2,18 +2,18 @@
 
 {% block content %}
 <section class="wrap block narrow">
-  <h1>Вход</h1>
+  <h1>{{ _("Вход") }}</h1>
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
   <form method="post" action="/login/" class="form">
     <input type="hidden" name="next" value="{{ next }}">
-    <label>Почта
+    <label>{{ _("Почта") }}
       <input type="email" name="email" value="{{ email or '' }}" required autocomplete="email">
     </label>
-    <label>Пароль
+    <label>{{ _("Пароль") }}
       <input type="password" name="password" required autocomplete="current-password">
     </label>
-    <button class="btn" type="submit">Войти</button>
+    <button class="btn" type="submit">{{ _("Войти") }}</button>
   </form>
-  <p class="muted">Нет аккаунта? <a class="under" href="/register/?next={{ next }}">Зарегистрироваться</a></p>
+  <p class="muted">{{ _("Нет аккаунта?") }} <a class="under" href="/register/?next={{ next }}">{{ _("Зарегистрироваться") }}</a></p>
 </section>
 {% endblock %}

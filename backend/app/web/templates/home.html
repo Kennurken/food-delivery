@@ -3,53 +3,51 @@
 {% block content %}
 <section class="hero">
   <div class="wrap">
-    <p class="kicker">{{ city.name if city else "Food Delivery" }}</p>
-    <h1>Доставка еды {{ city_in }}</h1>
-    <p class="lede">Паназиатская кухня, пицца и бургеры из местных ресторанов.
-      Оплата картой или наличными, бронь столика, доставка по расстоянию —
-      цену видно до оформления.</p>
+    <p class="kicker">{{ cname(city) if city else "Food Delivery" }}</p>
+    <h1>{{ _("Доставка еды %(where)s", where=city_in) }}</h1>
+    <p class="lede">{{ _("Паназиатская кухня, пицца и бургеры из местных ресторанов. Оплата картой или наличными, бронь столика, доставка по расстоянию — цену видно до оформления.") }}</p>
     <div class="hero-actions">
-      <a class="btn" href="{{ app_url }}/#/">Выбрать ресторан</a>
-      <a class="btn ghost" href="/delivery/">Как работает доставка</a>
+      <a class="btn" href="{{ app_url }}/#/">{{ _("Выбрать ресторан") }}</a>
+      <a class="btn ghost" href="{{ lp }}/delivery/">{{ _("Как работает доставка") }}</a>
     </div>
   </div>
 </section>
 
 <section class="wrap block">
-  <h2>Рестораны</h2>
+  <h2>{{ _("Рестораны") }}</h2>
   <div class="grid cards">
     {% for r in restaurants %}
-    <a class="card{% if not r.is_open %} closed{% endif %}" href="/r/{{ r.slug }}/">
+    <a class="card{% if not r.is_open %} closed{% endif %}" href="{{ lp }}/r/{{ r.slug }}/">
       <div class="thumb">
         {% if r.image_url %}<img src="{{ r.image_url }}" alt="{{ r.name }}" loading="lazy" width="400" height="260">{% endif %}
-        {% if not r.is_open %}<span class="badge">Закрыто</span>{% endif %}
+        {% if not r.is_open %}<span class="badge">{{ _("Закрыто") }}</span>{% endif %}
         {% if notes.get(r.id) %}<span class="badge schedule">{{ notes[r.id] }}</span>{% endif %}
       </div>
       <div class="card-body">
         <p class="card-title">{{ r.name }}</p>
-        <p class="muted">{{ r.cuisine }} · {{ r.delivery_time_min }} мин</p>
+        <p class="muted">{{ r.cuisine }} · {{ _("%(n)s мин", n=r.delivery_time_min) }}</p>
         <p class="meta">
           <span class="rate">★ {{ '%.1f'|format(r.rating) }}</span>
-          <span class="muted">доставка от {{ r.delivery_fee|round|int }} ₸</span>
+          <span class="muted">{{ _("доставка от %(fee)s ₸", fee=r.delivery_fee|round|int) }}</span>
         </p>
       </div>
     </a>
     {% endfor %}
   </div>
   {% if not restaurants %}
-  <p class="muted">Пока нет ресторанов {{ city_in }} — скоро появятся.</p>
+  <p class="muted">{{ _("Пока нет ресторанов %(where)s — скоро появятся.", where=city_in) }}</p>
   {% endif %}
 </section>
 
 {% if promos %}
 <section class="wrap block">
   <div class="band-head">
-    <h2>Акции</h2>
-    <a class="under muted" href="/actions/">Все акции</a>
+    <h2>{{ _("Акции") }}</h2>
+    <a class="under muted" href="{{ lp }}/actions/">{{ _("Все акции") }}</a>
   </div>
   <div class="grid cards">
     {% for o in promos %}
-    <a class="card" href="/actions/{{ o.slug }}">
+    <a class="card" href="{{ lp }}/actions/{{ o.slug }}">
       <div class="thumb">
         {% if o.image_url %}<img src="{{ o.image_url }}" alt="{{ o.title }}" loading="lazy" width="400" height="260">{% endif %}
       </div>
@@ -66,10 +64,10 @@
 <section class="wrap block band">
   <div class="band-inner">
     <div>
-      <h2>Приложение</h2>
-      <p class="muted">Заказы, статус курьера на карте и код передачи — в приложении.</p>
+      <h2>{{ _("Приложение") }}</h2>
+      <p class="muted">{{ _("Заказы, статус курьера на карте и код передачи — в приложении.") }}</p>
     </div>
-    <a class="btn" href="{{ app_url }}/#/">Открыть</a>
+    <a class="btn" href="{{ app_url }}/#/">{{ _("Открыть") }}</a>
   </div>
 </section>
 {% endblock %}

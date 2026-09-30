@@ -17,8 +17,10 @@ import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/stagger.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../map/domain/place.dart';
+import '../data/account_repository.dart';
 import '../data/profile_repository.dart';
 import '../domain/address.dart';
+import 'legal_links.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -87,6 +89,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  Future<void> _deleteAccount() async {
+    final deleted = await showDialog<bool>(
+      context: context,
+      builder: (_) => const _DeleteAccountDialog(),
+    );
+    if (deleted != true || !mounted) return;
+    // Taken before logging out: that rebuilds the router and this screen goes
+    // away with its context.
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    final done = context.l10n.accountDeleted;
+    Haptics.warn();
+    await ref.read(authControllerProvider.notifier).logout();
+    messenger.showSnackBar(SnackBar(content: Text(done)));
+    // Straight to /login: the redirect alone would add ?next=/profile, and the
+    // next person to sign in on this phone has no business landing there.
+    router.go('/login');
+  }
+
   /// Drop a point onto an address that was saved as text only.
   Future<void> _pinAddress(Address a) async {
     final q = <String, String>{if (a.line.isNotEmpty) 'line': a.line};
@@ -136,6 +157,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final addresses = ref.watch(addressesProvider);
     final user = ref.watch(authControllerProvider).value;
+    // A table guest has no password to change and nothing worth deleting —
+    // the session is thrown away with the visit.
+    final isGuest = user?.isGuest ?? false;
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     final t = context.l10n;
@@ -248,15 +272,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ).stagger(3),
           const SizedBox(height: 8),
           const _LanguagePicker(),
-          const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.lock_outline),
-              title: Text(t.changePassword),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _changePassword,
-            ),
-          ).stagger(3),
+          if (!isGuest) ...[
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.lock_outline),
+                title: Text(t.changePassword),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _changePassword,
+              ),
+            ).stagger(3),
+          ],
           const SizedBox(height: 28),
           Row(
             children: [
@@ -405,8 +431,156 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ],
                   ),
           ),
+          const SizedBox(height: 28),
+          const _LegalCard(),
+          if (!isGuest) ...[
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton.icon(
+                onPressed: _deleteAccount,
+                style: TextButton.styleFrom(foregroundColor: scheme.error),
+                icon: const Icon(Icons.delete_forever_outlined),
+                label: Text(t.deleteAccount),
+              ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+/// Privacy policy, terms and support. Everyone sees these, table guests
+/// included: reading the rules takes no account.
+class _LegalCard extends ConsumerWidget {
+  const _LegalCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.l10n;
+    final meta = ref.watch(metaProvider).value;
+    final contacts = [meta?.supportEmail, meta?.supportPhone].nonNulls;
+    return Card(
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: Text(t.privacyPolicy),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            // Greyed out until the URL is known rather than a dead tap.
+            enabled: meta != null,
+            onTap: meta == null ? null : () => openExternal(meta.privacyUrl),
+          ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: Text(t.termsOfUse),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            enabled: meta != null,
+            onTap: meta == null ? null : () => openExternal(meta.termsUrl),
+          ),
+          if (meta != null && meta.hasSupport)
+            ListTile(
+              leading: const Icon(Icons.support_agent),
+              title: Text(t.support),
+              subtitle: Text(contacts.join(' · ')),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => contactSupport(meta),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Asks for the password, not only a tap: deletion is final, and a phone
+/// left unlocked on a table should not be enough to do it.
+class _DeleteAccountDialog extends ConsumerStatefulWidget {
+  const _DeleteAccountDialog();
+
+  @override
+  ConsumerState<_DeleteAccountDialog> createState() =>
+      _DeleteAccountDialogState();
+}
+
+class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
+  final _password = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _delete() async {
+    if (_busy || _password.text.isEmpty) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(accountRepositoryProvider).deleteAccount(_password.text);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      // A 409 says in words why not (a venue they own, an order on its way),
+      // which is exactly what they need to read, so it is shown as sent.
+      if (mounted) setState(() => _error = errorMessage(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    return AlertDialog(
+      title: Text(t.deleteAccount),
+      scrollable: true,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(t.deleteAccountBody),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _password,
+            obscureText: true,
+            autofillHints: const [AutofillHints.password],
+            textInputAction: TextInputAction.done,
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => _delete(),
+            decoration: InputDecoration(
+              labelText: t.passwordToConfirm,
+              prefixIcon: const Icon(Icons.lock_outline),
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 12),
+            Text(_error!, style: TextStyle(color: scheme.error)),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _busy ? null : () => Navigator.pop(context, false),
+          child: Text(t.cancel),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: scheme.error,
+            foregroundColor: scheme.onError,
+          ),
+          onPressed: _busy || _password.text.isEmpty ? null : _delete,
+          child: _busy
+              ? const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(t.delete),
+        ),
+      ],
     );
   }
 }
@@ -480,8 +654,9 @@ class _PasswordSheetState extends ConsumerState<_PasswordSheet> {
 
   Future<void> _save() async {
     final t = context.l10n;
-    if (_next.text.length < 6) {
-      setState(() => _error = t.minChars(6));
+    // Same floor as the server, so the rule is learnt here, not from a 422.
+    if (_next.text.length < 8) {
+      setState(() => _error = t.minChars(8));
       return;
     }
     if (_next.text != _confirm.text) {
@@ -494,7 +669,7 @@ class _PasswordSheetState extends ConsumerState<_PasswordSheet> {
     });
     try {
       await ref
-          .read(profileRepositoryProvider)
+          .read(accountRepositoryProvider)
           .changePassword(current: _current.text, next: _next.text);
       if (mounted) Navigator.pop(context, true);
     } catch (e) {

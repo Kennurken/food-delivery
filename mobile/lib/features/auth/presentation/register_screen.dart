@@ -7,6 +7,7 @@ import '../../../core/l10n/l10n.dart';
 
 import '../../../core/theme/motion.dart';
 import '../../../core/widgets/pressable.dart';
+import '../../profile/presentation/legal_links.dart';
 import 'auth_controller.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -134,6 +135,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
         ),
       ),
+      const SizedBox(height: 16),
+      const LegalConsent(),
     ];
 
     return Scaffold(

@@ -1512,4 +1512,75 @@ class L10nEn extends L10n {
   @override
   String get testErrorSent =>
       'Test error sent. It should appear in Sentry within a minute.';
+
+  @override
+  String get privacyPolicy => 'Privacy policy';
+
+  @override
+  String get termsOfUse => 'Terms of use';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get copy => 'Copy';
+
+  @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountBody =>
+      'Your personal details will be erased and you will be signed out. Orders you placed stay in the restaurants\' history, without your name. This cannot be undone.';
+
+  @override
+  String get passwordToConfirm => 'Password to confirm';
+
+  @override
+  String get accountDeleted => 'Account deleted';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get forgotPasswordBody =>
+      'Password reset by e-mail isn\'t available yet.';
+
+  @override
+  String get forgotPasswordStaff =>
+      'Restaurant owners and couriers: contact the platform and we\'ll give you a temporary password.';
+
+  @override
+  String get forgotPasswordGuests => 'Guests can simply create a new account.';
+
+  @override
+  String agreeToLegal(String terms, String privacy) {
+    return 'By creating an account you agree to the $terms and the $privacy.';
+  }
+
+  @override
+  String get agreeTermsLink => 'Terms of use';
+
+  @override
+  String get agreePrivacyLink => 'Privacy policy';
+
+  @override
+  String get resetOwnerPassword => 'Reset owner password';
+
+  @override
+  String resetOwnerPasswordAsk(String email) {
+    return 'Set a temporary password for $email? Their current password stops working at once.';
+  }
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get temporaryPassword => 'Temporary password';
+
+  @override
+  String get temporaryPasswordHint =>
+      'Give it to the owner by phone; ask them to change it in their profile.';
 }

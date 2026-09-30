@@ -1513,4 +1513,75 @@ class L10nRu extends L10n {
   @override
   String get testErrorSent =>
       'Тестовая ошибка отправлена. Она появится в Sentry в течение минуты.';
+
+  @override
+  String get privacyPolicy => 'Политика конфиденциальности';
+
+  @override
+  String get termsOfUse => 'Условия использования';
+
+  @override
+  String get support => 'Поддержка';
+
+  @override
+  String get close => 'Закрыть';
+
+  @override
+  String get copy => 'Копировать';
+
+  @override
+  String get deleteAccount => 'Удалить аккаунт';
+
+  @override
+  String get deleteAccountBody =>
+      'Ваши личные данные будут удалены, и вы выйдете из аккаунта. Сделанные заказы останутся в истории ресторанов, но без вашего имени. Это нельзя отменить.';
+
+  @override
+  String get passwordToConfirm => 'Пароль для подтверждения';
+
+  @override
+  String get accountDeleted => 'Аккаунт удалён';
+
+  @override
+  String get forgotPassword => 'Забыли пароль?';
+
+  @override
+  String get forgotPasswordBody => 'Сброс пароля по e-mail пока недоступен.';
+
+  @override
+  String get forgotPasswordStaff =>
+      'Владельцы ресторанов и курьеры: свяжитесь с платформой, и мы выдадим временный пароль.';
+
+  @override
+  String get forgotPasswordGuests =>
+      'Гости могут просто создать новый аккаунт.';
+
+  @override
+  String agreeToLegal(String terms, String privacy) {
+    return 'Создавая аккаунт, вы соглашаетесь с $terms и $privacy.';
+  }
+
+  @override
+  String get agreeTermsLink => 'Условиями использования';
+
+  @override
+  String get agreePrivacyLink => 'Политикой конфиденциальности';
+
+  @override
+  String get resetOwnerPassword => 'Сбросить пароль владельца';
+
+  @override
+  String resetOwnerPasswordAsk(String email) {
+    return 'Задать временный пароль для $email? Текущий пароль сразу перестанет работать.';
+  }
+
+  @override
+  String get reset => 'Сбросить';
+
+  @override
+  String get temporaryPassword => 'Временный пароль';
+
+  @override
+  String get temporaryPasswordHint =>
+      'Передайте его владельцу по телефону и попросите сменить его в профиле.';
 }

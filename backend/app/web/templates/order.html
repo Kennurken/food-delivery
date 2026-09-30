@@ -32,6 +32,8 @@
   <div class="total-row small"><span>Блюда</span><span>{{ order.subtotal|round|int }} ₸</span></div>
   {% if order.discount %}<div class="total-row small"><span>Скидка</span><span>−{{ order.discount|round|int }} ₸</span></div>{% endif %}
   <div class="total-row small"><span>Доставка</span><span>{{ order.delivery_fee|round|int }} ₸</span></div>
+  {% if order.tip %}<div class="total-row small"><span>Чаевые курьеру</span><span>{{ order.tip|round|int }} ₸</span></div>{% endif %}
+  {% if order.loyalty_spent %}<div class="total-row small"><span>Оплачено бонусами</span><span>−{{ order.loyalty_spent|round|int }} ₸</span></div>{% endif %}
   <div class="total-row"><span>Итого</span><strong>{{ order.total|round|int }} ₸</strong></div>
 
   <p class="muted">

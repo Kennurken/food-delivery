@@ -29,7 +29,7 @@ from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models import City, MenuItem, Order, Restaurant, User, UserRole
 from app.schemas.order import OrderCreate
-from app.services import cities, hours, offers, order_service
+from app.services import cities, hours, loyalty, offers, order_service
 from app.services import reviews as review_service
 from app.web import cart as cart_store
 from app.web import session as web_session
@@ -536,6 +536,10 @@ def logout() -> Response:
 # ------------------------------------------------------------------ checkout
 
 
+# The same round amounts the app offers, in tenge.
+_TIPS = (200, 500, 1000)
+
+
 def _checkout_context(request: Request, db: Session, user: User, **extra) -> dict:
     cart = _cart(request)
     restaurant, lines, subtotal = cart_store.hydrate(db, cart)
@@ -547,7 +551,16 @@ def _checkout_context(request: Request, db: Session, user: User, **extra) -> dic
         "subtotal": subtotal,
         "viewer": user,
         "card_enabled": order_service.card_connected(),
+        "tips": _TIPS,
     }
+    if restaurant is not None and not user.is_guest and loyalty.enabled(db, restaurant):
+        held = loyalty.balance(db, user.id, restaurant.id)
+        # Before any promo: an upper bound, and the page says "up to". The server
+        # takes what the order can really use once the promo is known.
+        usable = loyalty.max_spend(restaurant, subtotal, held)
+        if usable > 0:
+            context["bonus_usable"] = int(usable)
+            context["bonus_balance"] = int(held)
     context.update(extra)
     return context
 
@@ -571,6 +584,8 @@ def checkout(
     pay_method: str = Form("cash"),
     comment: str = Form(""),
     promo_code: str = Form(""),
+    tip: int = Form(0),
+    use_loyalty: str = Form(""),
     db: Session = DB,
 ) -> Response:
     user = _viewer(request, db)
@@ -595,6 +610,8 @@ def checkout(
                 pay_method=pay_method,
                 comment=comment,
                 promo_code=promo_code,
+                tip=tip,
+                use_loyalty=bool(use_loyalty),
             ),
             db=db,
             status_code=code,
@@ -608,6 +625,9 @@ def checkout(
             comment=comment.strip() or None,
             pay_method=pay_method if pay_method in ("cash", "online") else "cash",
             promo_code=promo_code.strip() or None,
+            # Only the amounts the page offers; a hand-made form can't send more.
+            tip=tip if tip in _TIPS and channel != "pickup" else 0,
+            use_loyalty=bool(use_loyalty),
             items=[{"menu_item_id": line.item.id, "quantity": line.quantity} for line in lines],
         )
     except ValidationError:

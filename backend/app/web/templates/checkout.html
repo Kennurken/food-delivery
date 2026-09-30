@@ -33,6 +33,22 @@
       </label>
 
       <fieldset>
+        <legend>Чаевые курьеру</legend>
+        <label class="radio"><input type="radio" name="tip" value="0" {% if not tip %}checked{% endif %}> Без чаевых</label>
+        {% for amount in tips %}
+        <label class="radio"><input type="radio" name="tip" value="{{ amount }}" {% if tip == amount %}checked{% endif %}> {{ amount }} ₸</label>
+        {% endfor %}
+        <span class="hint">Только для доставки. Курьер получает всю сумму.</span>
+      </fieldset>
+
+      {% if bonus_usable %}
+      <label class="radio">
+        <input type="checkbox" name="use_loyalty" value="1" {% if use_loyalty %}checked{% endif %}>
+        Оплатить бонусами (до {{ bonus_usable }} ₸, на счёте {{ bonus_balance }} ₸)
+      </label>
+      {% endif %}
+
+      <fieldset>
         <legend>Оплата</legend>
         <label class="radio">
           <input type="radio" name="pay_method" value="cash" {% if pay_method != 'online' %}checked{% endif %}>

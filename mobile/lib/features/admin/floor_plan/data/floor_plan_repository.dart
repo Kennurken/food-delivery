@@ -70,10 +70,21 @@ class FloorPlanRepository {
     return FloorDoc.fromJson(r.data as Map<String, dynamic>);
   }
 
-  Future<String> tableQr(int floorId, int objectId) async {
+  /// What goes on the table: the server's public link to the app at that
+  /// table. Older servers only send the token.
+  Future<({String token, String? url})> tableQr(
+    int floorId,
+    int objectId,
+  ) async {
     final r = await _dio.get(
       '/api/v1/admin/floors/$floorId/objects/$objectId/qr',
     );
-    return r.data['token'] as String;
+    return (token: r.data['token'] as String, url: r.data['url'] as String?);
+  }
+
+  /// A ten-minute link to a printable page of every table's QR code.
+  Future<String> qrSheetLink(int floorId) async {
+    final r = await _dio.post('/api/v1/admin/floors/$floorId/qr-sheet');
+    return r.data['url'] as String;
   }
 }

@@ -1,4 +1,3 @@
-from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
@@ -17,6 +16,7 @@ from app.schemas.floor_plan import (
     LayoutSave,
     VersionOut,
 )
+from app.services import qr_sheet
 from app.services.floor_plan import (
     OBJECT_KINDS,
     TABLE_KINDS,
@@ -24,6 +24,7 @@ from app.services.floor_plan import (
     apply_template,
     record_version,
 )
+from app.services.schedule import utcnow
 
 router = APIRouter(prefix="/admin", tags=["floor-plan"])
 
@@ -232,7 +233,7 @@ def save_layout(floor_id: int, data: LayoutSave, db: DB, user: CurrentUser) -> F
         else:
             db.add(FloorObject(floor_id=floor.id, zone_id=zone_id, **payload))
 
-    floor.updated_at = datetime.utcnow()  # noqa: DTZ003
+    floor.updated_at = utcnow()
     db.commit()
     db.refresh(floor)
     return floor
@@ -299,4 +300,7 @@ def table_qr(floor_id: int, object_id: int, db: DB, user: CurrentUser) -> dict:
     if not obj or obj.floor_id != floor.id or not obj.kind.startswith("table"):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Table not found")
     token = table_token(floor.restaurant_id, obj.id)
-    return {"token": token, "path": f"/t/{token}"}
+    # `url` is what goes on the table: the app's public address, not wherever
+    # the admin happens to be running it (a phone has no web origin at all).
+    url = qr_sheet.table_url(floor.restaurant_id, obj.id)
+    return {"token": token, "path": f"/t/{token}", "url": url}

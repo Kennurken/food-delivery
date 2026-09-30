@@ -21,6 +21,8 @@ class VenueStats {
     this.byHour = const [],
     this.customers = 0,
     this.repeatCustomers = 0,
+    this.ordersChangePct,
+    this.revenueChangePct,
   });
 
   final int days;
@@ -43,6 +45,12 @@ class VenueStats {
   final List<int> byHour;
   final int customers;
   final int repeatCustomers;
+
+  /// Change against the window of the same length just before this one. Null
+  /// when there is no baseline (nothing sold then, or the plan can't look that
+  /// far back) — never a made-up number.
+  final double? ordersChangePct;
+  final double? revenueChangePct;
 
   /// The busiest hour's count. Never zero, so a chart cannot divide by it.
   int get peakHourCount {
@@ -83,6 +91,8 @@ class VenueStats {
     byHour: [for (final n in (json['by_hour'] as List?) ?? const []) _count(n)],
     customers: _count(json['customers']),
     repeatCustomers: _count(json['repeat_customers']),
+    ordersChangePct: (json['orders_change_pct'] as num?)?.toDouble(),
+    revenueChangePct: (json['revenue_change_pct'] as num?)?.toDouble(),
   );
 
   /// Biggest day in the window. Never zero, so a chart cannot divide by it.

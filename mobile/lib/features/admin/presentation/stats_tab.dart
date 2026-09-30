@@ -142,9 +142,18 @@ class _Numbers extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         StatGrid(
+          compareDays: data.days,
           tiles: [
-            StatTile(label: t.revenueLabel, value: formatMoney(data.revenue)),
-            StatTile(label: t.ordersLabel, value: '${data.orders}'),
+            StatTile(
+              label: t.revenueLabel,
+              value: formatMoney(data.revenue),
+              change: data.revenueChangePct,
+            ),
+            StatTile(
+              label: t.ordersLabel,
+              value: '${data.orders}',
+              change: data.ordersChangePct,
+            ),
             StatTile(
               label: t.averageCheck,
               value: formatMoney(data.averageCheck),

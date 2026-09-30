@@ -8,16 +8,29 @@ import '../domain/venue_stats.dart';
 /// surfaces cannot drift into looking like different products.
 
 class StatTile {
-  const StatTile({required this.label, required this.value});
+  const StatTile({required this.label, required this.value, this.change});
 
   final String label;
   final String value;
+
+  /// Percent change against the previous window, or null for none.
+  final double? change;
+}
+
+/// "+12 %" / "−5 %", with the sign spelled out so a flat "0 %" isn't a guess.
+String formatChange(double pct) {
+  final sign = pct > 0 ? '+' : (pct < 0 ? '−' : '');
+  final n = pct.abs();
+  return '$sign${n == n.roundToDouble() ? n.toStringAsFixed(0) : n.toStringAsFixed(1)} %';
 }
 
 class StatGrid extends StatelessWidget {
-  const StatGrid({super.key, required this.tiles});
+  const StatGrid({super.key, required this.tiles, this.compareDays = 0});
 
   final List<StatTile> tiles;
+
+  /// Length of the window the tiles' [StatTile.change] compares against.
+  final int compareDays;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +66,14 @@ class StatGrid extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
+                  if (tile.change case final pct?)
+                    Text(
+                      context.l10n.vsPrevious(formatChange(pct), compareDays),
+                      style: text.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: pct < 0 ? scheme.error : Colors.green.shade700,
+                      ),
+                    ),
                 ],
               ),
             ),

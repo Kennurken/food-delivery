@@ -1418,4 +1418,12 @@ class L10nEn extends L10n {
 
   @override
   String get chatManagerSnack => 'The manager has been notified';
+
+  @override
+  String vsPrevious(String pct, int days) {
+    return '$pct vs previous $days d';
+  }
+
+  @override
+  String get printTableQr => 'Print table QR codes';
 }

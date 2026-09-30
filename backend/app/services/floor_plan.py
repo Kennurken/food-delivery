@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-
 from app.models.floor_plan import Floor, FloorObject, FloorVersion, FloorZone
+from app.services.schedule import utcnow
 
 ZONE_KINDS = (
     "hall",
@@ -127,6 +126,6 @@ def apply_template(floor: Floor, name: str) -> None:
 def record_version(floor: Floor, label: str = "") -> FloorVersion:
     return FloorVersion(
         floor_id=floor.id,
-        label=label or datetime.utcnow().strftime("%Y-%m-%d %H:%M"),  # noqa: DTZ003
+        label=label or utcnow().strftime("%Y-%m-%d %H:%M"),
         snapshot=snapshot_of(floor),
     )

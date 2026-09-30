@@ -551,5 +551,17 @@
       }
     }
   },
-  "chatManagerSnack": "Әкімшіге хабарлама жіберілді"
+  "chatManagerSnack": "Әкімшіге хабарлама жіберілді",
+  "vsPrevious": "алдыңғы {days} күнге {pct}",
+  "@vsPrevious": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "printTableQr": "Үстел QR-кодтарын басып шығару"
 }

@@ -14,6 +14,13 @@ class FloorEditor extends ChangeNotifier {
   FloorEditor(this._repo, this.restaurantId);
 
   final FloorPlanRepository _repo;
+
+  /// Link to the printable QR page for the open floor, or null with none open.
+  Future<String?> qrSheetLink() async {
+    final d = doc;
+    return d == null ? null : _repo.qrSheetLink(d.id);
+  }
+
   final int restaurantId;
   final DocHistory _history = DocHistory();
 

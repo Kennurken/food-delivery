@@ -449,10 +449,12 @@ class _TableQrButtonState extends ConsumerState<_TableQrButton> {
   Future<void> _copy() async {
     setState(() => _busy = true);
     try {
-      final token = await FloorPlanRepository(ref.read(dioProvider))
+      final qr = await FloorPlanRepository(ref.read(dioProvider))
           .tableQr(widget.floorId, widget.objectId);
       final uri = Uri.base;
-      final link = uri.hasScheme ? '${uri.origin}/#/t/$token' : '/t/$token';
+      final link =
+          qr.url ??
+          (uri.hasScheme ? '${uri.origin}/#/t/${qr.token}' : '/t/${qr.token}');
       await Clipboard.setData(ClipboardData(text: link));
       if (mounted) {
         ScaffoldMessenger.of(context)

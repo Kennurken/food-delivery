@@ -551,5 +551,17 @@
       }
     }
   },
-  "chatManagerSnack": "Администратору отправлено уведомление"
+  "chatManagerSnack": "Администратору отправлено уведомление",
+  "vsPrevious": "{pct} к прошлым {days} дн.",
+  "@vsPrevious": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "printTableQr": "Печать QR для столов"
 }

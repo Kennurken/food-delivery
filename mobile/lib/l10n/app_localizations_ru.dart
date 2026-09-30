@@ -1418,4 +1418,12 @@ class L10nRu extends L10n {
 
   @override
   String get chatManagerSnack => 'Администратору отправлено уведомление';
+
+  @override
+  String vsPrevious(String pct, int days) {
+    return '$pct к прошлым $days дн.';
+  }
+
+  @override
+  String get printTableQr => 'Печать QR для столов';
 }

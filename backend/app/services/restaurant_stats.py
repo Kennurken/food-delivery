@@ -62,6 +62,17 @@ class DishRow:
 
 
 @dataclass(frozen=True)
+class PreviousWindow:
+    """The same totals as the current window, for the window of the same
+    length immediately before it."""
+
+    orders: int
+    revenue: float
+    average_check: float
+    cancelled: int
+
+
+@dataclass(frozen=True)
 class Stats:
     days: int
     window_limit: int
@@ -80,6 +91,12 @@ class Stats:
     customers: int
     repeat_customers: int
     repeat_rate: float
+    # The same-length window immediately before the current one, measured with
+    # the same rules. None when it would reach further back than the plan
+    # bought, so there is nothing to compare against.
+    previous: PreviousWindow | None
+    orders_change_pct: float | None
+    revenue_change_pct: float | None
 
 
 @dataclass(frozen=True)
@@ -100,11 +117,15 @@ def clamp_days(requested: int, flags: Entitlements) -> int:
     return max(1, min(requested, max_window(flags)))
 
 
-def summary(db: Session, restaurant: Restaurant, *, days: int, flags: Entitlements) -> Stats:
-    allowed = clamp_days(days, flags)
-    since = _since(allowed)
-    mine = (Order.restaurant_id == restaurant.id) & (Order.created_at >= since)
-
+def _window_totals(
+    db: Session, restaurant: Restaurant, since: datetime, until: datetime | None
+) -> tuple[int, float, int, int]:
+    """Placed orders, earned revenue, earned tickets and cancellations for one
+    venue in one window. Both halves of a comparison go through this, so the
+    rules are the same and only the edges of the window move."""
+    window = (Order.restaurant_id == restaurant.id) & (Order.created_at >= since)
+    if until is not None:
+        window = window & (Order.created_at < until)
     totals = db.execute(
         select(
             func.count(Order.id),
@@ -113,12 +134,22 @@ def summary(db: Session, restaurant: Restaurant, *, days: int, flags: Entitlemen
             func.coalesce(
                 func.sum(case((Order.status == OrderStatus.cancelled, 1), else_=0)), 0
             ),
-        ).where(mine)
+        ).where(window)
     ).one()
-    placed = int(totals[0] or 0)
-    revenue = round(float(totals[1] or 0.0), 2)
-    earned_count = int(totals[2] or 0)
-    cancelled = int(totals[3] or 0)
+    return (
+        int(totals[0] or 0),
+        round(float(totals[1] or 0.0), 2),
+        int(totals[2] or 0),
+        int(totals[3] or 0),
+    )
+
+
+def summary(db: Session, restaurant: Restaurant, *, days: int, flags: Entitlements) -> Stats:
+    allowed = clamp_days(days, flags)
+    since = _since(allowed)
+    mine = (Order.restaurant_id == restaurant.id) & (Order.created_at >= since)
+
+    placed, revenue, earned_count, cancelled = _window_totals(db, restaurant, since, None)
 
     day = func.date(Order.created_at)
     day_rows = db.execute(
@@ -176,6 +207,29 @@ def summary(db: Session, restaurant: Restaurant, *, days: int, flags: Entitlemen
         ).select_from(per_user)
     ).one()
 
+    # The window of the same length immediately before the current one, ending
+    # exactly where the current one starts. A plan must not see further back
+    # than it bought: if 2 * days exceeds the window, there is no comparison.
+    previous: PreviousWindow | None = None
+    orders_change_pct: float | None = None
+    revenue_change_pct: float | None = None
+    if 2 * allowed <= max_window(flags):
+        p_placed, p_revenue, p_earned, p_cancelled = _window_totals(
+            db, restaurant, since - timedelta(days=allowed), since
+        )
+        previous = PreviousWindow(
+            orders=p_placed,
+            revenue=p_revenue,
+            average_check=round(p_revenue / p_earned, 2) if p_earned else 0.0,
+            cancelled=p_cancelled,
+        )
+        # Never divide by zero, never invent a percentage: an empty baseline
+        # means "no comparison", not infinity.
+        if p_placed:
+            orders_change_pct = round((placed - p_placed) / p_placed * 100, 1)
+        if p_revenue:
+            revenue_change_pct = round((revenue - p_revenue) / p_revenue * 100, 1)
+
     return Stats(
         days=allowed,
         window_limit=max_window(flags),
@@ -200,6 +254,9 @@ def summary(db: Session, restaurant: Restaurant, *, days: int, flags: Entitlemen
         customers=int(seen or 0),
         repeat_customers=int(again or 0),
         repeat_rate=round(int(again or 0) / int(seen), 4) if seen else 0.0,
+        previous=previous,
+        orders_change_pct=orders_change_pct,
+        revenue_change_pct=revenue_change_pct,
     )
 
 

@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -9,6 +7,7 @@ from app.core.geo import lang_for, provider, valid_coord
 from app.core.ratelimit import limiter
 from app.models import Order, OrderStatus
 from app.services import order_service
+from app.services.schedule import utcnow
 
 router = APIRouter(tags=["geo"])
 
@@ -85,7 +84,7 @@ def ping_location(request: Request, data: LocationPing, db: DB, courier: Courier
     courier.last_lat = data.lat
     courier.last_lng = data.lng
     courier.last_heading = data.heading
-    courier.last_seen_at = datetime.utcnow()  # noqa: DTZ003
+    courier.last_seen_at = utcnow()
     db.commit()
     active = list(
         db.scalars(

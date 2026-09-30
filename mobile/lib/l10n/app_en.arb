@@ -718,5 +718,17 @@
       }
     }
   },
-  "chatManagerSnack": "The manager has been notified"
+  "chatManagerSnack": "The manager has been notified",
+  "vsPrevious": "{pct} vs previous {days} d",
+  "@vsPrevious": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "printTableQr": "Print table QR codes"
 }

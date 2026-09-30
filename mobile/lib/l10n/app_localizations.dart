@@ -2720,6 +2720,18 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'The manager has been notified'**
   String get chatManagerSnack;
+
+  /// No description provided for @vsPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'{pct} vs previous {days} d'**
+  String vsPrevious(String pct, int days);
+
+  /// No description provided for @printTableQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Print table QR codes'**
+  String get printTableQr;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

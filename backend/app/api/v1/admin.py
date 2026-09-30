@@ -324,6 +324,18 @@ def restaurant_stats(
         "customers": data.customers,
         "repeat_customers": data.repeat_customers,
         "repeat_rate": data.repeat_rate,
+        "previous": (
+            {
+                "orders": data.previous.orders,
+                "revenue": data.previous.revenue,
+                "average_check": data.previous.average_check,
+                "cancelled": data.previous.cancelled,
+            }
+            if data.previous
+            else None
+        ),
+        "orders_change_pct": data.orders_change_pct,
+        "revenue_change_pct": data.revenue_change_pct,
     }
 
 

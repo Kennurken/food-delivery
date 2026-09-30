@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../core/api/api_client.dart';
 
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/widgets/empty_state.dart';
@@ -491,6 +494,21 @@ class _EditorScaffold extends StatelessWidget {
   }
 }
 
+/// Opens the printable QR page in the browser, where printing works on every
+/// platform. The link is signed and short-lived, so the browser needs no login.
+Future<void> _printQr(BuildContext context, FloorEditor editor) async {
+  try {
+    final url = await editor.qrSheetLink();
+    if (url == null) return;
+    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(errorMessage(e))));
+    }
+  }
+}
+
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
     required this.editor,
@@ -571,6 +589,8 @@ class _Toolbar extends StatelessWidget {
                           await editor.duplicateFloor();
                         case 'delete':
                           await editor.deleteFloor();
+                        case 'print':
+                          await _printQr(context, editor);
                       }
                     },
                     itemBuilder: (_) => [
@@ -587,6 +607,11 @@ class _Toolbar extends StatelessWidget {
                         value: 'delete',
                         child: Text(t.deleteFloor),
                       ),
+                      if (editor.doc != null)
+                        PopupMenuItem(
+                          value: 'print',
+                          child: Text(t.printTableQr),
+                        ),
                     ],
                   ),
                   const Spacer(),

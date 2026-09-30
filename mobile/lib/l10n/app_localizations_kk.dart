@@ -1416,4 +1416,12 @@ class L10nKk extends L10n {
 
   @override
   String get chatManagerSnack => 'Әкімшіге хабарлама жіберілді';
+
+  @override
+  String vsPrevious(String pct, int days) {
+    return 'алдыңғы $days күнге $pct';
+  }
+
+  @override
+  String get printTableQr => 'Үстел QR-кодтарын басып шығару';
 }

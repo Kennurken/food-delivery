@@ -796,5 +796,9 @@
   },
   "reset": "Reset",
   "temporaryPassword": "Temporary password",
-  "temporaryPasswordHint": "Give it to the owner by phone; ask them to change it in their profile."
+  "temporaryPasswordHint": "Give it to the owner by phone; ask them to change it in their profile.",
+  "pushOpen": "Open",
+  "@pushOpen": {
+    "description": "Action on an in-app banner for a push notification: opens the screen the push is about."
+  }
 }

@@ -8,6 +8,7 @@ import '../../features/admin/presentation/admin_menu_screen.dart';
 import '../../features/admin/presentation/admin_screen.dart';
 import '../../features/admin/presentation/platform_venue_screen.dart';
 import '../../features/admin/presentation/kitchen_screen.dart';
+import '../../features/auth/domain/user.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
@@ -26,6 +27,19 @@ import '../../features/restaurants/presentation/home_screen.dart';
 import '../../features/restaurants/presentation/qr_table_screen.dart';
 import '../../features/restaurants/presentation/restaurant_screen.dart';
 import '../../features/shell/customer_shell.dart';
+
+/// Whether [user]'s role may stand on [location]; the redirect sends them to
+/// their own home otherwise. Push taps ask first, so a tap never stacks a page
+/// the redirect would only bounce.
+bool roleAllows(User user, String location) {
+  final onCourier = location.startsWith('/courier');
+  final onAdmin = location.startsWith('/admin');
+  final onMap = location.startsWith('/map');
+  final onChat = location.startsWith('/chat/');
+  if (user.isAdmin) return onAdmin || onMap || onChat;
+  if (user.isCourier) return onCourier || onMap || onChat;
+  return !onAdmin && !onCourier;
+}
 
 /// Bridges Riverpod auth state to GoRouter's refreshListenable.
 class _AuthNotifier extends ChangeNotifier {
@@ -73,15 +87,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
         return home;
       }
-      final onCourier = loc.startsWith('/courier');
-      final onAdmin = loc.startsWith('/admin');
-      final onMap = loc.startsWith('/map');
-      final onChat = loc.startsWith('/chat/');
-      if (user.isAdmin && !onAdmin && !onMap && !onChat) return home;
-      if (user.isCourier && !onCourier && !onMap && !onChat) return home;
-      final isCustomer = !user.isAdmin && !user.isCourier;
-      if (isCustomer && (onAdmin || onCourier)) return home;
-      return null;
+      return roleAllows(user, loc) ? null : home;
     },
     routes: [
       GoRoute(
@@ -118,7 +124,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, s) =>
             OrderChatScreen(orderId: int.parse(s.pathParameters['id']!)),
       ),
-      GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
+      GoRoute(
+        path: '/admin',
+        builder: (_, s) => AdminScreen(tab: s.uri.queryParameters['tab']),
+      ),
       GoRoute(
         path: '/admin/platform/restaurants/:id',
         builder: (_, s) =>

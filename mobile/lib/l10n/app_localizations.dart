@@ -3026,6 +3026,12 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Give it to the owner by phone; ask them to change it in their profile.'**
   String get temporaryPasswordHint;
+
+  /// Action on an in-app banner for a push notification: opens the screen the push is about.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get pushOpen;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

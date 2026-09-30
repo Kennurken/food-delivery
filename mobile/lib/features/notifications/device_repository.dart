@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -6,16 +7,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/l10n/locale_controller.dart';
 import 'fcm.dart';
 
 /// What this device registers with the server: its FCM token when the build
 /// has Firebase, otherwise a random local id (which only marks the device —
 /// the server can't push to it).
 class DeviceRepository {
-  DeviceRepository(this._dio, [this._storage = const FlutterSecureStorage()]);
+  DeviceRepository(
+    this._dio, {
+    this._storage = const FlutterSecureStorage(),
+    Future<String> Function()? language,
+  }) : _language = language ?? (() async => 'ru');
 
   final Dio _dio;
   final FlutterSecureStorage _storage;
+
+  /// The UI language, so the server writes this device's pushes in it.
+  final Future<String> Function() _language;
   static const _key = 'device_token';
 
   String get platform {
@@ -44,11 +53,17 @@ class DeviceRepository {
     return minted;
   }
 
+  /// Registers (or re-registers) this device. Also the way to tell the server
+  /// about a new UI language: the same token comes back with a new `lang`.
   Future<void> sync() async {
     try {
       await _dio.put(
         '/api/v1/me/devices',
-        data: {'token': await token(), 'platform': platform},
+        data: {
+          'token': await token(),
+          'platform': platform,
+          'lang': await _language(),
+        },
       );
     } catch (_) {}
   }
@@ -63,5 +78,17 @@ class DeviceRepository {
 }
 
 final deviceRepositoryProvider = Provider(
-  (ref) => DeviceRepository(ref.watch(dioProvider)),
+  (ref) => DeviceRepository(
+    ref.watch(dioProvider),
+    language: () async {
+      // The first sync runs at app start, possibly before the saved choice is
+      // read back; waiting for it keeps that sync from sending the device's
+      // language to someone who picked another one in the app.
+      Locale? chosen;
+      try {
+        chosen = await ref.read(localeControllerProvider.future);
+      } catch (_) {}
+      return serverLanguage(chosen, PlatformDispatcher.instance.locales);
+    },
+  ),
 );

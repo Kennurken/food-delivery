@@ -275,3 +275,8 @@ code { background: var(--line); padding: 2px 7px; border-radius: 6px; font-size:
 .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
 .chips a { font-size: 14px; font-weight: 600; color: var(--muted); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); }
 .chips a[aria-current="true"] { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+
+.consent { align-items: flex-start; }
+.foot-support { margin-top: 10px; }
+.legal h2 { font-size: 18px; margin: 22px 0 6px; }
+.legal p { max-width: 70ch; }

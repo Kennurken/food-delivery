@@ -4,7 +4,7 @@ from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from app.core.security import parse_subject_id
+from app.core.sessions import user_for_token
 from app.db.session import get_db
 from app.models import User, UserRole
 
@@ -14,8 +14,7 @@ DB = Annotated[Session, Depends(get_db)]
 
 
 def get_current_user(db: DB, token: Annotated[str, Depends(oauth2_scheme)]) -> User:
-    user_id = parse_subject_id(token)
-    user = db.get(User, user_id) if user_id is not None else None
+    user = user_for_token(db, token)
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token")
     return user
@@ -30,8 +29,7 @@ def get_optional_user(db: DB, authorization: Annotated[str | None, Header()] = N
     simply no one, never an error: the endpoint stays public."""
     if not authorization or not authorization.lower().startswith("bearer "):
         return None
-    user_id = parse_subject_id(authorization[7:].strip())
-    return db.get(User, user_id) if user_id is not None else None
+    return user_for_token(db, authorization[7:].strip())
 
 
 OptionalUser = Annotated[User | None, Depends(get_optional_user)]

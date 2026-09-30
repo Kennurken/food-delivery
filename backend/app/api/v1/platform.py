@@ -10,6 +10,7 @@ from app.api.deps import DB, AdminUser, CurrentUser
 from app.core import audit, monitoring, subscriptions
 from app.core.access import require_restaurant, valid_staff_role
 from app.core.billing import parse_webhook, public_config
+from app.core.config import settings
 from app.core.features import (
     DEFAULT_PLAN,
     FEATURE_KEYS,
@@ -22,7 +23,7 @@ from app.models.audit import AuditLog
 from app.models.feature_flag import FeatureOverride
 from app.models.floor_plan import Floor
 from app.models.member import RestaurantMember
-from app.services import couriers, platform_directory
+from app.services import accounts, couriers, platform_directory
 from app.services.schedule import utcnow
 
 router = APIRouter(tags=["platform"])
@@ -36,6 +37,19 @@ class StaffAdd(BaseModel):
 class FeaturePatch(BaseModel):
     key: str
     enabled: bool
+
+
+@router.get("/meta")
+def meta() -> dict:
+    """Public facts the app shows outside any screen's data: where the legal
+    pages are and how to reach a person."""
+    site = settings.public_site_url.rstrip("/")
+    return {
+        "support_email": settings.support_email.strip() or None,
+        "support_phone": settings.support_phone.strip() or None,
+        "privacy_url": f"{site}/privacy/",
+        "terms_url": f"{site}/terms/",
+    }
 
 
 @router.get("/billing/plans")
@@ -87,6 +101,27 @@ def overview(db: DB, _: AdminUser) -> dict:
         "billing": "stripe" if public_config()["card"] else "unconfigured",
         "error_reporting": monitoring.enabled(),
     }
+
+
+class PasswordResetIn(BaseModel):
+    email: EmailStr
+
+
+@router.post("/platform/users/reset-password")
+def reset_user_password(data: PasswordResetIn, db: DB, admin: AdminUser, request: Request) -> dict:
+    """For someone who called and was recognised: a temporary password, shown
+    once, to read out to them. Every device they were signed in on is signed out."""
+    temporary = accounts.reset_password(db, data.email)
+    audit.record(
+        db,
+        actor_id=admin.id,
+        restaurant_id=None,
+        action="user.password_reset",
+        resource=f"user:{data.email}",
+        request_id=getattr(request.state, "request_id", None),
+    )
+    db.commit()
+    return {"email": data.email, "temporary_password": temporary}
 
 
 @router.post("/platform/monitoring/test", status_code=status.HTTP_202_ACCEPTED)

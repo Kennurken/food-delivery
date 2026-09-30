@@ -37,7 +37,7 @@ from app.services import partners as partners_service
 from app.services import reviews as review_service
 from app.services.schedule import utcnow
 from app.web import cart as cart_store
-from app.web import i18n
+from app.web import i18n, legal
 from app.web import session as web_session
 
 HERE = Path(__file__).parent
@@ -122,6 +122,8 @@ def _render(
             context[key] = i18n.translate(context[key], lang)
     context.setdefault("base_url", _base_url())
     context.setdefault("app_url", settings.public_app_url.rstrip("/"))
+    context.setdefault("support_email", settings.support_email.strip())
+    context.setdefault("support_phone", settings.support_phone.strip())
     context.setdefault("cart_count", _cart(request).count)
     context.setdefault("asset_version", ASSET_VERSION)
     if alternates:
@@ -480,6 +482,45 @@ def about_page(request: Request, db: Session = DB) -> HTMLResponse:
     )
 
 
+_NO_CONSENT = "Нужно принять соглашение и согласие на обработку персональных данных"
+_LEGAL_TITLES = {"privacy": "Политика конфиденциальности", "terms": "Пользовательское соглашение"}
+
+
+def _legal(request: Request, db: Session, doc: str) -> HTMLResponse:
+    lang = _lang(request)
+    return _render(
+        request,
+        "legal.html",
+        {
+            "title": _LEGAL_TITLES[doc],
+            "description": _LEGAL_TITLES[doc],
+            "updated": legal.UPDATED,
+            "sections": legal.sections(
+                doc,
+                lang,
+                operator=settings.legal_entity.strip(),
+                email=settings.support_email.strip(),
+                phone=settings.support_phone.strip(),
+            ),
+            "canonical": f"{_base_url()}{i18n.PREFIX[lang]}/{doc}/",
+        },
+        db=db,
+        alternates=True,
+    )
+
+
+@router.get("/privacy/", response_class=HTMLResponse)
+@router.get("/kk/privacy/", response_class=HTMLResponse)
+def privacy_page(request: Request, db: Session = DB) -> HTMLResponse:
+    return _legal(request, db, "privacy")
+
+
+@router.get("/terms/", response_class=HTMLResponse)
+@router.get("/kk/terms/", response_class=HTMLResponse)
+def terms_page(request: Request, db: Session = DB) -> HTMLResponse:
+    return _legal(request, db, "terms")
+
+
 # ---------------------------------------------------------------------- cart
 
 
@@ -579,7 +620,7 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
     response = RedirectResponse(_safe_next(next), status_code=status.HTTP_303_SEE_OTHER)
-    web_session.remember(response, create_access_token(str(user.id)))
+    web_session.remember(response, create_access_token(str(user.id), user.token_version or 0))
     return response
 
 
@@ -605,11 +646,14 @@ def register(
     phone: str = Form(""),
     password: str = Form(...),
     next: str = Form("/"),
+    consent: str = Form(""),
     db: Session = DB,
 ) -> Response:
     email = email.strip().lower()
     problem: str | None = None
-    if len(password) < 8:
+    if not consent:
+        problem = _NO_CONSENT
+    elif len(password) < 8:
         problem = "Пароль должен быть не короче 8 символов"
     elif db.scalar(select(User.id).where(User.email == email)):
         problem = "Такая почта уже зарегистрирована"
@@ -640,7 +684,7 @@ def register(
     db.commit()
     db.refresh(user)
     response = RedirectResponse(_safe_next(next), status_code=status.HTTP_303_SEE_OTHER)
-    web_session.remember(response, create_access_token(str(user.id)))
+    web_session.remember(response, create_access_token(str(user.id), user.token_version or 0))
     return response
 
 
@@ -881,6 +925,7 @@ def partners_apply(
     phone: str = Form(""),
     email: str = Form(""),
     password: str = Form(""),
+    consent: str = Form(""),
     db: Session = DB,
 ) -> Response:
     form = {
@@ -909,6 +954,8 @@ def partners_apply(
             status_code=code,
         )
 
+    if not consent:
+        return again(_NO_CONSENT)
     try:
         data = ApplicationIn(
             venue_name=venue_name.strip(),
@@ -1047,6 +1094,7 @@ def robots() -> Response:
 def sitemap(db: Session = DB) -> Response:
     base = _base_url()
     urls = [f"{base}/", f"{base}/actions/", f"{base}/delivery/", f"{base}/about/"]
+    urls += [f"{base}/privacy/", f"{base}/terms/"]
     urls += [
         f"{base}/r/{slug}/"
         for slug in db.scalars(

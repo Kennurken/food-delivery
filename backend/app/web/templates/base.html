@@ -83,7 +83,16 @@
       <a href="{{ lp }}/partners/">{{ _("Подключить ресторан") }}</a>
       <a href="/cart/">{{ _("Корзина") }}</a>
       <a href="{{ app_url }}/#/">{{ _("Открыть приложение") }}</a>
+      <a href="{{ lp }}/terms/">{{ _("Пользовательское соглашение") }}</a>
+      <a href="{{ lp }}/privacy/">{{ _("Политика конфиденциальности") }}</a>
     </nav>
+    {% if support_email or support_phone %}
+    <p class="muted foot-support">{{ _("Поддержка") }}:
+      {% if support_email %}<a href="mailto:{{ support_email }}">{{ support_email }}</a>{% endif %}
+      {% if support_email and support_phone %} · {% endif %}
+      {% if support_phone %}<a href="tel:{{ support_phone|replace(' ', '') }}">{{ support_phone }}</a>{% endif %}
+    </p>
+    {% endif %}
   </div>
 </footer>
 </body>

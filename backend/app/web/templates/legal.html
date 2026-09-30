@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="wrap block narrow legal">
+  <h1>{{ title }}</h1>
+  <p class="muted">{{ _("Редакция от") }} {{ updated }}</p>
+  {% for heading, paragraphs in sections %}
+  <h2>{{ heading }}</h2>
+  {% for p in paragraphs %}<p>{{ p }}</p>{% endfor %}
+  {% endfor %}
+</section>
+{% endblock %}

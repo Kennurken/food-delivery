@@ -14,7 +14,7 @@ from fastapi import Response
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.security import parse_subject_id
+from app.core.sessions import user_for_token
 from app.models import User
 
 COOKIE = "fd_session"
@@ -41,5 +41,4 @@ def current_user(db: Session, cookie: str | None) -> User | None:
     cookie is simply a visitor — the site stays readable either way."""
     if not cookie:
         return None
-    user_id = parse_subject_id(cookie)
-    return db.get(User, user_id) if user_id is not None else None
+    return user_for_token(db, cookie)

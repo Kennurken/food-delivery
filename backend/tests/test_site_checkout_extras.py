@@ -27,7 +27,7 @@ def _signed_up(web) -> str:
     r = web.post(
         "/register/",
         data={"name": "Extras Guest", "email": email, "phone": "+77010000000",
-              "password": "sitepass123", "next": "/"},
+              "password": "sitepass123", "next": "/", "consent": "yes"},
         follow_redirects=False,
     )
     assert r.status_code == 303, r.text

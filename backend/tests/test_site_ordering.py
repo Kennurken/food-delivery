@@ -46,6 +46,7 @@ def _sign_up(web, *, next_url: str = "/") -> str:
             "phone": "+77010000000",
             "password": "sitepass123",
             "next": next_url,
+            "consent": "yes",
         },
         follow_redirects=False,
     )
@@ -163,7 +164,7 @@ class TestAuth:
         r = web.post(
             "/register/",
             data={"name": "X", "email": f"x.{secrets.token_hex(3)}@food.dev",
-                  "phone": "", "password": "short", "next": "/"},
+                  "phone": "", "password": "short", "next": "/", "consent": "yes"},
             follow_redirects=False,
         )
 
@@ -187,7 +188,7 @@ class TestAuth:
         r = web.post(
             "/register/",
             data={"name": "X", "email": f"x.{secrets.token_hex(3)}@food.dev",
-                  "phone": "", "password": "sitepass123", "next": "/"},
+                  "phone": "", "password": "sitepass123", "next": "/", "consent": "yes"},
             follow_redirects=False,
         )
 

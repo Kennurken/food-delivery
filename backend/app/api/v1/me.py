@@ -13,10 +13,21 @@ from app.models.member import RestaurantMember
 from app.schemas.address import AddressCreate, AddressOut, AddressUpdate
 from app.schemas.restaurant import RestaurantOut
 from app.schemas.user import DeviceIn, PasswordChange, UserOut, UserUpdate
-from app.services import courier_earnings
+from app.services import accounts, courier_earnings
 from app.services.restaurant_view import to_out
 
 router = APIRouter(prefix="/me", tags=["me"])
+
+
+class DeleteAccountIn(BaseModel):
+    password: str | None = None
+
+
+@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(lambda: settings.login_rate_limit)
+def delete_account(request: Request, data: DeleteAccountIn, db: DB, user: CurrentUser) -> None:
+    """Close the account. Orders stay with the restaurants, without the person."""
+    accounts.delete_account(db, user, data.password)
 
 
 @router.patch("", response_model=UserOut)
@@ -31,6 +42,8 @@ def update_profile(data: UserUpdate, db: DB, user: CurrentUser) -> User:
 @router.post("/password", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit(lambda: settings.login_rate_limit)
 def change_password(request: Request, data: PasswordChange, db: DB, user: CurrentUser) -> None:
+    if user.is_guest:
+        raise HTTPException(status.HTTP_409_CONFLICT, "A table session has no password")
     if not verify_password(data.current_password, user.hashed_password):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid credentials")
     if data.current_password == data.new_password:

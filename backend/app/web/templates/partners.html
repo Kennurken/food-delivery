@@ -66,6 +66,8 @@
       <input type="password" name="password" required minlength="8" maxlength="128">
       <span class="hint">{{ _("Не короче 8 символов. С ним вы войдёте в приложение и заполните меню.") }}</span>
     </label>
+    <label class="radio consent"><input type="checkbox" name="consent" value="yes" required> {{ _("Принимаю пользовательское соглашение и даю согласие на обработку персональных данных") }}</label>
+    <p class="hint"><a class="under" href="{{ lp }}/terms/">{{ _("Пользовательское соглашение") }}</a> · <a class="under" href="{{ lp }}/privacy/">{{ _("Политика конфиденциальности") }}</a></p>
     <button class="btn" type="submit">{{ _("Отправить заявку") }}</button>
   </form>
 </section>

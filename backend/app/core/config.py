@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     public_site_url: str = "https://food-delivery-api-jet.vercel.app"
     # Share of the delivery fee the courier keeps. The rest covers the platform.
     courier_fee_share: float = 0.8
+    # Who guests and restaurants write to. Shown on the site and in the app;
+    # empty hides it rather than printing a dead address.
+    support_email: str = ""
+    support_phone: str = ""
+    # The legal entity operating the service, printed in the privacy policy and
+    # the terms. Empty until the company exists.
+    legal_entity: str = ""
     # Error reporting. Empty = off; nothing is sent and the SDK is never touched.
     sentry_dsn: str = ""
     sentry_traces_sample_rate: float = 0.0

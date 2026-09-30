@@ -14,9 +14,9 @@ from app.core.security import (
     create_access_token,
     create_refresh_token,
     hash_password,
-    parse_subject_id,
     verify_password,
 )
+from app.core.sessions import user_for_token
 from app.models import User
 from app.models.floor_plan import FloorObject
 from app.schemas.user import AccessToken, RefreshRequest, Token, UserCreate, UserLogin, UserOut
@@ -25,10 +25,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 def _issue(user: User) -> Token:
-    sub = str(user.id)
+    sub, ver = str(user.id), user.token_version or 0
     return Token(
-        access_token=create_access_token(sub),
-        refresh_token=create_refresh_token(sub),
+        access_token=create_access_token(sub, ver),
+        refresh_token=create_refresh_token(sub, ver),
         user=UserOut.model_validate(user),
     )
 
@@ -119,11 +119,10 @@ def login_json(request: Request, data: UserLogin, db: DB) -> Token:
 @router.post("/refresh", response_model=AccessToken)
 @limiter.limit(lambda: settings.login_rate_limit)
 def refresh(request: Request, data: RefreshRequest, db: DB) -> AccessToken:
-    user_id = parse_subject_id(data.refresh_token, expected="refresh")
-    user = db.get(User, user_id) if user_id is not None else None
+    user = user_for_token(db, data.refresh_token, expected="refresh")
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid refresh token")
-    return AccessToken(access_token=create_access_token(str(user.id)))
+    return AccessToken(access_token=create_access_token(str(user.id), user.token_version or 0))
 
 
 @router.get("/me", response_model=UserOut)

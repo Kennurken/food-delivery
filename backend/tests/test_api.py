@@ -241,15 +241,25 @@ def test_change_password(client, auth):
     assert r.status_code == 204
     assert client.post("/api/v1/auth/login/json", json={"email": "user@food.dev", "password": "user123"}).status_code == 401
     assert client.post("/api/v1/auth/login/json", json={"email": "user@food.dev", "password": "newpass1"}).status_code == 200
-    # later tests reuse the user123 fixture login — put it back
-    assert (
-        client.post(
-            "/api/v1/me/password",
-            json={"current_password": "newpass1", "new_password": "user123"},
-            headers=auth,
-        ).status_code
-        == 204
+    # Later tests reuse the user123 fixture login — put it back directly: the
+    # seed's 7-character password is below the length a change now accepts.
+    from app.core.security import hash_password
+    from app.db.session import SessionLocal
+    from app.models import User
+
+    with SessionLocal() as db:
+        db.query(User).filter_by(email="user@food.dev").one().hashed_password = hash_password("user123")
+        db.commit()
+
+
+def test_a_new_password_must_be_eight_characters(client, auth):
+    r = client.post(
+        "/api/v1/me/password",
+        json={"current_password": "user123", "new_password": "seven77"},
+        headers=auth,
     )
+
+    assert r.status_code == 422
 
 
 def test_rate_order_updates_restaurant(client, auth, admin, courier):

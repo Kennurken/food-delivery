@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, String, func, true
+from sqlalchemy import Boolean, DateTime, Enum, Float, Integer, String, func, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -26,6 +26,9 @@ class User(Base):
     # no password anyone knows. Kept as a flag so the app can stop offering
     # profile settings that mean nothing without an email.
     is_guest: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Bumped to sign the person out everywhere: every token carries the value
+    # it was issued with, and a mismatch is treated as no token at all.
+    token_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     last_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     last_lng: Mapped[float | None] = mapped_column(Float, nullable=True)

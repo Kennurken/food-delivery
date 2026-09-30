@@ -19,6 +19,8 @@ from app.models.city import City
 RESERVED_SLUGS = frozenset(
     {
         "about",
+        "privacy",
+        "terms",
         "actions",
         "api",
         "cart",

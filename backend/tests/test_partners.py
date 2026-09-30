@@ -326,6 +326,7 @@ class TestTheSiteForm:
             "phone": "+77019998877",
             "email": f"form.{secrets.token_hex(3)}@cafe.kz",
             "password": "formpass123",
+            "consent": "yes",
             **extra,
         }
 

@@ -5,8 +5,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.features import entitlements
+from app.models.order import Order, OrderStatus
 from app.models.promo import Promo
 from app.models.restaurant import Restaurant
+from app.models.user import User
 
 _CODE_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
@@ -22,13 +24,43 @@ def find_promo(db: Session, restaurant_id: int, code: str) -> Promo | None:
     return db.scalar(select(Promo).where(Promo.restaurant_id == restaurant_id, Promo.code == key))
 
 
-def quote(db: Session, restaurant: Restaurant, code: str, subtotal: float) -> tuple[Promo, float]:
+def is_new_here(db: Session, user: User, restaurant_id: int) -> bool:
+    """No order at this venue that wasn't cancelled: a cancelled basket is not
+    having eaten there, and a pending one already is."""
+    return (
+        db.scalar(
+            select(Order.id)
+                .where(
+                Order.user_id == user.id,
+                Order.restaurant_id == restaurant_id,
+                Order.status != OrderStatus.cancelled,
+            )
+            .limit(1)
+        )
+        is None
+    )
+
+
+def quote(
+    db: Session,
+    restaurant: Restaurant,
+    code: str,
+    subtotal: float,
+    user: User | None = None,
+) -> tuple[Promo, float]:
     flags = entitlements(db, restaurant)
     if not flags.enabled("promotions"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Promotions are not on this plan")
     promo = find_promo(db, restaurant.id, code)
     if promo is None or not promo.is_active:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unknown promo")
+    if promo.new_customers_only:
+        if user is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Sign in to use this welcome offer")
+        if not is_new_here(db, user, restaurant.id):
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "This offer is for guests who haven't ordered here yet"
+            )
     if promo.max_uses is not None and promo.used_count >= promo.max_uses:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Promo is used up")
     if subtotal + 1e-9 < promo.min_subtotal:

@@ -213,16 +213,21 @@ class TestPeakHoursAndRegulars:
         assert (body["customers"], body["repeat_customers"], body["repeat_rate"]) == (0, 0, 0.0)
 
     def test_an_order_lands_in_the_venues_local_hour(self, client, admin, venue):
-        from datetime import UTC, datetime, timedelta
+        from sqlalchemy import select
+
+        from app.db.session import SessionLocal
+        from app.models import Order
 
         self._serve(client, admin, venue, self._diner(client))
-        local = (datetime.now(UTC) + timedelta(hours=5)).hour  # seeded cities are UTC+5
+        with SessionLocal() as db:
+            # Whatever clock the database stamped it with: the column is read
+            # back, so the test checks the shift and not the host's time zone.
+            stored = db.scalar(select(Order.created_at).where(Order.restaurant_id == venue["id"]))
 
         by_hour = self._stats(client, admin, venue)["by_hour"]
 
         assert sum(by_hour) == 1
-        # A minute boundary can push it into the next bucket between the two clocks.
-        assert by_hour[local] == 1 or by_hour[(local + 1) % 24] == 1
+        assert by_hour[(stored.hour + 5) % 24] == 1  # the seeded cities are UTC+5
 
     def test_regulars_are_counted_once_they_come_back(self, client, admin, venue):
         regular, once = self._diner(client), self._diner(client)

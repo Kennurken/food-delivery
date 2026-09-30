@@ -1333,4 +1333,7 @@ class L10nKk extends L10n {
   String regularsValue(int again, int total) {
     return '$total ішінен $again қайта келді';
   }
+
+  @override
+  String get newGuestsOnly => 'Тек жаңа қонақтарға';
 }

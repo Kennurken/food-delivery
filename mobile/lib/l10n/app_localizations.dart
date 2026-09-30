@@ -2576,6 +2576,12 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'{again} of {total} came back'**
   String regularsValue(int again, int total);
+
+  /// No description provided for @newGuestsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'New guests only'**
+  String get newGuestsOnly;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

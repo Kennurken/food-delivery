@@ -1335,4 +1335,7 @@ class L10nRu extends L10n {
   String regularsValue(int again, int total) {
     return '$again из $total вернулись';
   }
+
+  @override
+  String get newGuestsOnly => 'Только для новых гостей';
 }

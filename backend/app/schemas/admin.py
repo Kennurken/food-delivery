@@ -71,6 +71,7 @@ class PromoCreate(BaseModel):
     min_subtotal: float = Field(default=0, ge=0)
     max_uses: int | None = Field(default=None, ge=1)
     is_active: bool = True
+    new_customers_only: bool = False
 
 
 class PromoUpdate(BaseModel):
@@ -79,6 +80,7 @@ class PromoUpdate(BaseModel):
     min_subtotal: float | None = Field(default=None, ge=0)
     max_uses: int | None = Field(default=None, ge=1)
     is_active: bool | None = None
+    new_customers_only: bool | None = None
 
 
 class PromoOut(BaseModel):
@@ -93,6 +95,7 @@ class PromoOut(BaseModel):
     is_active: bool
     max_uses: int | None
     used_count: int
+    new_customers_only: bool = False
 
 
 class PromoQuote(BaseModel):

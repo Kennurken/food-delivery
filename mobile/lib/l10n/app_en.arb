@@ -673,5 +673,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "newGuestsOnly": "New guests only"
 }

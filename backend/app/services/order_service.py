@@ -278,7 +278,7 @@ def create_order(
     applied = None
     raw_code = (data.promo_code or "").strip()
     if raw_code:
-        applied, discount = promo_service.quote(db, restaurant, raw_code, subtotal)
+        applied, discount = promo_service.quote(db, restaurant, raw_code, subtotal, user)
         promo_code = applied.code
         applied.used_count += 1
 

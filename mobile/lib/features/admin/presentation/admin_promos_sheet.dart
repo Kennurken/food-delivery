@@ -59,6 +59,7 @@ class _PromosSheetState extends ConsumerState<_PromosSheet> {
     final code = TextEditingController();
     final amount = TextEditingController(text: '10');
     var kind = 'percent';
+    var newOnly = false;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -86,6 +87,13 @@ class _PromosSheetState extends ConsumerState<_PromosSheet> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(labelText: t.priceTenge),
               ),
+              // A welcome offer: the server checks the guest really is new.
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(t.newGuestsOnly),
+                value: newOnly,
+                onChanged: (v) => setLocal(() => newOnly = v),
+              ),
             ],
           ),
           actions: [
@@ -112,6 +120,7 @@ class _PromosSheetState extends ConsumerState<_PromosSheet> {
         'kind': kind,
         'value': parsed,
         'min_subtotal': 0,
+        if (newOnly) 'new_customers_only': true,
       });
       await _reload();
     } catch (e) {
@@ -145,7 +154,12 @@ class _PromosSheetState extends ConsumerState<_PromosSheet> {
               SwitchListTile(
                 title: Text(p['code'] as String? ?? ''),
                 subtitle: Text(
-                  p['kind'] == 'percent' ? '${p['value']}%' : '${p['value']} ₸',
+                  [
+                    p['kind'] == 'percent'
+                        ? '${p['value']}%'
+                        : '${p['value']} ₸',
+                    if (p['new_customers_only'] == true) t.newGuestsOnly,
+                  ].join(' · '),
                 ),
                 value: p['is_active'] == true,
                 onChanged: (v) async {

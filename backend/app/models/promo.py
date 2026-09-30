@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, UniqueConstraint, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -19,5 +19,10 @@ class Promo(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     max_uses: Mapped[int | None] = mapped_column(Integer, nullable=True)
     used_count: Mapped[int] = mapped_column(Integer, default=0)
+    # A welcome offer: only for someone who has not ordered from this venue
+    # before. The venue pays for it, like every promo here.
+    new_customers_only: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false()
+    )
 
     restaurant: Mapped["Restaurant"] = relationship()  # noqa: F821

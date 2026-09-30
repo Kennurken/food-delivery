@@ -506,5 +506,6 @@
   "offTheLineHint": "Сіз желіде емессіз: жаңа тапсырыстар жасырын",
   "peakHours": "Ең қарбалас сағаттар",
   "regulars": "Тұрақты қонақтар",
-  "regularsValue": "{total} ішінен {again} қайта келді"
+  "regularsValue": "{total} ішінен {again} қайта келді",
+  "newGuestsOnly": "Тек жаңа қонақтарға"
 }

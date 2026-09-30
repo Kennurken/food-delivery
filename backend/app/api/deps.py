@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
@@ -22,6 +22,19 @@ def get_current_user(db: DB, token: Annotated[str, Depends(oauth2_scheme)]) -> U
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_optional_user(db: DB, authorization: Annotated[str | None, Header()] = None) -> User | None:
+    """Who is asking, if they said — for public reads that answer differently to
+    someone signed in (is this code good for *me*?). A missing or bad token is
+    simply no one, never an error: the endpoint stays public."""
+    if not authorization or not authorization.lower().startswith("bearer "):
+        return None
+    user_id = parse_subject_id(authorization[7:].strip())
+    return db.get(User, user_id) if user_id is not None else None
+
+
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 
 
 def require_admin(user: CurrentUser) -> User:

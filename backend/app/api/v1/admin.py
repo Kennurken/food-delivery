@@ -258,6 +258,7 @@ def create_promo(restaurant_id: int, data: PromoCreate, db: DB, _: AdminUser) ->
         min_subtotal=data.min_subtotal,
         max_uses=data.max_uses,
         is_active=data.is_active,
+        new_customers_only=data.new_customers_only,
     )
     db.add(row)
     db.commit()

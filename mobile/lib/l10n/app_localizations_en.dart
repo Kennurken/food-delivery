@@ -1336,4 +1336,7 @@ class L10nEn extends L10n {
   String regularsValue(int again, int total) {
     return '$again of $total came back';
   }
+
+  @override
+  String get newGuestsOnly => 'New guests only';
 }

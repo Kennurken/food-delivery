@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import exists, or_, select
 
-from app.api.deps import DB
+from app.api.deps import DB, OptionalUser
 from app.core.geo import resolve_point, valid_coord
 from app.models import MenuItem, Restaurant
 from app.schemas.admin import PromoQuote
@@ -84,13 +84,14 @@ def get_menu(restaurant_id: int, db: DB) -> list[MenuItem]:
 def preview_promo(
     restaurant_id: int,
     db: DB,
+    user: OptionalUser,
     code: str = Query(min_length=3, max_length=24),
     subtotal: float = Query(gt=0),
 ) -> PromoQuote:
     restaurant = db.get(Restaurant, restaurant_id)
     if not restaurant:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Restaurant not found")
-    promo, discount = quote_promo(db, restaurant, code, subtotal)
+    promo, discount = quote_promo(db, restaurant, code, subtotal, user)
     return PromoQuote(
         code=promo.code,
         kind=promo.kind,

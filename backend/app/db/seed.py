@@ -664,6 +664,8 @@ def ensure_hours_loyalty_schema() -> None:
     }
     flag_on = "1" if engine.dialect.name == "sqlite" else "TRUE"
     wanted["users"] = [("on_shift", f"BOOLEAN NOT NULL DEFAULT {flag_on}")]
+    flag_off = "0" if engine.dialect.name == "sqlite" else "FALSE"
+    wanted["promos"] = [("new_customers_only", f"BOOLEAN NOT NULL DEFAULT {flag_off}")]
     with engine.begin() as conn:
         for table, columns in wanted.items():
             have = _columns(conn, table)

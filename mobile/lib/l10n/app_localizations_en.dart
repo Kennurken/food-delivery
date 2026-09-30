@@ -1298,4 +1298,19 @@ class L10nEn extends L10n {
 
   @override
   String get noTip => 'No tip';
+
+  @override
+  String get reviews => 'Reviews';
+
+  @override
+  String get reviewHint => 'What did you think? (optional)';
+
+  @override
+  String get reviewSend => 'Send';
+
+  @override
+  String get venueReply => 'Reply from the venue';
+
+  @override
+  String get reviewGuest => 'Guest';
 }

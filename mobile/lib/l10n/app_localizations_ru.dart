@@ -1297,4 +1297,19 @@ class L10nRu extends L10n {
 
   @override
   String get noTip => 'Без чаевых';
+
+  @override
+  String get reviews => 'Отзывы';
+
+  @override
+  String get reviewHint => 'Что вам понравилось? (необязательно)';
+
+  @override
+  String get reviewSend => 'Отправить';
+
+  @override
+  String get venueReply => 'Ответ заведения';
+
+  @override
+  String get reviewGuest => 'Гость';
 }

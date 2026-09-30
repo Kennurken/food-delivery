@@ -1295,4 +1295,19 @@ class L10nKk extends L10n {
 
   @override
   String get noTip => 'Шайлықсыз';
+
+  @override
+  String get reviews => 'Пікірлер';
+
+  @override
+  String get reviewHint => 'Не ұнады? (міндетті емес)';
+
+  @override
+  String get reviewSend => 'Жіберу';
+
+  @override
+  String get venueReply => 'Мекеменің жауабы';
+
+  @override
+  String get reviewGuest => 'Қонақ';
 }

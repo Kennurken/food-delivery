@@ -494,5 +494,10 @@
   "cashInHand": "қолыңыздағы қолма-қол: {amount} ₸",
   "tipCourier": "Курьерге шайлық",
   "tipLine": "Шайлық",
-  "noTip": "Шайлықсыз"
+  "noTip": "Шайлықсыз",
+  "reviews": "Пікірлер",
+  "reviewHint": "Не ұнады? (міндетті емес)",
+  "reviewSend": "Жіберу",
+  "venueReply": "Мекеменің жауабы",
+  "reviewGuest": "Қонақ"
 }

@@ -303,6 +303,7 @@ class RestaurantScreen extends ConsumerWidget {
                       const SizedBox(height: 12),
                       _OpeningHoursView(hours: r.hours).stagger(idx++),
                     ],
+                    _ReviewsSection(restaurantId: r.id).stagger(idx++),
                     const SizedBox(height: 20),
                     for (final entry in byCategory.entries) ...[
                       Text(
@@ -922,4 +923,72 @@ class _RestaurantSkeleton extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Written reviews, newest first. Nothing at all when there are none or they
+/// can't be loaded: a failed lookup must not sit on top of the menu.
+class _ReviewsSection extends ConsumerWidget {
+  const _ReviewsSection({required this.restaurantId});
+
+  final int restaurantId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rows = ref.watch(restaurantReviewsProvider(restaurantId)).value;
+    if (rows == null || rows.isEmpty) return const SizedBox.shrink();
+    final t = context.l10n;
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        Text(
+          t.reviews,
+          style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 8),
+        for (final r in rows)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        r.author.isEmpty ? t.reviewGuest : r.author,
+                        style: text.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '★' * r.rating,
+                      style: TextStyle(color: scheme.tertiary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(r.text, style: text.bodyMedium),
+                if (r.reply != null && r.reply!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6, left: 10),
+                    child: Text(
+                      '${t.venueReply}: ${r.reply}',
+                      style: text.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
 }

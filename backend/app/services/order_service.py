@@ -29,7 +29,7 @@ from app.schemas.order import OrderCreate, OrderOut
 from app.services import delivery_pricing, kitchen_load, loyalty
 from app.services import hours as opening_hours
 from app.services import promo as promo_service
-from app.services.schedule import due_for_courier, parse_slot
+from app.services.schedule import due_for_courier, parse_slot, utcnow
 
 log = logging.getLogger(__name__)
 
@@ -539,7 +539,9 @@ def update_status(db: Session, order: Order, new_status: OrderStatus) -> Order:
     return order
 
 
-def rate_order(db: Session, user: User, order: Order, rating: int) -> Order:
+def rate_order(
+    db: Session, user: User, order: Order, rating: int, review: str | None = None
+) -> Order:
     if order.user_id != user.id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Not your order")
     if order.status != OrderStatus.delivered:
@@ -547,6 +549,10 @@ def rate_order(db: Session, user: User, order: Order, rating: int) -> Order:
     if order.rating is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Already rated")
     order.rating = rating
+    text = (review or "").strip()
+    if text:
+        order.review = text
+        order.reviewed_at = utcnow()
     # Running average keeps it O(1); no need to scan all orders.
     r = order.restaurant
     r.rating = round((r.rating * r.rating_count + rating) / (r.rating_count + 1), 2)

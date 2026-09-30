@@ -30,6 +30,11 @@ class Order(Base):
     delivery_fee: Mapped[float] = mapped_column(Float)
     total: Mapped[float] = mapped_column(Float)
     rating: Mapped[int | None] = mapped_column(Integer)  # 1..5, set by customer after delivery
+    # What the diner wrote with the rating, and what the venue answered. Public on
+    # the venue's page, so both are short and the platform can remove either.
+    review: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    review_reply: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     # delivery | qr_table | pickup — string so we can add channels without a PG enum migrate
     channel: Mapped[str] = mapped_column(String(20), default="delivery")
     table_object_id: Mapped[int | None] = mapped_column(

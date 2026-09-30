@@ -2504,6 +2504,36 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'No tip'**
   String get noTip;
+
+  /// No description provided for @reviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get reviews;
+
+  /// No description provided for @reviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What did you think? (optional)'**
+  String get reviewHint;
+
+  /// No description provided for @reviewSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get reviewSend;
+
+  /// No description provided for @venueReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply from the venue'**
+  String get venueReply;
+
+  /// No description provided for @reviewGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest'**
+  String get reviewGuest;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

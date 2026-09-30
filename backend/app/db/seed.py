@@ -657,6 +657,9 @@ def ensure_hours_loyalty_schema() -> None:
         "orders": [
             ("loyalty_spent", f"{real} NOT NULL DEFAULT 0"),
             ("tip", f"{real} NOT NULL DEFAULT 0"),
+            ("review", "VARCHAR(1000)"),
+            ("review_reply", "VARCHAR(1000)"),
+            ("reviewed_at", "TIMESTAMP"),
         ],
     }
     with engine.begin() as conn:

@@ -15,6 +15,18 @@
     "ratingValue": {{ '%.1f'|format(restaurant.rating) }},
     "reviewCount": {{ restaurant.rating_count }}
   }
+  {% if reviews %},
+  "review": [
+    {% for r in reviews[:5] %}
+    {
+      "@type": "Review",
+      "author": {"@type": "Person", "name": {{ (r.author or "Гость")|tojson }}},
+      "reviewRating": {"@type": "Rating", "ratingValue": {{ r.rating }}, "bestRating": 5},
+      "reviewBody": {{ r.text|tojson }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+  {% endif %}
   {% if hours_spec %},
   "openingHoursSpecification": {{ hours_spec|tojson }}
   {% endif %}
@@ -60,6 +72,19 @@
     <li><span class="hours-day">{{ day }}</span><span class="hours-times">{{ times }}</span></li>
     {% endfor %}
   </ul>
+</section>
+{% endif %}
+
+{% if reviews %}
+<section class="wrap block reviews" id="reviews">
+  <h2>Отзывы</h2>
+  {% for r in reviews %}
+  <article class="review">
+    <p class="review-head"><strong>{{ r.author or "Гость" }}</strong> <span class="rate">{{ "★" * r.rating }}</span></p>
+    <p>{{ r.text }}</p>
+    {% if r.reply %}<p class="review-reply"><strong>Ответ заведения:</strong> {{ r.reply }}</p>{% endif %}
+  </article>
+  {% endfor %}
 </section>
 {% endif %}
 

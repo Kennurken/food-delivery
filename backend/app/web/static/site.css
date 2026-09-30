@@ -250,3 +250,10 @@ code { background: var(--line); padding: 2px 7px; border-radius: 6px; font-size:
 /* Section heading with a link to the full list beside it. */
 .band-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .band-head h2 { margin-bottom: 18px; }
+
+/* Reviews */
+.reviews .review { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.reviews .review:last-child { border-bottom: 0; }
+.review-head { margin: 0 0 4px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.review p { margin: 0 0 6px; overflow-wrap: anywhere; }
+.review-reply { color: var(--muted); font-size: 14px; padding-left: 12px; border-left: 2px solid var(--line); }

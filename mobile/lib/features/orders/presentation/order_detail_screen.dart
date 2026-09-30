@@ -58,9 +58,13 @@ class OrderDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _rate(BuildContext context, WidgetRef ref, int stars) async {
+    // The stars are chosen; the words are optional. Cancelling leaves the
+    // order unrated — a rating can't be taken back, so it is not sent early.
+    final review = await _askReview(context, stars);
+    if (review == null) return;
     try {
       Haptics.success();
-      await ref.read(orderRepositoryProvider).rate(id, stars);
+      await ref.read(orderRepositoryProvider).rate(id, stars, review: review);
       ref.invalidate(orderLiveProvider(id));
       ref.invalidate(ordersProvider);
     } catch (e) {
@@ -70,6 +74,12 @@ class OrderDetailScreen extends ConsumerWidget {
       }
     }
   }
+
+  Future<String?> _askReview(BuildContext context, int stars) =>
+      showDialog<String>(
+        context: context,
+        builder: (_) => _ReviewDialog(stars: stars),
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -596,6 +606,54 @@ class _HandoverCard extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The words that go with the stars. Pops the text (possibly empty), or null
+/// when cancelled.
+class _ReviewDialog extends StatefulWidget {
+  const _ReviewDialog({required this.stars});
+
+  final int stars;
+
+  @override
+  State<_ReviewDialog> createState() => _ReviewDialogState();
+}
+
+class _ReviewDialogState extends State<_ReviewDialog> {
+  final _text = TextEditingController();
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.l10n;
+    return AlertDialog(
+      title: Text('★' * widget.stars),
+      content: TextField(
+        controller: _text,
+        autofocus: true,
+        maxLength: 1000,
+        maxLines: 4,
+        minLines: 2,
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(hintText: t.reviewHint),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(t.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _text.text),
+          child: Text(t.reviewSend),
+        ),
+      ],
     );
   }
 }

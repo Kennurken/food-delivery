@@ -494,5 +494,10 @@
   "cashInHand": "наличные у вас: {amount} ₸",
   "tipCourier": "Чаевые курьеру",
   "tipLine": "Чаевые",
-  "noTip": "Без чаевых"
+  "noTip": "Без чаевых",
+  "reviews": "Отзывы",
+  "reviewHint": "Что вам понравилось? (необязательно)",
+  "reviewSend": "Отправить",
+  "venueReply": "Ответ заведения",
+  "reviewGuest": "Гость"
 }

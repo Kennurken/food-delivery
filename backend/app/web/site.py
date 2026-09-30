@@ -30,6 +30,7 @@ from app.core.security import create_access_token, hash_password, verify_passwor
 from app.models import City, MenuItem, Order, Restaurant, User, UserRole
 from app.schemas.order import OrderCreate
 from app.services import cities, hours, offers, order_service
+from app.services import reviews as review_service
 from app.web import cart as cart_store
 from app.web import session as web_session
 
@@ -287,6 +288,7 @@ def restaurant_page(slug: str, request: Request, db: Session = DB) -> HTMLRespon
             "og_image": restaurant.image_url,
             "city": city,
             "hours_note": note,
+            "reviews": [review_service.public_row(o) for o in review_service.recent(db, restaurant.id, limit=10)],
             "hours_week": _week(schedule) if schedule else [],
             "hours_spec": _opening_spec(schedule),
         },

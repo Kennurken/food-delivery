@@ -8,6 +8,7 @@ import '../domain/city.dart';
 import '../domain/delivery_quote.dart';
 import '../domain/promo_quote.dart';
 import '../domain/restaurant.dart';
+import '../domain/review.dart';
 import '../domain/sort.dart';
 import 'city_choice.dart';
 
@@ -35,6 +36,19 @@ class RestaurantRepository {
   Future<List<City>> cities() async {
     final r = await _dio.get('/api/v1/cities');
     return (r.data as List).map((e) => City.fromJson(e)).toList();
+  }
+
+  /// The newest written reviews. One page: the venue screen shows a handful,
+  /// not an archive.
+  Future<List<Review>> reviews(int restaurantId, {int limit = 10}) async {
+    final r = await _dio.get(
+      '/api/v1/restaurants/$restaurantId/reviews',
+      queryParameters: {'limit': limit},
+    );
+    return [
+      for (final row in (r.data as Map)['items'] as List)
+        Review.fromJson(Map<String, dynamic>.from(row as Map)),
+    ];
   }
 
   Future<List<FloorTable>> tables(int restaurantId) async {
@@ -207,3 +221,7 @@ final deliveryQuoteProvider =
             address: target.address,
           );
     });
+
+final restaurantReviewsProvider = FutureProvider.family<List<Review>, int>(
+  (ref, id) => ref.watch(restaurantRepositoryProvider).reviews(id),
+);

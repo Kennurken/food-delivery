@@ -104,6 +104,8 @@ class OrderOut(BaseModel):
     discount: float = 0
     loyalty_spent: float = 0
     tip: float = 0
+    review: str | None = None
+    review_reply: str | None = None
     created_at: datetime
     items: list[OrderItemOut]
 
@@ -114,6 +116,12 @@ class OrderStatusUpdate(BaseModel):
 
 class OrderRate(BaseModel):
     rating: int = Field(ge=1, le=5)
+    # Optional. Shown on the venue's public page, under the diner's first name.
+    review: str | None = Field(default=None, max_length=1000)
+
+
+class ReviewReply(BaseModel):
+    text: str = Field(min_length=1, max_length=1000)
 
 
 class HandoverProof(BaseModel):

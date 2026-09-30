@@ -651,5 +651,10 @@
   },
   "tipCourier": "Tip for the courier",
   "tipLine": "Tip",
-  "noTip": "No tip"
+  "noTip": "No tip",
+  "reviews": "Reviews",
+  "reviewHint": "What did you think? (optional)",
+  "reviewSend": "Send",
+  "venueReply": "Reply from the venue",
+  "reviewGuest": "Guest"
 }

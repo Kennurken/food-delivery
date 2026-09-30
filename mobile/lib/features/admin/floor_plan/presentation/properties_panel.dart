@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/l10n/l10n.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -62,7 +65,7 @@ class _ZoneProps extends StatelessWidget {
             on: (v) => editor.patchZone((o) => o.name = v),
           ),
           const SizedBox(height: 10),
-          Text('Type', style: _lab(context)),
+          Text(context.l10n.objectType, style: _lab(context)),
           const SizedBox(height: 4),
           DropdownButtonFormField<ZoneKind>(
             key: ValueKey('zk-${z.id}'),
@@ -99,7 +102,7 @@ class _ZoneProps extends StatelessWidget {
           const SizedBox(height: 16),
           OutlinedButton(
             onPressed: editor.deleteSelected,
-            child: const Text('Delete zone'),
+            child: Text(context.l10n.deleteZone),
           ),
         ],
       ),
@@ -140,7 +143,7 @@ class _ObjectProps extends StatelessWidget {
           ),
           if (n.kind.isTable) ...[
             const SizedBox(height: 10),
-            Text('Type', style: _lab(context)),
+            Text(context.l10n.objectType, style: _lab(context)),
             const SizedBox(height: 4),
             DropdownButtonFormField<LayoutKind>(
               key: ValueKey('tk-${n.id}'),
@@ -186,7 +189,7 @@ class _ObjectProps extends StatelessWidget {
             ),
             if (d != null && d.zones.isNotEmpty) ...[
               const SizedBox(height: 10),
-              Text('Zone', style: _lab(context)),
+              Text(context.l10n.zone, style: _lab(context)),
               const SizedBox(height: 4),
               DropdownButtonFormField<int?>(
                 key: ValueKey('zn-${n.id}-${n.zoneId}'),
@@ -194,7 +197,10 @@ class _ObjectProps extends StatelessWidget {
                 isExpanded: true,
                 decoration: const InputDecoration(isDense: true),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('None')),
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(context.l10n.noneOption),
+                  ),
                   for (final z in d.zones)
                     DropdownMenuItem(value: z.id, child: Text(z.name)),
                 ],
@@ -202,7 +208,7 @@ class _ObjectProps extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 12),
-            Text('Status', style: _lab(context)),
+            Text(context.l10n.status, style: _lab(context)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 6,
@@ -224,7 +230,7 @@ class _ObjectProps extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 14),
-          Text('Position (cm)', style: _lab(context)),
+          Text(context.l10n.positionCm, style: _lab(context)),
           const SizedBox(height: 6),
           Row(
             children: [
@@ -280,7 +286,7 @@ class _ObjectProps extends StatelessWidget {
             const SizedBox(height: 4),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Mergeable'),
+              title: Text(context.l10n.mergeable),
               value: n.mergeable,
               onChanged: (v) => editor.patchPrimary((o) => o.mergeable = v),
             ),
@@ -289,7 +295,7 @@ class _ObjectProps extends StatelessWidget {
           ],
           if (editor.selected.length > 1) ...[
             const SizedBox(height: 8),
-            Text('Align', style: _lab(context)),
+            Text(context.l10n.align, style: _lab(context)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 6,
@@ -316,21 +322,21 @@ class _ObjectProps extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: editor.duplicateSelected,
-                  child: const Text('Duplicate'),
+                  child: Text(context.l10n.duplicate),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton(
                   onPressed: editor.deleteSelected,
-                  child: const Text('Delete'),
+                  child: Text(context.l10n.delete),
                 ),
               ),
             ],
           ),
           if (editor.warnings.isNotEmpty) ...[
             const SizedBox(height: 18),
-            Text('Warnings', style: _lab(context)),
+            Text(context.l10n.warnings, style: _lab(context)),
             const SizedBox(height: 6),
             for (final w in editor.warnings.take(8))
               Padding(
@@ -458,7 +464,7 @@ class _TableQrButtonState extends ConsumerState<_TableQrButton> {
       await Clipboard.setData(ClipboardData(text: link));
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Copied')));
+            .showSnackBar(SnackBar(content: Text(context.l10n.copied)));
       }
     } catch (e) {
       if (mounted) {
@@ -477,7 +483,7 @@ class _TableQrButtonState extends ConsumerState<_TableQrButton> {
       child: OutlinedButton.icon(
         onPressed: _busy ? null : _copy,
         icon: const Icon(Icons.qr_code_2, size: 18),
-        label: Text(_busy ? '…' : 'Copy table QR'),
+        label: Text(_busy ? '…' : context.l10n.copyTableQr),
       ),
     );
   }

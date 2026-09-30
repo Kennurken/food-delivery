@@ -730,5 +730,29 @@
       }
     }
   },
-  "printTableQr": "Print table QR codes"
+  "printTableQr": "Print table QR codes",
+  "noSavedVersions": "No saved versions yet. Save a layout to create one.",
+  "restoreVersion": "Restore",
+  "reloadLayout": "Reload",
+  "leaveUnsavedTitle": "Unsaved changes",
+  "leaveUnsavedBody": "Leave without saving the floor plan?",
+  "discardChanges": "Discard",
+  "undo": "Undo",
+  "redo": "Redo",
+  "allZones": "All zones",
+  "properties": "Properties",
+  "objectType": "Type",
+  "deleteZone": "Delete zone",
+  "zone": "Zone",
+  "noneOption": "None",
+  "positionCm": "Position (cm)",
+  "mergeable": "Mergeable",
+  "align": "Align",
+  "duplicate": "Duplicate",
+  "warnings": "Warnings",
+  "zoomOut": "Zoom out",
+  "zoomIn": "Zoom in",
+  "fitToScreen": "Fit to screen",
+  "resetView": "Reset view",
+  "copyTableQr": "Copy table QR link"
 }

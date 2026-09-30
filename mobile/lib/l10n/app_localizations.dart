@@ -2732,6 +2732,150 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Print table QR codes'**
   String get printTableQr;
+
+  /// No description provided for @noSavedVersions.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved versions yet. Save a layout to create one.'**
+  String get noSavedVersions;
+
+  /// No description provided for @restoreVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreVersion;
+
+  /// No description provided for @reloadLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get reloadLayout;
+
+  /// No description provided for @leaveUnsavedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get leaveUnsavedTitle;
+
+  /// No description provided for @leaveUnsavedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave without saving the floor plan?'**
+  String get leaveUnsavedBody;
+
+  /// No description provided for @discardChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get discardChanges;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @redo.
+  ///
+  /// In en, this message translates to:
+  /// **'Redo'**
+  String get redo;
+
+  /// No description provided for @allZones.
+  ///
+  /// In en, this message translates to:
+  /// **'All zones'**
+  String get allZones;
+
+  /// No description provided for @properties.
+  ///
+  /// In en, this message translates to:
+  /// **'Properties'**
+  String get properties;
+
+  /// No description provided for @objectType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get objectType;
+
+  /// No description provided for @deleteZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete zone'**
+  String get deleteZone;
+
+  /// No description provided for @zone.
+  ///
+  /// In en, this message translates to:
+  /// **'Zone'**
+  String get zone;
+
+  /// No description provided for @noneOption.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get noneOption;
+
+  /// No description provided for @positionCm.
+  ///
+  /// In en, this message translates to:
+  /// **'Position (cm)'**
+  String get positionCm;
+
+  /// No description provided for @mergeable.
+  ///
+  /// In en, this message translates to:
+  /// **'Mergeable'**
+  String get mergeable;
+
+  /// No description provided for @align.
+  ///
+  /// In en, this message translates to:
+  /// **'Align'**
+  String get align;
+
+  /// No description provided for @duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get duplicate;
+
+  /// No description provided for @warnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Warnings'**
+  String get warnings;
+
+  /// No description provided for @zoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get zoomOut;
+
+  /// No description provided for @zoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get zoomIn;
+
+  /// No description provided for @fitToScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit to screen'**
+  String get fitToScreen;
+
+  /// No description provided for @resetView.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset view'**
+  String get resetView;
+
+  /// No description provided for @copyTableQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy table QR link'**
+  String get copyTableQr;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

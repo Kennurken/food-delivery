@@ -6,6 +6,26 @@
   <p class="lede">{{ _("Оставьте заявку: мы позвоним, включим ваш ресторан и поможем заполнить меню. Первый месяц бесплатно.") }}</p>
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
 
+  <h2>{{ _("Тарифы") }}</h2>
+  <div class="plans">
+    <div class="plan">
+      <h3>Basic</h3>
+      <p class="plan-price">{{ prices.basic }} ₸ <span class="muted">{{ _("в месяц") }}</span></p>
+      <p class="muted">{{ _("Меню по QR, заказ за столиком, план зала, до 5 сотрудников.") }}</p>
+    </div>
+    <div class="plan featured">
+      <h3>Pro</h3>
+      <p class="plan-price">{{ prices.pro }} ₸ <span class="muted">{{ _("в месяц") }}</span></p>
+      <p class="muted">{{ _("Всё из Basic, плюс доставка и самовывоз, экран кухни, брони, акции и промокоды, до 30 сотрудников.") }}</p>
+    </div>
+    <div class="plan">
+      <h3>Premium</h3>
+      <p class="plan-price">{{ prices.premium }} ₸ <span class="muted">{{ _("в месяц") }}</span></p>
+      <p class="muted">{{ _("Всё из Pro, плюс бонусная программа, аналитика за год и филиалы без ограничений.") }}</p>
+    </div>
+  </div>
+  <p class="hint">{{ _("Первые 30 дней — Pro бесплатно. Гости платят вам напрямую: процент с заказов сервис не берёт.") }}</p>
+
   <form method="post" action="{{ lp }}/partners/" class="form">
     <label>{{ _("Название ресторана") }}
       <input type="text" name="venue_name" value="{{ form.venue_name }}" required maxlength="150">

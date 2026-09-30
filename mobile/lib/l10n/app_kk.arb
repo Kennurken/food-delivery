@@ -563,5 +563,29 @@
       }
     }
   },
-  "printTableQr": "Үстел QR-кодтарын басып шығару"
+  "printTableQr": "Үстел QR-кодтарын басып шығару",
+  "noSavedVersions": "Сақталған нұсқалар әзірге жоқ. Бірінші нұсқа пайда болуы үшін жоспарды сақтаңыз.",
+  "restoreVersion": "Қалпына келтіру",
+  "reloadLayout": "Қайта жүктеу",
+  "leaveUnsavedTitle": "Сақталмаған өзгерістер",
+  "leaveUnsavedBody": "Зал жоспарын сақтамай шығу керек пе?",
+  "discardChanges": "Сақтамау",
+  "undo": "Болдырмау",
+  "redo": "Қайталау",
+  "allZones": "Барлық аймақ",
+  "properties": "Қасиеттер",
+  "objectType": "Түрі",
+  "deleteZone": "Аймақты жою",
+  "zone": "Аймақ",
+  "noneOption": "Жоқ",
+  "positionCm": "Орны (см)",
+  "mergeable": "Біріктіруге болады",
+  "align": "Туралау",
+  "duplicate": "Көшірме жасау",
+  "warnings": "Ескертулер",
+  "zoomOut": "Кішірейту",
+  "zoomIn": "Үлкейту",
+  "fitToScreen": "Экранға сыйдыру",
+  "resetView": "Көріністі қалпына келтіру",
+  "copyTableQr": "Үстел QR сілтемесін көшіру"
 }

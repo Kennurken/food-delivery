@@ -9,6 +9,7 @@ the tables anyway, and only until it expires.
 
 from __future__ import annotations
 
+import base64
 import hmac
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
@@ -66,11 +67,14 @@ def _qr_svg(text: str) -> str:
 _STYLE = """
 @page { size: A4; margin: 12mm; }
 * { box-sizing: border-box; }
-body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; color: #111; }
+:root { color-scheme: light; }
+body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 8mm;
+       color: #111; background: #fff; }
 header { margin: 0 0 8mm; }
 header h1 { font-size: 18pt; margin: 0; }
 header p { margin: 2mm 0 0; color: #555; font-size: 10pt; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8mm; }
+@media screen and (max-width: 600px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 .card { border: 1px dashed #999; border-radius: 4mm; padding: 6mm; text-align: center;
         height: 85mm; page-break-inside: avoid; break-inside: avoid;
         display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -79,8 +83,16 @@ header p { margin: 2mm 0 0; color: #555; font-size: 10pt; }
 .hint { font-size: 11pt; margin-top: 1mm; }
 .venue { font-size: 9pt; color: #555; margin-top: 1mm; }
 .empty { font-size: 14pt; color: #555; }
-@media print { header p { display: none; } }
+@media print { header p { display: none; } body { padding: 0; } }
 """
+
+# The page runs no script and loads nothing; its one inline style is allowed by
+# hash, so an injected <style> or <script> would have nothing to run with.
+CSP = (
+    "default-src 'none'; "
+    f"style-src 'sha256-{base64.b64encode(sha256(_STYLE.encode()).digest()).decode()}'; "
+    "frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+)
 
 
 def render(restaurant_name: str, restaurant_id: int, tables: list[tuple[int, str]]) -> str:

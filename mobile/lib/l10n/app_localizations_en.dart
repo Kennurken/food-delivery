@@ -1426,4 +1426,77 @@ class L10nEn extends L10n {
 
   @override
   String get printTableQr => 'Print table QR codes';
+
+  @override
+  String get noSavedVersions =>
+      'No saved versions yet. Save a layout to create one.';
+
+  @override
+  String get restoreVersion => 'Restore';
+
+  @override
+  String get reloadLayout => 'Reload';
+
+  @override
+  String get leaveUnsavedTitle => 'Unsaved changes';
+
+  @override
+  String get leaveUnsavedBody => 'Leave without saving the floor plan?';
+
+  @override
+  String get discardChanges => 'Discard';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get redo => 'Redo';
+
+  @override
+  String get allZones => 'All zones';
+
+  @override
+  String get properties => 'Properties';
+
+  @override
+  String get objectType => 'Type';
+
+  @override
+  String get deleteZone => 'Delete zone';
+
+  @override
+  String get zone => 'Zone';
+
+  @override
+  String get noneOption => 'None';
+
+  @override
+  String get positionCm => 'Position (cm)';
+
+  @override
+  String get mergeable => 'Mergeable';
+
+  @override
+  String get align => 'Align';
+
+  @override
+  String get duplicate => 'Duplicate';
+
+  @override
+  String get warnings => 'Warnings';
+
+  @override
+  String get zoomOut => 'Zoom out';
+
+  @override
+  String get zoomIn => 'Zoom in';
+
+  @override
+  String get fitToScreen => 'Fit to screen';
+
+  @override
+  String get resetView => 'Reset view';
+
+  @override
+  String get copyTableQr => 'Copy table QR link';
 }

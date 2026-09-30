@@ -176,8 +176,12 @@ async def request_context(request: Request, call_next) -> Response:
     request.state.request_id = rid
     response = await call_next(request)
     response.headers["X-Request-ID"] = rid
-    if response.headers.get("content-type", "").startswith("text/html") and not (
-        request.url.path.startswith(("/docs", "/redoc"))
+    if (
+        response.headers.get("content-type", "").startswith("text/html")
+        and not request.url.path.startswith(("/docs", "/redoc"))
+        # A page that states its own, stricter-scoped policy keeps it (the
+        # printable QR sheet allows exactly its one inline style by hash).
+        and "content-security-policy" not in response.headers
     ):
         # The public site runs no scripts of its own, so it says so: an injected
         # tag has nothing to execute with. (Not on /docs, which loads Swagger.)

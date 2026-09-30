@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+import '../../../../core/l10n/l10n.dart';
+
 import 'package:flutter/services.dart';
 
 import '../domain/geometry.dart';
@@ -438,7 +441,7 @@ class _FloorCanvasState extends State<FloorCanvas> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              tooltip: 'Zoom out',
+              tooltip: context.l10n.zoomOut,
               visualDensity: VisualDensity.compact,
               onPressed: () => _zoomCenter(0.85),
               icon: const Icon(Icons.remove, size: 18),
@@ -456,19 +459,19 @@ class _FloorCanvasState extends State<FloorCanvas> {
               ),
             ),
             IconButton(
-              tooltip: 'Zoom in',
+              tooltip: context.l10n.zoomIn,
               visualDensity: VisualDensity.compact,
               onPressed: () => _zoomCenter(1.15),
               icon: const Icon(Icons.add, size: 18),
             ),
             IconButton(
-              tooltip: 'Fit to screen',
+              tooltip: context.l10n.fitToScreen,
               visualDensity: VisualDensity.compact,
               onPressed: _fit,
               icon: const Icon(Icons.fit_screen, size: 18),
             ),
             IconButton(
-              tooltip: 'Reset view',
+              tooltip: context.l10n.resetView,
               visualDensity: VisualDensity.compact,
               onPressed: _reset,
               icon: const Icon(Icons.crop_free, size: 18),

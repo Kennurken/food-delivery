@@ -376,3 +376,28 @@ class TestTheSiteForm:
     def test_the_link_is_in_the_footer(self, web):
         assert 'href="/partners/"' in web.get("/").text
         assert 'href="/kk/partners/"' in web.get("/kk/").text
+
+
+class TestThePricesOnTheSite:
+    """The page that sells the service must show what it costs, from the same
+    numbers the billing uses — not a copy that drifts."""
+
+    def test_every_plan_and_its_price_is_shown(self, client):
+        from app.core.features import PLANS
+
+        html = client.get("/partners/").text
+
+        for spec in PLANS.values():
+            assert spec["name"] in html
+            assert f"{spec['monthly_price']:,}".replace(",", " ") in html
+        assert "30 дней" in html
+
+    def test_a_failed_form_still_shows_them(self, client):
+        html = client.post("/partners/", data={"venue_name": ""}).text
+
+        assert "49 990" in html
+
+    def test_they_are_in_kazakh_too(self, client):
+        html = client.get("/kk/partners/").text
+
+        assert "Тарифтер" in html and "айына" in html

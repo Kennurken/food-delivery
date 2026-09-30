@@ -563,5 +563,29 @@
       }
     }
   },
-  "printTableQr": "Печать QR для столов"
+  "printTableQr": "Печать QR для столов",
+  "noSavedVersions": "Сохранённых версий пока нет. Сохраните план, чтобы появилась первая.",
+  "restoreVersion": "Восстановить",
+  "reloadLayout": "Загрузить заново",
+  "leaveUnsavedTitle": "Несохранённые изменения",
+  "leaveUnsavedBody": "Выйти, не сохранив план зала?",
+  "discardChanges": "Не сохранять",
+  "undo": "Отменить действие",
+  "redo": "Повторить",
+  "allZones": "Все зоны",
+  "properties": "Свойства",
+  "objectType": "Тип",
+  "deleteZone": "Удалить зону",
+  "zone": "Зона",
+  "noneOption": "Нет",
+  "positionCm": "Положение (см)",
+  "mergeable": "Можно объединять",
+  "align": "Выравнивание",
+  "duplicate": "Дублировать",
+  "warnings": "Предупреждения",
+  "zoomOut": "Уменьшить",
+  "zoomIn": "Увеличить",
+  "fitToScreen": "Вписать в экран",
+  "resetView": "Сбросить вид",
+  "copyTableQr": "Скопировать ссылку QR стола"
 }

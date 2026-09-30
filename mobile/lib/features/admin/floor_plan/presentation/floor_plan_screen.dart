@@ -384,9 +384,9 @@ class _EditorScaffold extends StatelessWidget {
       context: context,
       builder: (ctx) {
         if (editor.versions.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(24),
-            child: Text('No saved versions yet. Save a layout to create one.'),
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(context.l10n.noSavedVersions),
           );
         }
         return ListView(
@@ -408,7 +408,7 @@ class _EditorScaffold extends StatelessWidget {
                     Navigator.pop(ctx);
                     await editor.restoreVersion(v.$1);
                   },
-                  child: const Text('Restore'),
+                  child: Text(context.l10n.restoreVersion),
                 ),
               ),
           ],
@@ -439,7 +439,7 @@ class _EditorScaffold extends StatelessWidget {
                 Navigator.pop(ctx);
                 editor.reloadFromServer();
               },
-              child: const Text('Reload'),
+              child: Text(context.l10n.reloadLayout),
             ),
           FilledButton(
             onPressed: () {
@@ -457,8 +457,8 @@ class _EditorScaffold extends StatelessWidget {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Unsaved changes'),
-        content: const Text('Leave without saving the floor plan?'),
+        title: Text(context.l10n.leaveUnsavedTitle),
+        content: Text(context.l10n.leaveUnsavedBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -466,7 +466,7 @@ class _EditorScaffold extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Discard'),
+            child: Text(context.l10n.discardChanges),
           ),
           FilledButton(
             onPressed: () async {
@@ -616,12 +616,12 @@ class _Toolbar extends StatelessWidget {
                   ),
                   const Spacer(),
                   IconButton(
-                    tooltip: 'Undo',
+                    tooltip: context.l10n.undo,
                     onPressed: editor.canUndo ? editor.undo : null,
                     icon: const Icon(Icons.undo, size: 20),
                   ),
                   IconButton(
-                    tooltip: 'Redo',
+                    tooltip: context.l10n.redo,
                     onPressed: editor.canRedo ? editor.redo : null,
                     icon: const Icon(Icons.redo, size: 20),
                   ),
@@ -714,12 +714,12 @@ class _StatusBar extends StatelessWidget {
             DropdownButtonHideUnderline(
               child: DropdownButton<int?>(
                 value: editor.selectedZone,
-                hint: const Text('All zones'),
+                hint: Text(context.l10n.allZones),
                 isDense: true,
                 items: [
-                  const DropdownMenuItem<int?>(
+                  DropdownMenuItem<int?>(
                     value: null,
-                    child: Text('All zones'),
+                    child: Text(context.l10n.allZones),
                   ),
                   for (final z in d.zones)
                     DropdownMenuItem(value: z.id, child: Text(z.name)),
@@ -779,7 +779,7 @@ class _MobilePropsBar extends StatelessWidget {
             : null,
         trailing: TextButton(
           onPressed: onOpen,
-          child: const Text('Properties'),
+          child: Text(context.l10n.properties),
         ),
       ),
     );

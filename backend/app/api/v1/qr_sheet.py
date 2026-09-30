@@ -16,6 +16,7 @@ _HEADERS = {
     "Cache-Control": "no-store",
     "X-Robots-Tag": "noindex",
     "Referrer-Policy": "no-referrer",
+    "Content-Security-Policy": qr_sheet.CSP,
 }
 
 

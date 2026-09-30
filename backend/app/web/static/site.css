@@ -157,6 +157,12 @@ code { background: var(--line); padding: 2px 7px; border-radius: 6px; font-size:
 /* ---------------------------------------------------- ordering on the site */
 
 .narrow { max-width: 620px; }
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 0 0 10px; }
+.plan { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.plan.featured { border-color: var(--brand); box-shadow: var(--shadow); }
+.plan h3 { margin: 0 0 4px; }
+.plan-price { font-size: 22px; font-weight: 800; margin: 0 0 6px; }
+.plan-price .muted { font-size: 13px; font-weight: 600; }
 .mt { margin-top: 18px; }
 .inline { display: inline; }
 .under { text-decoration: underline; }

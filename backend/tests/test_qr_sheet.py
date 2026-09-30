@@ -53,6 +53,27 @@ def test_it_is_not_cached_or_indexed(client, admin, floor):
     assert page.headers["x-robots-tag"] == "noindex"
 
 
+def test_its_style_is_allowed_by_hash_and_nothing_else(client, admin, floor):
+    import base64
+    import hashlib
+    import re
+
+    page = client.get(_path(_link(client, admin, floor["id"])))
+    csp = page.headers["content-security-policy"]
+    style = re.search(r"<style>(.*?)</style>", page.text, re.DOTALL).group(1)
+    digest = base64.b64encode(hashlib.sha256(style.encode()).digest()).decode()
+
+    assert f"'sha256-{digest}'" in csp
+    assert "unsafe-inline" not in csp and "script-src" not in csp
+    assert csp.startswith("default-src 'none'")
+
+
+def test_the_rest_of_the_site_keeps_its_policy(client):
+    csp = client.get("/").headers["content-security-policy"]
+
+    assert "sha256-" not in csp and csp.startswith("default-src 'none'")
+
+
 def test_a_customer_cannot_get_a_link(client, auth, floor):
     r = client.post(f"/api/v1/admin/floors/{floor['id']}/qr-sheet", headers=auth)
 

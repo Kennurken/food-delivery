@@ -1424,4 +1424,77 @@ class L10nKk extends L10n {
 
   @override
   String get printTableQr => 'Үстел QR-кодтарын басып шығару';
+
+  @override
+  String get noSavedVersions =>
+      'Сақталған нұсқалар әзірге жоқ. Бірінші нұсқа пайда болуы үшін жоспарды сақтаңыз.';
+
+  @override
+  String get restoreVersion => 'Қалпына келтіру';
+
+  @override
+  String get reloadLayout => 'Қайта жүктеу';
+
+  @override
+  String get leaveUnsavedTitle => 'Сақталмаған өзгерістер';
+
+  @override
+  String get leaveUnsavedBody => 'Зал жоспарын сақтамай шығу керек пе?';
+
+  @override
+  String get discardChanges => 'Сақтамау';
+
+  @override
+  String get undo => 'Болдырмау';
+
+  @override
+  String get redo => 'Қайталау';
+
+  @override
+  String get allZones => 'Барлық аймақ';
+
+  @override
+  String get properties => 'Қасиеттер';
+
+  @override
+  String get objectType => 'Түрі';
+
+  @override
+  String get deleteZone => 'Аймақты жою';
+
+  @override
+  String get zone => 'Аймақ';
+
+  @override
+  String get noneOption => 'Жоқ';
+
+  @override
+  String get positionCm => 'Орны (см)';
+
+  @override
+  String get mergeable => 'Біріктіруге болады';
+
+  @override
+  String get align => 'Туралау';
+
+  @override
+  String get duplicate => 'Көшірме жасау';
+
+  @override
+  String get warnings => 'Ескертулер';
+
+  @override
+  String get zoomOut => 'Кішірейту';
+
+  @override
+  String get zoomIn => 'Үлкейту';
+
+  @override
+  String get fitToScreen => 'Экранға сыйдыру';
+
+  @override
+  String get resetView => 'Көріністі қалпына келтіру';
+
+  @override
+  String get copyTableQr => 'Үстел QR сілтемесін көшіру';
 }

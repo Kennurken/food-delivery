@@ -28,6 +28,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db
 from app.api.v1.partners import Application as ApplicationIn
 from app.core.config import settings
+from app.core.features import PLANS
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models import City, MenuItem, Order, OrderStatus, Restaurant, User, UserRole
 from app.schemas.order import OrderCreate
@@ -842,6 +843,13 @@ _FORM_FIELDS = (
 )
 
 
+def _prices() -> dict[str, str]:
+    """Monthly plan prices as the page prints them: 29 990, not 29990."""
+    return {
+        code: f"{spec['monthly_price']:,}".replace(",", "\u00a0") for code, spec in PLANS.items()
+    }
+
+
 @router.get("/partners/", response_class=HTMLResponse)
 @router.get("/kk/partners/", response_class=HTMLResponse)
 def partners_form(request: Request, db: Session = DB) -> HTMLResponse:
@@ -852,6 +860,7 @@ def partners_form(request: Request, db: Session = DB) -> HTMLResponse:
             "title": "Подключить ресторан",
             "description": "Заявка ресторана: первый месяц бесплатно, свои курьеры или самовывоз.",
             "form": {name: "" for name in _FORM_FIELDS},
+            "prices": _prices(),
             "canonical": f"{_base_url()}{i18n.PREFIX[_lang(request)]}/partners/",
         },
         db=db,
@@ -889,7 +898,13 @@ def partners_apply(
         return _render(
             request,
             "partners.html",
-            {"title": "Подключить ресторан", "description": "", "form": form, "error": message},
+            {
+                "title": "Подключить ресторан",
+                "description": "",
+                "form": form,
+                "error": message,
+                "prices": _prices(),
+            },
             db=db,
             status_code=code,
         )

@@ -1426,4 +1426,77 @@ class L10nRu extends L10n {
 
   @override
   String get printTableQr => 'Печать QR для столов';
+
+  @override
+  String get noSavedVersions =>
+      'Сохранённых версий пока нет. Сохраните план, чтобы появилась первая.';
+
+  @override
+  String get restoreVersion => 'Восстановить';
+
+  @override
+  String get reloadLayout => 'Загрузить заново';
+
+  @override
+  String get leaveUnsavedTitle => 'Несохранённые изменения';
+
+  @override
+  String get leaveUnsavedBody => 'Выйти, не сохранив план зала?';
+
+  @override
+  String get discardChanges => 'Не сохранять';
+
+  @override
+  String get undo => 'Отменить действие';
+
+  @override
+  String get redo => 'Повторить';
+
+  @override
+  String get allZones => 'Все зоны';
+
+  @override
+  String get properties => 'Свойства';
+
+  @override
+  String get objectType => 'Тип';
+
+  @override
+  String get deleteZone => 'Удалить зону';
+
+  @override
+  String get zone => 'Зона';
+
+  @override
+  String get noneOption => 'Нет';
+
+  @override
+  String get positionCm => 'Положение (см)';
+
+  @override
+  String get mergeable => 'Можно объединять';
+
+  @override
+  String get align => 'Выравнивание';
+
+  @override
+  String get duplicate => 'Дублировать';
+
+  @override
+  String get warnings => 'Предупреждения';
+
+  @override
+  String get zoomOut => 'Уменьшить';
+
+  @override
+  String get zoomIn => 'Увеличить';
+
+  @override
+  String get fitToScreen => 'Вписать в экран';
+
+  @override
+  String get resetView => 'Сбросить вид';
+
+  @override
+  String get copyTableQr => 'Скопировать ссылку QR стола';
 }

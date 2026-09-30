@@ -1587,4 +1587,50 @@ class L10nRu extends L10n {
 
   @override
   String get pushOpen => 'Открыть';
+
+  @override
+  String get menuImport => 'Импорт меню';
+
+  @override
+  String get menuImportHint =>
+      'Скопируйте строки из Excel или Google Таблиц и вставьте сюда: название, цена, категория, описание. Первая строка с заголовками подскажет, где какой столбец.';
+
+  @override
+  String get menuImportExample =>
+      'Плов   2500   Горячее\nСамса   800   Выпечка';
+
+  @override
+  String get menuImportCheck => 'Проверить';
+
+  @override
+  String menuImportApply(int count) {
+    return 'Загрузить блюд: $count';
+  }
+
+  @override
+  String menuImportSummary(int created, int updated, int errors) {
+    return 'Новых: $created · Обновится: $updated · Ошибок: $errors';
+  }
+
+  @override
+  String menuImportDone(int created, int updated) {
+    return 'Меню загружено: новых $created, обновлено $updated';
+  }
+
+  @override
+  String menuImportLine(int line, String reason) {
+    return 'Строка $line: $reason';
+  }
+
+  @override
+  String get menuImportNoName => 'нет названия';
+
+  @override
+  String get menuImportBadPrice => 'цена не распознана';
+
+  @override
+  String get menuImportNameTooLong => 'название длиннее 150 символов';
+
+  @override
+  String get menuImportTooMany => 'больше 500 строк — разбейте список';
 }

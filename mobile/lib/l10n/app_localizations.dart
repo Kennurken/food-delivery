@@ -3032,6 +3032,78 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Open'**
   String get pushOpen;
+
+  /// No description provided for @menuImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import menu'**
+  String get menuImport;
+
+  /// No description provided for @menuImportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy rows from Excel or Google Sheets and paste them here: name, price, category, description. A header row may say which column is which.'**
+  String get menuImportHint;
+
+  /// No description provided for @menuImportExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilaf   2500   Hot dishes\nSamsa   800   Pastry'**
+  String get menuImportExample;
+
+  /// No description provided for @menuImportCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get menuImportCheck;
+
+  /// No description provided for @menuImportApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Load {count} dishes'**
+  String menuImportApply(int count);
+
+  /// No description provided for @menuImportSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'New: {created} · Updated: {updated} · Errors: {errors}'**
+  String menuImportSummary(int created, int updated, int errors);
+
+  /// No description provided for @menuImportDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu loaded: {created} new, {updated} updated'**
+  String menuImportDone(int created, int updated);
+
+  /// No description provided for @menuImportLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Line {line}: {reason}'**
+  String menuImportLine(int line, String reason);
+
+  /// No description provided for @menuImportNoName.
+  ///
+  /// In en, this message translates to:
+  /// **'no dish name'**
+  String get menuImportNoName;
+
+  /// No description provided for @menuImportBadPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'price not understood'**
+  String get menuImportBadPrice;
+
+  /// No description provided for @menuImportNameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'name is longer than 150 characters'**
+  String get menuImportNameTooLong;
+
+  /// No description provided for @menuImportTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'more than 500 rows — split the list'**
+  String get menuImportTooMany;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

@@ -613,5 +613,57 @@
   "reset": "Қалпына келтіру",
   "temporaryPassword": "Уақытша құпиясөз",
   "temporaryPasswordHint": "Оны иесіне телефон арқылы айтыңыз және профилінде өзгертуін сұраңыз.",
-  "pushOpen": "Ашу"
+  "pushOpen": "Ашу",
+  "menuImport": "Мәзірді импорттау",
+  "menuImportHint": "Excel немесе Google Кестелерден жолдарды көшіріп, осында қойыңыз: атауы, бағасы, санаты, сипаттамасы. Тақырып жолы қай баған не екенін көрсете алады.",
+  "menuImportExample": "Палау   2500   Ыстық тағамдар\nСамса   800   Тоқаш",
+  "menuImportCheck": "Тексеру",
+  "menuImportApply": "{count} тағамды жүктеу",
+  "@menuImportApply": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "menuImportSummary": "Жаңа: {created} · Жаңартылады: {updated} · Қате: {errors}",
+  "@menuImportSummary": {
+    "placeholders": {
+      "created": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      },
+      "errors": {
+        "type": "int"
+      }
+    }
+  },
+  "menuImportDone": "Мәзір жүктелді: жаңа {created}, жаңартылды {updated}",
+  "@menuImportDone": {
+    "placeholders": {
+      "created": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      }
+    }
+  },
+  "menuImportLine": "{line}-жол: {reason}",
+  "@menuImportLine": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "menuImportNoName": "атауы жоқ",
+  "menuImportBadPrice": "баға танылмады",
+  "menuImportNameTooLong": "атауы 150 таңбадан ұзын",
+  "menuImportTooMany": "500-ден көп жол — тізімді бөліңіз"
 }

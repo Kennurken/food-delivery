@@ -613,5 +613,57 @@
   "reset": "Сбросить",
   "temporaryPassword": "Временный пароль",
   "temporaryPasswordHint": "Передайте его владельцу по телефону и попросите сменить его в профиле.",
-  "pushOpen": "Открыть"
+  "pushOpen": "Открыть",
+  "menuImport": "Импорт меню",
+  "menuImportHint": "Скопируйте строки из Excel или Google Таблиц и вставьте сюда: название, цена, категория, описание. Первая строка с заголовками подскажет, где какой столбец.",
+  "menuImportExample": "Плов   2500   Горячее\nСамса   800   Выпечка",
+  "menuImportCheck": "Проверить",
+  "menuImportApply": "Загрузить блюд: {count}",
+  "@menuImportApply": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "menuImportSummary": "Новых: {created} · Обновится: {updated} · Ошибок: {errors}",
+  "@menuImportSummary": {
+    "placeholders": {
+      "created": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      },
+      "errors": {
+        "type": "int"
+      }
+    }
+  },
+  "menuImportDone": "Меню загружено: новых {created}, обновлено {updated}",
+  "@menuImportDone": {
+    "placeholders": {
+      "created": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      }
+    }
+  },
+  "menuImportLine": "Строка {line}: {reason}",
+  "@menuImportLine": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "menuImportNoName": "нет названия",
+  "menuImportBadPrice": "цена не распознана",
+  "menuImportNameTooLong": "название длиннее 150 символов",
+  "menuImportTooMany": "больше 500 строк — разбейте список"
 }

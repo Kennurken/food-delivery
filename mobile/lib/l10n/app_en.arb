@@ -800,5 +800,57 @@
   "pushOpen": "Open",
   "@pushOpen": {
     "description": "Action on an in-app banner for a push notification: opens the screen the push is about."
-  }
+  },
+  "menuImport": "Import menu",
+  "menuImportHint": "Copy rows from Excel or Google Sheets and paste them here: name, price, category, description. A header row may say which column is which.",
+  "menuImportExample": "Pilaf   2500   Hot dishes\nSamsa   800   Pastry",
+  "menuImportCheck": "Check",
+  "menuImportApply": "Load {count} dishes",
+  "@menuImportApply": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "menuImportSummary": "New: {created} · Updated: {updated} · Errors: {errors}",
+  "@menuImportSummary": {
+    "placeholders": {
+      "created": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      },
+      "errors": {
+        "type": "int"
+      }
+    }
+  },
+  "menuImportDone": "Menu loaded: {created} new, {updated} updated",
+  "@menuImportDone": {
+    "placeholders": {
+      "created": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      }
+    }
+  },
+  "menuImportLine": "Line {line}: {reason}",
+  "@menuImportLine": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "menuImportNoName": "no dish name",
+  "menuImportBadPrice": "price not understood",
+  "menuImportNameTooLong": "name is longer than 150 characters",
+  "menuImportTooMany": "more than 500 rows — split the list"
 }

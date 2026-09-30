@@ -1586,4 +1586,50 @@ class L10nKk extends L10n {
 
   @override
   String get pushOpen => 'Ашу';
+
+  @override
+  String get menuImport => 'Мәзірді импорттау';
+
+  @override
+  String get menuImportHint =>
+      'Excel немесе Google Кестелерден жолдарды көшіріп, осында қойыңыз: атауы, бағасы, санаты, сипаттамасы. Тақырып жолы қай баған не екенін көрсете алады.';
+
+  @override
+  String get menuImportExample =>
+      'Палау   2500   Ыстық тағамдар\nСамса   800   Тоқаш';
+
+  @override
+  String get menuImportCheck => 'Тексеру';
+
+  @override
+  String menuImportApply(int count) {
+    return '$count тағамды жүктеу';
+  }
+
+  @override
+  String menuImportSummary(int created, int updated, int errors) {
+    return 'Жаңа: $created · Жаңартылады: $updated · Қате: $errors';
+  }
+
+  @override
+  String menuImportDone(int created, int updated) {
+    return 'Мәзір жүктелді: жаңа $created, жаңартылды $updated';
+  }
+
+  @override
+  String menuImportLine(int line, String reason) {
+    return '$line-жол: $reason';
+  }
+
+  @override
+  String get menuImportNoName => 'атауы жоқ';
+
+  @override
+  String get menuImportBadPrice => 'баға танылмады';
+
+  @override
+  String get menuImportNameTooLong => 'атауы 150 таңбадан ұзын';
+
+  @override
+  String get menuImportTooMany => '500-ден көп жол — тізімді бөліңіз';
 }

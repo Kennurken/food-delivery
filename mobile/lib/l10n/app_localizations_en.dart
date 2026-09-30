@@ -1586,4 +1586,50 @@ class L10nEn extends L10n {
 
   @override
   String get pushOpen => 'Open';
+
+  @override
+  String get menuImport => 'Import menu';
+
+  @override
+  String get menuImportHint =>
+      'Copy rows from Excel or Google Sheets and paste them here: name, price, category, description. A header row may say which column is which.';
+
+  @override
+  String get menuImportExample =>
+      'Pilaf   2500   Hot dishes\nSamsa   800   Pastry';
+
+  @override
+  String get menuImportCheck => 'Check';
+
+  @override
+  String menuImportApply(int count) {
+    return 'Load $count dishes';
+  }
+
+  @override
+  String menuImportSummary(int created, int updated, int errors) {
+    return 'New: $created · Updated: $updated · Errors: $errors';
+  }
+
+  @override
+  String menuImportDone(int created, int updated) {
+    return 'Menu loaded: $created new, $updated updated';
+  }
+
+  @override
+  String menuImportLine(int line, String reason) {
+    return 'Line $line: $reason';
+  }
+
+  @override
+  String get menuImportNoName => 'no dish name';
+
+  @override
+  String get menuImportBadPrice => 'price not understood';
+
+  @override
+  String get menuImportNameTooLong => 'name is longer than 150 characters';
+
+  @override
+  String get menuImportTooMany => 'more than 500 rows — split the list';
 }

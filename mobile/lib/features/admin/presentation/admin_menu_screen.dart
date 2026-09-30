@@ -19,6 +19,7 @@ import 'billing_screen.dart';
 import 'manage_actions.dart';
 import '../../restaurants/data/restaurant_repository.dart';
 import 'admin_couriers_sheet.dart';
+import 'menu_import_sheet.dart';
 import 'admin_hours_sheet.dart';
 import 'admin_loyalty_sheet.dart';
 import 'admin_offers_sheet.dart';
@@ -218,6 +219,11 @@ class AdminMenuScreen extends ConsumerWidget {
                           label: t.reservations,
                           onTap: () =>
                               editReservations(context, ref, restaurantId),
+                        ),
+                        ManageAction(
+                          shape: AnimShape.plus,
+                          label: t.menuImport,
+                          onTap: () => importMenu(context, ref, restaurantId),
                         ),
                         if (venue?.offersDelivery ?? true)
                           ManageAction(

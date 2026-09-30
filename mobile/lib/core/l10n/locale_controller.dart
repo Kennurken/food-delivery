@@ -27,3 +27,19 @@ class LocaleController extends AsyncNotifier<Locale?> {
 
 final localeControllerProvider =
     AsyncNotifierProvider<LocaleController, Locale?>(LocaleController.new);
+
+/// The UI language as the server spells it, for texts it writes on our behalf
+/// (push notifications): the in-app choice, else the first of the device's
+/// preferred languages we translate, else Russian.
+String serverLanguage(Locale? chosen, Iterable<Locale> device) {
+  if (chosen != null &&
+      LocaleController._supported.contains(chosen.languageCode)) {
+    return chosen.languageCode;
+  }
+  for (final locale in device) {
+    if (LocaleController._supported.contains(locale.languageCode)) {
+      return locale.languageCode;
+    }
+  }
+  return 'ru';
+}

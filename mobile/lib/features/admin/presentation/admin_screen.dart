@@ -25,37 +25,106 @@ import 'platform_venues_screen.dart';
 import 'stats_tab.dart';
 import '../../../core/widgets/anim_icon.dart';
 
-class AdminScreen extends ConsumerWidget {
-  const AdminScreen({super.key});
+/// Where `/admin?tab=` lands: a top tab and, under Platform, its sub-tab.
+/// Unknown names land nowhere in particular (the screen opens as usual).
+({int top, int platform})? adminTabFor(String? tab) => switch (tab) {
+  'orders' => (top: 0, platform: 0),
+  'restaurants' => (top: 1, platform: 0),
+  'statistics' => (top: 2, platform: 0),
+  'platform' || 'overview' => (top: 3, platform: 0),
+  'directory' => (top: 3, platform: 1),
+  'income' => (top: 3, platform: 2),
+  'cities' => (top: 3, platform: 3),
+  'applications' => (top: 3, platform: 4),
+  _ => null,
+};
+
+class AdminScreen extends ConsumerStatefulWidget {
+  const AdminScreen({super.key, this.tab});
+
+  /// Tab to show, from `/admin?tab=` (a push about a new application opens
+  /// `applications`). See [adminTabFor].
+  final String? tab;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdminScreen> createState() => _AdminScreenState();
+}
+
+class _AdminScreenState extends ConsumerState<AdminScreen>
+    with TickerProviderStateMixin {
+  // Owned here rather than by DefaultTabControllers so a deep link can switch
+  // tabs on a screen that is already open.
+  late final TabController _top;
+  late final TabController _platform;
+
+  @override
+  void initState() {
+    super.initState();
+    final at = adminTabFor(widget.tab);
+    _top = TabController(length: 4, vsync: this, initialIndex: at?.top ?? 0);
+    _platform = TabController(
+      length: 5,
+      vsync: this,
+      initialIndex: at?.platform ?? 0,
+    );
+    _consumeTab();
+  }
+
+  @override
+  void didUpdateWidget(AdminScreen old) {
+    super.didUpdateWidget(old);
+    if (widget.tab == old.tab) return;
+    final at = adminTabFor(widget.tab);
+    if (at != null) {
+      _top.animateTo(at.top);
+      _platform.animateTo(at.platform);
+    }
+    _consumeTab();
+  }
+
+  /// The tab is a one-shot instruction. Dropping it from the address means a
+  /// second push for the same tab is a new location, so it switches again
+  /// after the admin has wandered off; the page (and these controllers) stay.
+  void _consumeTab() {
+    if (widget.tab == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) GoRouter.maybeOf(context)?.go('/admin');
+    });
+  }
+
+  @override
+  void dispose() {
+    _top.dispose();
+    _platform.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final t = context.l10n;
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(t.admin),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: t.logOut,
-              onPressed: () =>
-                  ref.read(authControllerProvider.notifier).logout(),
-            ),
-          ],
-          bottom: PillTabBar(
-            tabs: [t.orders, t.restaurants, t.statistics, t.platform],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(t.admin),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: t.logOut,
+            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
           ),
+        ],
+        bottom: PillTabBar(
+          controller: _top,
+          tabs: [t.orders, t.restaurants, t.statistics, t.platform],
         ),
-        body: const TabBarView(
-          children: [
-            _OrdersTab(),
-            _RestaurantsTab(),
-            StatsTab(),
-            _PlatformTab(),
-          ],
-        ),
+      ),
+      body: TabBarView(
+        controller: _top,
+        children: [
+          const _OrdersTab(),
+          const _RestaurantsTab(),
+          const StatsTab(),
+          _PlatformTab(controller: _platform),
+        ],
       ),
     );
   }
@@ -373,38 +442,39 @@ class _RestaurantDialogState extends State<_RestaurantDialog> {
 
 /// Platform surface: the headline numbers, then the tenant directory.
 class _PlatformTab extends StatelessWidget {
-  const _PlatformTab();
+  const _PlatformTab({required this.controller});
+
+  final TabController controller;
 
   @override
   Widget build(BuildContext context) {
     final t = context.l10n;
-    return DefaultTabController(
-      length: 5,
-      child: Column(
-        children: [
-          TabBar(
-            isScrollable: true,
-            tabs: [
-              Tab(text: t.overview),
-              Tab(text: t.directory),
-              Tab(text: t.income),
-              Tab(text: t.cities),
-              Tab(text: t.applications),
+    return Column(
+      children: [
+        TabBar(
+          controller: controller,
+          isScrollable: true,
+          tabs: [
+            Tab(text: t.overview),
+            Tab(text: t.directory),
+            Tab(text: t.income),
+            Tab(text: t.cities),
+            Tab(text: t.applications),
+          ],
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: controller,
+            children: const [
+              _PlatformOverview(),
+              PlatformVenuesTab(),
+              PlatformIncomeTab(),
+              PlatformCitiesTab(),
+              PlatformApplicationsTab(),
             ],
           ),
-          const Expanded(
-            child: TabBarView(
-              children: [
-                _PlatformOverview(),
-                PlatformVenuesTab(),
-                PlatformIncomeTab(),
-                PlatformCitiesTab(),
-                PlatformApplicationsTab(),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

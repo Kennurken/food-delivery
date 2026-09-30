@@ -1584,4 +1584,7 @@ class L10nRu extends L10n {
   @override
   String get temporaryPasswordHint =>
       'Передайте его владельцу по телефону и попросите сменить его в профиле.';
+
+  @override
+  String get pushOpen => 'Открыть';
 }

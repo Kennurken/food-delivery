@@ -1583,4 +1583,7 @@ class L10nEn extends L10n {
   @override
   String get temporaryPasswordHint =>
       'Give it to the owner by phone; ask them to change it in their profile.';
+
+  @override
+  String get pushOpen => 'Open';
 }

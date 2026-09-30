@@ -1583,4 +1583,7 @@ class L10nKk extends L10n {
   @override
   String get temporaryPasswordHint =>
       'Оны иесіне телефон арқылы айтыңыз және профилінде өзгертуін сұраңыз.';
+
+  @override
+  String get pushOpen => 'Ашу';
 }

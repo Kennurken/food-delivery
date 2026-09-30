@@ -117,6 +117,10 @@ class _CityForm extends ConsumerStatefulWidget {
 class _CityFormState extends ConsumerState<_CityForm> {
   late final _name = TextEditingController(text: widget.city?.name ?? '');
   late final _nameIn = TextEditingController(text: widget.city?.nameIn ?? '');
+  late final _nameKk = TextEditingController(text: widget.city?.nameKk ?? '');
+  late final _nameInKk = TextEditingController(
+    text: widget.city?.nameInKk ?? '',
+  );
   final _slug = TextEditingController();
   var _busy = false;
 
@@ -124,6 +128,8 @@ class _CityFormState extends ConsumerState<_CityForm> {
   void dispose() {
     _name.dispose();
     _nameIn.dispose();
+    _nameKk.dispose();
+    _nameInKk.dispose();
     _slug.dispose();
     super.dispose();
   }
@@ -132,6 +138,8 @@ class _CityFormState extends ConsumerState<_CityForm> {
     final repo = ref.read(citiesAdminRepositoryProvider);
     final name = _name.text.trim();
     final nameIn = _nameIn.text.trim();
+    final nameKk = _nameKk.text.trim();
+    final nameInKk = _nameInKk.text.trim();
     setState(() => _busy = true);
     try {
       final city = widget.city;
@@ -140,11 +148,15 @@ class _CityFormState extends ConsumerState<_CityForm> {
           slug: _slug.text.trim().toLowerCase(),
           name: name,
           nameIn: nameIn.isEmpty ? null : nameIn,
+          nameKk: nameKk.isEmpty ? null : nameKk,
+          nameInKk: nameInKk.isEmpty ? null : nameInKk,
         );
       } else {
         await repo.update(city.id, {
           'name': name,
           'name_in': nameIn.isEmpty ? null : nameIn,
+          'name_kk': nameKk.isEmpty ? null : nameKk,
+          'name_in_kk': nameInKk.isEmpty ? null : nameInKk,
         });
       }
       ref.invalidate(adminCitiesProvider);
@@ -185,6 +197,16 @@ class _CityFormState extends ConsumerState<_CityForm> {
             TextField(
               controller: _nameIn,
               decoration: InputDecoration(labelText: t.cityNameIn),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _nameKk,
+              decoration: InputDecoration(labelText: t.cityNameKk),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _nameInKk,
+              decoration: InputDecoration(labelText: t.cityNameInKk),
             ),
             if (adding) ...[
               const SizedBox(height: 10),

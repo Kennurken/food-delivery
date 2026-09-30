@@ -507,5 +507,7 @@
   "peakHours": "Часы пик",
   "regulars": "Постоянные гости",
   "regularsValue": "{again} из {total} вернулись",
-  "newGuestsOnly": "Только для новых гостей"
+  "newGuestsOnly": "Только для новых гостей",
+  "cityNameKk": "Название по-казахски",
+  "cityNameInKk": "Казахская форма «в городе» (например, Астанада)"
 }

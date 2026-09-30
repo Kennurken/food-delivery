@@ -20,10 +20,18 @@ class CitiesAdminRepository {
     required String slug,
     required String name,
     String? nameIn,
+    String? nameKk,
+    String? nameInKk,
   }) async {
     final r = await _dio.post(
       '/api/v1/admin/cities',
-      data: {'slug': slug, 'name': name, 'name_in': ?nameIn},
+      data: {
+        'slug': slug,
+        'name': name,
+        'name_in': ?nameIn,
+        'name_kk': ?nameKk,
+        'name_in_kk': ?nameInKk,
+      },
     );
     return AdminCity.fromJson(r.data);
   }

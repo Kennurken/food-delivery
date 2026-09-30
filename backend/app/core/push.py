@@ -20,7 +20,7 @@ import time
 from functools import lru_cache
 
 import httpx
-from jose import jwt
+import jwt
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 

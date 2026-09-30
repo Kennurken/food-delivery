@@ -1339,4 +1339,10 @@ class L10nEn extends L10n {
 
   @override
   String get newGuestsOnly => 'New guests only';
+
+  @override
+  String get cityNameKk => 'Name in Kazakh';
+
+  @override
+  String get cityNameInKk => 'Kazakh “in the city” form (e.g. Астанада)';
 }

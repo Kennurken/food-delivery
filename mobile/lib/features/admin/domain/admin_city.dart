@@ -8,6 +8,8 @@ class AdminCity {
     required this.slug,
     required this.name,
     required this.nameIn,
+    this.nameKk,
+    this.nameInKk,
     required this.lat,
     required this.lng,
     required this.utcOffsetMin,
@@ -20,6 +22,10 @@ class AdminCity {
   final String slug;
   final String name;
   final String? nameIn;
+
+  /// The same two for the Kazakh site ("Астана", "Астанада").
+  final String? nameKk;
+  final String? nameInKk;
   final double? lat;
   final double? lng;
   final int? utcOffsetMin;
@@ -32,6 +38,8 @@ class AdminCity {
     slug: json['slug'] as String,
     name: json['name'] as String,
     nameIn: json['name_in'] as String?,
+    nameKk: json['name_kk'] as String?,
+    nameInKk: json['name_in_kk'] as String?,
     lat: (json['lat'] as num?)?.toDouble(),
     lng: (json['lng'] as num?)?.toDouble(),
     utcOffsetMin: json['utc_offset_min'] as int?,

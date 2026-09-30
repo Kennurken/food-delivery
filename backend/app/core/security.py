@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 import bcrypt
-from jose import JWTError, jwt
+import jwt
 
 from app.core.config import settings
 
@@ -34,8 +34,12 @@ def create_refresh_token(subject: str) -> str:
 def decode_token(token: str, expected: TokenType = "access") -> str | None:
     """Return subject if token is valid and of the expected type, else None."""
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-    except JWTError:
+        # A few seconds of leeway: `iat` is checked, and two hosts' clocks are never
+        # exactly equal.
+        payload = jwt.decode(
+            token, settings.secret_key, algorithms=[settings.algorithm], leeway=10
+        )
+    except jwt.PyJWTError:
         return None
     if payload.get("type", "access") != expected:
         return None

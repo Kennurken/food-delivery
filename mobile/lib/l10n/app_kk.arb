@@ -507,5 +507,7 @@
   "peakHours": "Ең қарбалас сағаттар",
   "regulars": "Тұрақты қонақтар",
   "regularsValue": "{total} ішінен {again} қайта келді",
-  "newGuestsOnly": "Тек жаңа қонақтарға"
+  "newGuestsOnly": "Тек жаңа қонақтарға",
+  "cityNameKk": "Қазақша атауы",
+  "cityNameInKk": "Қазақша «қалада» түрі (мысалы, Астанада)"
 }

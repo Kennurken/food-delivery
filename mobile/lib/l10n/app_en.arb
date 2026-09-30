@@ -674,5 +674,7 @@
       }
     }
   },
-  "newGuestsOnly": "New guests only"
+  "newGuestsOnly": "New guests only",
+  "cityNameKk": "Name in Kazakh",
+  "cityNameInKk": "Kazakh “in the city” form (e.g. Астанада)"
 }

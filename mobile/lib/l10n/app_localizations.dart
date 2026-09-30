@@ -2582,6 +2582,18 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'New guests only'**
   String get newGuestsOnly;
+
+  /// No description provided for @cityNameKk.
+  ///
+  /// In en, this message translates to:
+  /// **'Name in Kazakh'**
+  String get cityNameKk;
+
+  /// No description provided for @cityNameInKk.
+  ///
+  /// In en, this message translates to:
+  /// **'Kazakh “in the city” form (e.g. Астанада)'**
+  String get cityNameInKk;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

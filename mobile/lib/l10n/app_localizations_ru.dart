@@ -1338,4 +1338,10 @@ class L10nRu extends L10n {
 
   @override
   String get newGuestsOnly => 'Только для новых гостей';
+
+  @override
+  String get cityNameKk => 'Название по-казахски';
+
+  @override
+  String get cityNameInKk => 'Казахская форма «в городе» (например, Астанада)';
 }

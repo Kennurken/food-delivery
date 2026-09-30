@@ -12,6 +12,8 @@ const _almaty = {
   'slug': 'almaty',
   'name': 'Алматы',
   'name_in': 'Алматы',
+  'name_kk': 'Алматы',
+  'name_in_kk': 'Алматыда',
   'lat': 43.2,
   'lng': 76.9,
   'utc_offset_min': 300,
@@ -47,6 +49,7 @@ void main() {
 
       expect(city.slug, 'almaty');
       expect(city.nameIn, 'Алматы');
+      expect(city.nameInKk, 'Алматыда');
       expect(city.utcOffsetMin, 300);
       expect(city.isActive, isTrue);
       expect(city.venues, 3);
@@ -71,8 +74,13 @@ void main() {
     test('create posts the address, name and declined name', () async {
       final rec = _Recorder(_almaty);
 
-      await CitiesAdminRepository(rec.dio)
-          .create(slug: 'shymkent', name: 'Шымкент', nameIn: 'Шымкенте');
+      await CitiesAdminRepository(rec.dio).create(
+        slug: 'shymkent',
+        name: 'Шымкент',
+        nameIn: 'Шымкенте',
+        nameKk: 'Шымкент',
+        nameInKk: 'Шымкентте',
+      );
 
       expect(rec.calls.single.method, 'POST');
       expect(rec.calls.single.path, '/api/v1/admin/cities');
@@ -80,6 +88,8 @@ void main() {
         'slug': 'shymkent',
         'name': 'Шымкент',
         'name_in': 'Шымкенте',
+        'name_kk': 'Шымкент',
+        'name_in_kk': 'Шымкентте',
       });
     });
 

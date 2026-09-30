@@ -1336,4 +1336,10 @@ class L10nKk extends L10n {
 
   @override
   String get newGuestsOnly => 'Тек жаңа қонақтарға';
+
+  @override
+  String get cityNameKk => 'Қазақша атауы';
+
+  @override
+  String get cityNameInKk => 'Қазақша «қалада» түрі (мысалы, Астанада)';
 }

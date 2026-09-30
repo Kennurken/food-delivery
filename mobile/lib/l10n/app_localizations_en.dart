@@ -1313,4 +1313,10 @@ class L10nEn extends L10n {
 
   @override
   String get reviewGuest => 'Guest';
+
+  @override
+  String get replyToReview => 'Reply';
+
+  @override
+  String get noReviewsYet => 'No reviews yet';
 }

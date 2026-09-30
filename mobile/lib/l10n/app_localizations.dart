@@ -2534,6 +2534,18 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Guest'**
   String get reviewGuest;
+
+  /// No description provided for @replyToReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get replyToReview;
+
+  /// No description provided for @noReviewsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews yet'**
+  String get noReviewsYet;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

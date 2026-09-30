@@ -499,5 +499,7 @@
   "reviewHint": "Не ұнады? (міндетті емес)",
   "reviewSend": "Жіберу",
   "venueReply": "Мекеменің жауабы",
-  "reviewGuest": "Қонақ"
+  "reviewGuest": "Қонақ",
+  "replyToReview": "Жауап беру",
+  "noReviewsYet": "Әзірге пікір жоқ"
 }

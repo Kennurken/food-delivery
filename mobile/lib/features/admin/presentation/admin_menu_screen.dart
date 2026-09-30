@@ -21,6 +21,7 @@ import '../../restaurants/data/restaurant_repository.dart';
 import 'admin_hours_sheet.dart';
 import 'admin_loyalty_sheet.dart';
 import 'admin_offers_sheet.dart';
+import 'admin_reviews_sheet.dart';
 
 class AdminMenuScreen extends ConsumerWidget {
   const AdminMenuScreen({super.key, required this.restaurantId});
@@ -147,6 +148,11 @@ class AdminMenuScreen extends ConsumerWidget {
                             );
                             ref.invalidate(restaurantProvider(restaurantId));
                           },
+                        ),
+                        ManageAction(
+                          shape: AnimShape.chart,
+                          label: t.reviews,
+                          onTap: () => editReviews(context, ref, restaurantId),
                         ),
                         ManageAction(
                           shape: AnimShape.bell,

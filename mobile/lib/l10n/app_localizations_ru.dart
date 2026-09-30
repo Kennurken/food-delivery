@@ -1312,4 +1312,10 @@ class L10nRu extends L10n {
 
   @override
   String get reviewGuest => 'Гость';
+
+  @override
+  String get replyToReview => 'Ответить';
+
+  @override
+  String get noReviewsYet => 'Отзывов пока нет';
 }

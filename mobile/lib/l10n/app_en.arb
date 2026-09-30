@@ -656,5 +656,7 @@
   "reviewHint": "What did you think? (optional)",
   "reviewSend": "Send",
   "venueReply": "Reply from the venue",
-  "reviewGuest": "Guest"
+  "reviewGuest": "Guest",
+  "replyToReview": "Reply",
+  "noReviewsYet": "No reviews yet"
 }

@@ -499,5 +499,7 @@
   "reviewHint": "Что вам понравилось? (необязательно)",
   "reviewSend": "Отправить",
   "venueReply": "Ответ заведения",
-  "reviewGuest": "Гость"
+  "reviewGuest": "Гость",
+  "replyToReview": "Ответить",
+  "noReviewsYet": "Отзывов пока нет"
 }

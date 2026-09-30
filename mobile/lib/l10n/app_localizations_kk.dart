@@ -1310,4 +1310,10 @@ class L10nKk extends L10n {
 
   @override
   String get reviewGuest => 'Қонақ';
+
+  @override
+  String get replyToReview => 'Жауап беру';
+
+  @override
+  String get noReviewsYet => 'Әзірге пікір жоқ';
 }

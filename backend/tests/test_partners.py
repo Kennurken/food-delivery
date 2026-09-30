@@ -401,3 +401,40 @@ class TestThePricesOnTheSite:
         html = client.get("/kk/partners/").text
 
         assert "Тарифтер" in html and "айына" in html
+
+
+class TestWhoHearsAboutIt:
+    @pytest.fixture
+    def pushed(self, monkeypatch):
+        from app.services import partners as svc
+
+        calls = []
+        monkeypatch.setattr(svc, "push_fanout", lambda db, ids, **kw: calls.append((set(ids), kw)))
+        return calls
+
+    def test_the_platform_is_told_about_a_new_application(self, client, admin, pushed):
+        body = _application()
+        client.post(APPLY, json=body)
+
+        admin_id = client.get("/api/v1/auth/me", headers=admin).json()["id"]
+        ids, kw = pushed[-1]
+        assert admin_id in ids
+        assert body["venue_name"] in kw["body"] and kw["data"]["cause"] == "application"
+
+    def test_the_owner_is_told_the_decision(self, client, admin, applied, pushed):
+        rid = applied["restaurant_id"]
+        client.post(f"/api/v1/admin/restaurants/{rid}/approval", json={"approve": True}, headers=admin)
+
+        ids, kw = pushed[-1]
+        assert ids == {applied["user"]["id"]}
+        assert "approved" in kw["title"] and kw["data"]["cause"] == "approval"
+
+    def test_a_rejection_carries_the_reason(self, client, admin, applied, pushed):
+        rid = applied["restaurant_id"]
+        client.post(
+            f"/api/v1/admin/restaurants/{rid}/approval",
+            json={"approve": False, "reason": "Нет санитарной книжки"},
+            headers=admin,
+        )
+
+        assert pushed[-1][1]["body"] == "Нет санитарной книжки"

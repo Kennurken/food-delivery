@@ -15,6 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core import subscriptions
+from app.core.push import fanout as push_fanout
 from app.core.security import hash_password
 from app.models import City, Restaurant, RestaurantMember, User, UserRole
 from app.services import cities
@@ -76,6 +77,15 @@ def apply(
     db.commit()
     db.refresh(owner)
     db.refresh(venue)
+    # Nobody checks an admin tab for fun: the platform hears about it at once.
+    admins = set(db.scalars(select(User.id).where(User.role == UserRole.admin)))
+    push_fanout(
+        db,
+        admins,
+        title="New restaurant application",
+        body=f"{venue.name} ({venue.cuisine}) · {contact_name}, {phone}",
+        data={"cause": "application", "restaurant_id": str(venue.id)},
+    )
     return owner, venue
 
 
@@ -93,6 +103,19 @@ def decide(db: Session, venue: Restaurant, *, approve: bool, reason: str | None 
         venue.rejection_reason = (reason or "").strip()[:300] or None
     db.commit()
     db.refresh(venue)
+    owner = owner_of(db, venue)
+    if owner is not None:
+        push_fanout(
+            db,
+            {owner.id},
+            title=f"{venue.name}: approved" if approve else f"{venue.name}: application declined",
+            body=(
+                "Guests can now see and order from you. The free month has started."
+                if approve
+                else (venue.rejection_reason or "Contact the platform for details.")
+            ),
+            data={"cause": "approval", "restaurant_id": str(venue.id)},
+        )
     return venue
 
 
